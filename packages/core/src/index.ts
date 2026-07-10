@@ -1,1 +1,1 @@
-export const CORE_PACKAGE = '@productiveme/core';
+export * from './types.js';
