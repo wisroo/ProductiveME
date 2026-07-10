@@ -48,7 +48,9 @@ describe('parseRegistry', () => {
     expect(() => parseRegistry(bad)).toThrow(/duplicate entry id "career-work-notes"/);
   });
 
-  it('rejects non-object yaml', () => {
+  it('rejects non-object yaml without a stray path prefix', () => {
     expect(() => parseRegistry('just a string')).toThrow(RegistryValidationError);
+    // top-level issue has an empty path — the message must not begin "invalid registry: : "
+    expect(() => parseRegistry('just a string')).not.toThrow(/registry: :/);
   });
 });

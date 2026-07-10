@@ -11,7 +11,8 @@ export const SUBDOMAINS: Record<DomainId, readonly string[]> = {
 export const CADENCES = ['weekly', 'monthly', 'quarterly'] as const;
 export type Cadence = (typeof CADENCES)[number];
 
-export type EntryKind = 'repo' | 'notion-page' | 'folder' | 'tool' | 'project';
+export const ENTRY_KINDS = ['repo', 'notion-page', 'folder', 'tool', 'project'] as const;
+export type EntryKind = (typeof ENTRY_KINDS)[number];
 
 export interface RegistryEntry {
   id: string;

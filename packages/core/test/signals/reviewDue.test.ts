@@ -42,4 +42,29 @@ describe('reviewDue', () => {
   it('ignores entries without a cadence', () => {
     expect(reviewDue([entry({ cadence: undefined })], [], NOW)).toHaveLength(0);
   });
+
+  it('treats a weekly entry idle longer than 7 days as due', () => {
+    // 8 days before NOW
+    const signals = reviewDue([entry({ cadence: 'weekly' })], [okSnap('finance-snapshot', '2026-07-02T00:00:00Z')], NOW);
+    expect(signals).toHaveLength(1);
+    expect(signals[0]?.message).toContain('weekly');
+  });
+
+  it('leaves a weekly entry touched within 7 days alone', () => {
+    // 5 days before NOW
+    const signals = reviewDue([entry({ cadence: 'weekly' })], [okSnap('finance-snapshot', '2026-07-05T00:00:00Z')], NOW);
+    expect(signals).toHaveLength(0);
+  });
+
+  it('treats a quarterly entry idle longer than 92 days as due', () => {
+    const signals = reviewDue([entry({ cadence: 'quarterly' })], [okSnap('finance-snapshot', '2026-01-01T00:00:00Z')], NOW);
+    expect(signals).toHaveLength(1);
+    expect(signals[0]?.message).toContain('quarterly');
+  });
+
+  it('does not fire exactly at the cadence boundary (strict greater-than)', () => {
+    // exactly 31 days before NOW for a monthly cadence: 31 > 31 is false
+    const signals = reviewDue([entry({})], [okSnap('finance-snapshot', '2026-06-09T00:00:00Z')], NOW);
+    expect(signals).toHaveLength(0);
+  });
 });

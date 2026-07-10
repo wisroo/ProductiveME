@@ -1,6 +1,6 @@
 import { parse } from 'yaml';
 import { z } from 'zod';
-import { CADENCES, DOMAIN_IDS, type RegistryEntry } from './types.js';
+import { CADENCES, DOMAIN_IDS, ENTRY_KINDS, type RegistryEntry } from './types.js';
 
 export class RegistryValidationError extends Error {
   constructor(message: string) {
@@ -12,7 +12,7 @@ export class RegistryValidationError extends Error {
 const entrySchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  kind: z.enum(['repo', 'notion-page', 'folder', 'tool', 'project']),
+  kind: z.enum(ENTRY_KINDS),
   domain: z.enum(DOMAIN_IDS),
   subdomain: z.string().min(1).optional(),
   locator: z.string().min(1),
@@ -41,7 +41,10 @@ export function parseRegistry(yamlText: string): RegistryEntry[] {
   const result = registrySchema.safeParse(data);
   if (!result.success) {
     const details = result.error.issues
-      .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+      .map((issue) => {
+        const path = issue.path.join('.');
+        return path ? `${path}: ${issue.message}` : issue.message;
+      })
       .join('; ');
     throw new RegistryValidationError(`invalid registry: ${details}`);
   }

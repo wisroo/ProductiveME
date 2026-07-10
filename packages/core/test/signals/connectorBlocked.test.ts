@@ -37,4 +37,16 @@ describe('connectorBlocked', () => {
     const orphan: Snapshot = { entryId: 'ghost', fetchedAt: '2026-07-10T00:00:00Z', status: 'error', items: [] };
     expect(connectorBlocked([ENTRY], [orphan])).toHaveLength(0);
   });
+
+  it('falls back to "unknown error" when the snapshot has no error string', () => {
+    const errorSnap: Snapshot = {
+      entryId: 'career-repo',
+      fetchedAt: '2026-07-10T00:00:00Z',
+      status: 'error',
+      items: [],
+    };
+    const signals = connectorBlocked([ENTRY], [errorSnap]);
+    expect(signals).toHaveLength(1);
+    expect(signals[0]?.message).toContain('unknown error');
+  });
 });
