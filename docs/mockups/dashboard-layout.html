@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ProductiveME Dashboard Mockup</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f3;
+        --panel: #ffffff;
+        --ink: #17191c;
+        --muted: #69707a;
+        --line: #dfe3df;
+        --career: #3659a6;
+        --finance: #2d7a58;
+        --data: #8a4b9c;
+        --life: #bd6b2a;
+        --warn: #b45309;
+        --good: #15803d;
+        --soft-blue: #e8eefc;
+        --soft-green: #e4f3ec;
+        --soft-purple: #f1e8f5;
+        --soft-orange: #f8eadc;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      button,
+      a {
+        font: inherit;
+      }
+
+      .app {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 248px minmax(0, 1fr);
+      }
+
+      .sidebar {
+        border-right: 1px solid var(--line);
+        background: #fbfbf8;
+        padding: 24px 18px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 28px;
+      }
+
+      .mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background: #17191c;
+        color: white;
+        font-weight: 800;
+      }
+
+      .brand h1 {
+        font-size: 17px;
+        line-height: 1.15;
+        margin: 0;
+      }
+
+      .brand span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 2px;
+      }
+
+      .nav-label {
+        margin: 22px 8px 8px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .nav-item {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        color: #33383f;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 38px;
+        border-radius: 8px;
+        padding: 0 10px;
+        text-align: left;
+      }
+
+      .nav-item.active {
+        background: #ecefeb;
+        color: #111315;
+        font-weight: 700;
+      }
+
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: var(--muted);
+        flex: 0 0 auto;
+      }
+
+      .main {
+        padding: 24px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .eyebrow {
+        color: var(--muted);
+        font-size: 13px;
+        margin: 0 0 5px;
+      }
+
+      .topbar h2 {
+        font-size: 28px;
+        line-height: 1.15;
+        margin: 0;
+        letter-spacing: 0;
+      }
+
+      .mode-switch {
+        display: flex;
+        gap: 4px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        border-radius: 8px;
+        padding: 4px;
+      }
+
+      .mode-switch button {
+        border: 0;
+        background: transparent;
+        border-radius: 6px;
+        padding: 8px 10px;
+        color: var(--muted);
+      }
+
+      .mode-switch button.active {
+        background: #17191c;
+        color: white;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.7fr);
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .panel-title {
+        font-size: 14px;
+        font-weight: 800;
+        margin: 0;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        border-radius: 999px;
+        padding: 0 9px;
+        background: #eef0ec;
+        color: #48505a;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .focus-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .focus-item {
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        min-height: 58px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+      }
+
+      .rank {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background: #17191c;
+        color: white;
+        font-weight: 800;
+      }
+
+      .focus-item strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 3px;
+      }
+
+      .focus-item span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .ghost-button {
+        border: 1px solid var(--line);
+        background: white;
+        border-radius: 8px;
+        min-height: 34px;
+        padding: 0 10px;
+        color: #30343a;
+        font-weight: 700;
+      }
+
+      .signal-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .signal {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-height: 42px;
+        border-bottom: 1px solid #ecefeb;
+      }
+
+      .signal:last-child {
+        border-bottom: 0;
+      }
+
+      .signal b {
+        font-size: 13px;
+      }
+
+      .signal span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .domains {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .domain-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+        min-height: 250px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .domain-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .domain-name {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 900;
+      }
+
+      .domain-name .dot {
+        width: 11px;
+        height: 11px;
+      }
+
+      .score {
+        text-align: right;
+      }
+
+      .score b {
+        display: block;
+        font-size: 22px;
+      }
+
+      .score span {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .metric-row {
+        display: grid;
+        gap: 8px;
+      }
+
+      .metric {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        color: #30343a;
+        font-size: 13px;
+      }
+
+      .metric span:last-child {
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .action-box {
+        margin-top: auto;
+        background: #f7f8f5;
+        border: 1px solid #e7eae6;
+        border-radius: 8px;
+        padding: 10px;
+      }
+
+      .action-box small {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        margin-bottom: 5px;
+      }
+
+      .action-box strong {
+        display: block;
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .lower-grid {
+        display: grid;
+        grid-template-columns: minmax(320px, 0.8fr) minmax(0, 1.2fr);
+        gap: 16px;
+      }
+
+      .link-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .quick-link {
+        min-height: 56px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        background: white;
+      }
+
+      .quick-link b {
+        display: block;
+        font-size: 13px;
+      }
+
+      .quick-link span {
+        color: var(--muted);
+        display: block;
+        font-size: 12px;
+        margin-top: 3px;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 10px;
+      }
+
+      .timeline-item {
+        display: grid;
+        grid-template-columns: 88px minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        min-height: 48px;
+        border-bottom: 1px solid #ecefeb;
+      }
+
+      .timeline-item:last-child {
+        border-bottom: 0;
+      }
+
+      .timeline-item time {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .timeline-item b {
+        display: block;
+        font-size: 13px;
+      }
+
+      .timeline-item span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .career {
+        background: linear-gradient(180deg, var(--soft-blue), #fff 36%);
+      }
+
+      .finance {
+        background: linear-gradient(180deg, var(--soft-green), #fff 36%);
+      }
+
+      .data {
+        background: linear-gradient(180deg, var(--soft-purple), #fff 36%);
+      }
+
+      .life {
+        background: linear-gradient(180deg, var(--soft-orange), #fff 36%);
+      }
+
+      @media (max-width: 1100px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          display: none;
+        }
+
+        .domains {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 760px) {
+        .main {
+          padding: 16px;
+        }
+
+        .topbar,
+        .hero-grid,
+        .lower-grid {
+          grid-template-columns: 1fr;
+          display: grid;
+        }
+
+        .topbar {
+          align-items: stretch;
+        }
+
+        .domains,
+        .link-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .focus-item,
+        .timeline-item {
+          grid-template-columns: 1fr;
+        }
+
+        .mode-switch {
+          overflow-x: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="mark">P</div>
+          <div>
+            <h1>ProductiveME</h1>
+            <span>Personal Control Plane</span>
+          </div>
+        </div>
+
+        <div class="nav-label">Dashboard</div>
+        <button class="nav-item active"><span class="dot"></span>Overview</button>
+        <button class="nav-item"><span class="dot" style="background: var(--career)"></span>Career</button>
+        <button class="nav-item"><span class="dot" style="background: var(--finance)"></span>Finance</button>
+        <button class="nav-item"><span class="dot" style="background: var(--data)"></span>Personal Data</button>
+        <button class="nav-item"><span class="dot" style="background: var(--life)"></span>Life</button>
+
+        <div class="nav-label">Control</div>
+        <button class="nav-item">Reviews</button>
+        <button class="nav-item">Projects</button>
+        <button class="nav-item">Registry</button>
+        <button class="nav-item">Settings</button>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div>
+            <p class="eyebrow">Wednesday, July 1 · This week</p>
+            <h2>Choose the next right action.</h2>
+          </div>
+          <div class="mode-switch" aria-label="Current mode">
+            <button>Build</button>
+            <button class="active">Balance</button>
+            <button>Review</button>
+            <button>Recover</button>
+          </div>
+        </div>
+
+        <section class="hero-grid" aria-label="Weekly control section">
+          <div class="panel">
+            <div class="panel-head">
+              <h3 class="panel-title">This Week Focus</h3>
+              <span class="pill">3 actions</span>
+            </div>
+            <div class="focus-list">
+              <div class="focus-item">
+                <div class="rank">1</div>
+                <div>
+                  <strong>Define TechVest ingestion MVP</strong>
+                  <span>Career · Study/Dream · portfolio direction</span>
+                </div>
+                <button class="ghost-button">Open</button>
+              </div>
+              <div class="focus-item">
+                <div class="rank">2</div>
+                <div>
+                  <strong>Record July finance snapshot</strong>
+                  <span>Finance · monthly state check</span>
+                </div>
+                <button class="ghost-button">Open</button>
+              </div>
+              <div class="focus-item">
+                <div class="rank">3</div>
+                <div>
+                  <strong>Schedule exercise before work expands</strong>
+                  <span>Life · balance signal</span>
+                </div>
+                <button class="ghost-button">Open</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h3 class="panel-title">Signals</h3>
+              <span class="pill">Needs attention</span>
+            </div>
+            <div class="signal-list">
+              <div class="signal">
+                <div>
+                  <b>Career load is high</b><br />
+                  <span>Work and Study both active</span>
+                </div>
+                <span class="pill" style="color: var(--warn)">Watch</span>
+              </div>
+              <div class="signal">
+                <div>
+                  <b>Finance review is due</b><br />
+                  <span>July snapshot not recorded</span>
+                </div>
+                <span class="pill">Due</span>
+              </div>
+              <div class="signal">
+                <div>
+                  <b>Life is under-planned</b><br />
+                  <span>No exercise slots yet</span>
+                </div>
+                <span class="pill">Balance</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="domains" aria-label="Domain overview">
+          <article class="domain-card career">
+            <div class="domain-top">
+              <div class="domain-name"><span class="dot" style="background: var(--career)"></span>Career</div>
+              <div class="score"><b>78</b><span>health</span></div>
+            </div>
+            <div class="metric-row">
+              <div class="metric"><span>Work</span><span>busy</span></div>
+              <div class="metric"><span>Study</span><span>active</span></div>
+              <div class="metric"><span>Dream</span><span>needs output</span></div>
+            </div>
+            <div class="action-box">
+              <small>NEXT ACTION</small>
+              <strong>Turn TechVest idea into one executable MVP task.</strong>
+            </div>
+          </article>
+
+          <article class="domain-card finance">
+            <div class="domain-top">
+              <div class="domain-name"><span class="dot" style="background: var(--finance)"></span>Finance</div>
+              <div class="score"><b>61</b><span>health</span></div>
+            </div>
+            <div class="metric-row">
+              <div class="metric"><span>Snapshot</span><span>missing</span></div>
+              <div class="metric"><span>Cash Flow</span><span>pending</span></div>
+              <div class="metric"><span>Portfolio</span><span>stable</span></div>
+            </div>
+            <div class="action-box">
+              <small>NEXT ACTION</small>
+              <strong>Enter actual July asset state before analyzing spending.</strong>
+            </div>
+          </article>
+
+          <article class="domain-card data">
+            <div class="domain-top">
+              <div class="domain-name"><span class="dot" style="background: var(--data)"></span>Personal Data</div>
+              <div class="score"><b>54</b><span>health</span></div>
+            </div>
+            <div class="metric-row">
+              <div class="metric"><span>Photos</span><span>queued</span></div>
+              <div class="metric"><span>Files</span><span>growing</span></div>
+              <div class="metric"><span>HeartPin</span><span>linked</span></div>
+            </div>
+            <div class="action-box">
+              <small>NEXT ACTION</small>
+              <strong>Scan Downloads and create a cleanup queue.</strong>
+            </div>
+          </article>
+
+          <article class="domain-card life">
+            <div class="domain-top">
+              <div class="domain-name"><span class="dot" style="background: var(--life)"></span>Life</div>
+              <div class="score"><b>47</b><span>health</span></div>
+            </div>
+            <div class="metric-row">
+              <div class="metric"><span>Exercise</span><span>0 / 2</span></div>
+              <div class="metric"><span>Church</span><span>scheduled</span></div>
+              <div class="metric"><span>Travel</span><span>idle</span></div>
+            </div>
+            <div class="action-box">
+              <small>NEXT ACTION</small>
+              <strong>Reserve two exercise windows before adding more work.</strong>
+            </div>
+          </article>
+        </section>
+
+        <section class="lower-grid" aria-label="Links and review timeline">
+          <div class="panel">
+            <div class="panel-head">
+              <h3 class="panel-title">Action Hub</h3>
+              <span class="pill">External systems</span>
+            </div>
+            <div class="link-grid">
+              <div class="quick-link"><b>Notion Home</b><span>daily planning</span></div>
+              <div class="quick-link"><b>Google Tasks</b><span>request queue</span></div>
+              <div class="quick-link"><b>TechVest Repo</b><span>career project</span></div>
+              <div class="quick-link"><b>Finance Repo</b><span>monthly review</span></div>
+              <div class="quick-link"><b>HeartPin Repo</b><span>photo context</span></div>
+              <div class="quick-link"><b>Local Files</b><span>cleanup source</span></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h3 class="panel-title">Review Timeline</h3>
+              <button class="ghost-button">Generate Review</button>
+            </div>
+            <div class="timeline">
+              <div class="timeline-item">
+                <time>Today</time>
+                <div><b>Weekly control review</b><span>Pick 3 actions across all domains.</span></div>
+                <span class="pill">Ready</span>
+              </div>
+              <div class="timeline-item">
+                <time>Jul 05</time>
+                <div><b>Career project check</b><span>Confirm TechVest output and next milestone.</span></div>
+                <span class="pill">Planned</span>
+              </div>
+              <div class="timeline-item">
+                <time>Jul 31</time>
+                <div><b>Monthly finance review</b><span>Snapshot, cash flow, portfolio notes.</span></div>
+                <span class="pill">Due later</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

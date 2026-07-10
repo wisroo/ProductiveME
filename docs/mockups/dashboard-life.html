@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ProductiveME Life</title>
+    <link rel="stylesheet" href="./domain-detail.css" />
+  </head>
+  <body style="--accent: var(--life); --accent-soft: var(--life-soft)">
+    <div class="page">
+      <header class="topbar">
+        <a class="brand" href="./dashboard-game.html">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none">
+              <path d="M32 12c9 0 16 7 16 16 0 15-16 24-16 24S16 43 16 28c0-9 7-16 16-16Z" stroke="currentColor" stroke-width="3" />
+              <path d="M24 30c3 4 6 6 8 6s5-2 8-6" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span>
+            <b>ProductiveME</b>
+            <small>Life control page</small>
+          </span>
+        </a>
+        <nav class="tabs" aria-label="Primary">
+          <a href="./dashboard-game.html">Home</a>
+          <a href="./dashboard-career.html">Career</a>
+          <a href="./dashboard-finance.html">Finance</a>
+          <a href="./dashboard-data.html">Personal Data</a>
+          <a href="./dashboard-life.html" aria-current="page">Life</a>
+        </nav>
+        <div class="top-actions">
+          <a class="button" href="./dashboard-game.html">Back Home</a>
+        </div>
+      </header>
+
+      <main class="detail-board">
+        <section class="panel">
+          <div class="panel-head">
+            <div class="label">Life · signal</div>
+            <h1>Protect non-work time.</h1>
+            <p>Life is not only leisure. It includes recovery, faith, health, travel, play, and relationships.</p>
+          </div>
+          <div class="summary-card">
+            <b>Current interpretation</b>
+            <span>Exercise and rest need calendar protection before Career expands further. Church is scheduled, but recovery is low.</span>
+          </div>
+          <div class="metric-stack">
+            <div class="metric"><small>EXERCISE</small><b>0 / 2 blocks</b><span>Not protected yet. Put it on the calendar before more work appears.</span></div>
+            <div class="metric"><small>REST</small><b>Low</b><span>Recovery is a planning input, not a reward after everything else.</span></div>
+            <div class="metric"><small>CHURCH</small><b>Scheduled</b><span>Keep this as a stable anchor in the week.</span></div>
+          </div>
+        </section>
+
+        <section class="panel main-panel">
+          <div class="panel-head">
+            <div class="label">Life map · current state</div>
+            <h2>Recovery, meaning, and play.</h2>
+            <p>This page should show whether life outside work is being planned intentionally.</p>
+          </div>
+          <div class="subdomain-grid">
+            <article class="subdomain">
+              <h3>Exercise</h3>
+              <p>Body maintenance, energy, and weekly rhythm.</p>
+              <div class="readout"><span>Target</span><b>2 blocks</b></div>
+              <div class="readout"><span>Current</span><b>0 blocks</b></div>
+              <div class="readout"><span>Need</span><b>calendar hold</b></div>
+            </article>
+            <article class="subdomain">
+              <h3>Rest</h3>
+              <p>Recovery, sleep pressure, quiet time, and decompression.</p>
+              <div class="readout"><span>Status</span><b>low</b></div>
+              <div class="readout"><span>Risk</span><b>work spillover</b></div>
+              <div class="readout"><span>Next</span><b>protect evening</b></div>
+            </article>
+            <article class="subdomain">
+              <h3>Church</h3>
+              <p>Faith rhythm, scheduled attendance, and community anchor.</p>
+              <div class="readout"><span>Status</span><b>scheduled</b></div>
+              <div class="readout"><span>Role</span><b>anchor</b></div>
+              <div class="readout"><span>Next</span><b>keep clear</b></div>
+            </article>
+            <article class="subdomain">
+              <h3>Travel & Games</h3>
+              <p>Play, exploration, enjoyment, and non-productive memory creation.</p>
+              <div class="readout"><span>Travel</span><b>future</b></div>
+              <div class="readout"><span>Games</span><b>log only</b></div>
+              <div class="readout"><span>Rule</span><b>no guilt</b></div>
+            </article>
+          </div>
+          <div class="panel-link-row">
+            <a class="panel-link" href="#">Weekly calendar</a>
+            <a class="panel-link" href="#">Exercise plan</a>
+            <a class="panel-link" href="#">Church schedule</a>
+            <a class="panel-link" href="#">Travel ideas</a>
+          </div>
+        </section>
+
+        <section class="panel right-panel">
+          <div class="panel-head">
+            <div class="label">Life · next actions</div>
+            <h3>Schedule recovery before overflow.</h3>
+            <p>The best Life action is often a boundary, not another task.</p>
+          </div>
+          <div class="action-list">
+            <a class="action" href="#"><span class="check"></span><div><b>Reserve two exercise blocks.</b><span>Choose time before work fills the week.</span></div><span class="due">WEEK</span></a>
+            <a class="action" href="#"><span class="check"></span><div><b>Protect one quiet evening.</b><span>No career tasks unless truly urgent.</span></div><span class="due">NEXT</span></a>
+            <a class="action" href="#"><span class="check"></span><div><b>Log one enjoyable activity.</b><span>Keep life visible without turning it into productivity theater.</span></div><span class="due">OPEN</span></a>
+          </div>
+          <div class="footer-strip">
+            <div class="mini"><b>Loading</b><span>Checking calendar.</span></div>
+            <div class="mini"><b>Empty</b><span>No rest block planned.</span></div>
+            <div class="mini"><b>Error</b><span>Calendar source offline.</span></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

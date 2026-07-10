@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ProductiveME Finance</title>
+    <link rel="stylesheet" href="./domain-detail.css" />
+  </head>
+  <body style="--accent: var(--finance); --accent-soft: var(--finance-soft)">
+    <div class="page">
+      <header class="topbar">
+        <a class="brand" href="./dashboard-game.html">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none">
+              <path d="M16 42c8-12 16-16 32-20" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+              <path d="M18 46h28" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+              <path d="M22 34h8v12h-8zM36 26h8v20h-8z" stroke="currentColor" stroke-width="3" />
+            </svg>
+          </span>
+          <span>
+            <b>ProductiveME</b>
+            <small>Finance control page</small>
+          </span>
+        </a>
+        <nav class="tabs" aria-label="Primary">
+          <a href="./dashboard-game.html">Home</a>
+          <a href="./dashboard-career.html">Career</a>
+          <a href="./dashboard-finance.html" aria-current="page">Finance</a>
+          <a href="./dashboard-data.html">Personal Data</a>
+          <a href="./dashboard-life.html">Life</a>
+        </nav>
+        <div class="top-actions">
+          <a class="button" href="./dashboard-game.html">Back Home</a>
+        </div>
+      </header>
+
+      <main class="detail-board">
+        <section class="panel">
+          <div class="panel-head">
+            <div class="label">Finance · signal</div>
+            <h1>Snapshot before analysis.</h1>
+            <p>Finance starts from actual asset state, then explains the month through logs and decisions.</p>
+          </div>
+          <div class="summary-card">
+            <b>Current interpretation</b>
+            <span>The monthly asset snapshot is due. Spending analysis should wait until the real state is captured.</span>
+          </div>
+          <div class="metric-stack">
+            <div class="metric"><small>SNAPSHOT</small><b>July state not recorded</b><span>Use actual bank and brokerage balances as the reconciliation anchor.</span></div>
+            <div class="metric"><small>CASH FLOW</small><b>Pending review</b><span>Transactions can explain the month after the snapshot is fixed.</span></div>
+            <div class="metric"><small>PORTFOLIO</small><b>Stable, not urgent</b><span>Review only after the monthly checkpoint is complete.</span></div>
+          </div>
+        </section>
+
+        <section class="panel main-panel">
+          <div class="panel-head">
+            <div class="label">Finance map · current state</div>
+            <h2>Money state, logs, and portfolio.</h2>
+            <p>This page separates truth, explanation, and decision so finance does not become noisy.</p>
+          </div>
+          <div class="subdomain-grid">
+            <article class="subdomain">
+              <h3>Asset State</h3>
+              <p>Monthly actual snapshot from source-of-truth accounts.</p>
+              <div class="readout"><span>July</span><b>due</b></div>
+              <div class="readout"><span>Method</span><b>snapshot</b></div>
+              <div class="readout"><span>Anchor</span><b>actual balance</b></div>
+            </article>
+            <article class="subdomain">
+              <h3>Cash Flow</h3>
+              <p>Income, spending, reimbursements, and controllable outflow.</p>
+              <div class="readout"><span>Status</span><b>pending</b></div>
+              <div class="readout"><span>View</span><b>net flow</b></div>
+              <div class="readout"><span>Risk</span><b>missed logs</b></div>
+            </article>
+            <article class="subdomain">
+              <h3>Portfolio</h3>
+              <p>Investment allocation, thesis review, and rebalancing watch.</p>
+              <div class="readout"><span>Mode</span><b>monitor</b></div>
+              <div class="readout"><span>Action</span><b>none urgent</b></div>
+              <div class="readout"><span>Next</span><b>monthly note</b></div>
+            </article>
+            <article class="subdomain">
+              <h3>Future Assets</h3>
+              <p>Future expansion for real estate, vehicle, insurance, and large assets.</p>
+              <div class="readout"><span>Real estate</span><b>future</b></div>
+              <div class="readout"><span>Vehicle</span><b>future</b></div>
+              <div class="readout"><span>Insurance</span><b>future</b></div>
+            </article>
+          </div>
+          <div class="panel-link-row">
+            <a class="panel-link" href="#">Finance repo</a>
+            <a class="panel-link" href="#">Monthly sheet</a>
+            <a class="panel-link" href="#">Bank apps checklist</a>
+            <a class="panel-link" href="#">Portfolio notes</a>
+          </div>
+        </section>
+
+        <section class="panel right-panel">
+          <div class="panel-head">
+            <div class="label">Finance · next actions</div>
+            <h3>Close the month cleanly.</h3>
+            <p>Do the reconciliation anchor first, then interpret.</p>
+          </div>
+          <div class="action-list">
+            <a class="action" href="#"><span class="check"></span><div><b>Record July asset state.</b><span>Capture actual balances before cash-flow judgment.</span></div><span class="due">DUE</span></a>
+            <a class="action" href="#"><span class="check"></span><div><b>Add correction row if needed.</b><span>Force Excel state to actual state instead of debugging tiny drift.</span></div><span class="due">NEXT</span></a>
+            <a class="action" href="#"><span class="check"></span><div><b>Write one portfolio sentence.</b><span>State whether anything changed or whether monitoring is enough.</span></div><span class="due">WEEK</span></a>
+          </div>
+          <div class="footer-strip">
+            <div class="mini"><b>Loading</b><span>Checking finance source.</span></div>
+            <div class="mini"><b>Empty</b><span>No snapshot this month.</span></div>
+            <div class="mini"><b>Error</b><span>Manual fallback needed.</span></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

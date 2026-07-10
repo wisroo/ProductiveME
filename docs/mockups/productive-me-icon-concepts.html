@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ProductiveME Icon Concepts</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #051424;
+        --stage: #0d1c2d;
+        --panel: rgba(18, 33, 49, 0.72);
+        --ink: #d4e4fa;
+        --muted: #c6c6cd;
+        --soft: #798098;
+        --line: rgba(190, 198, 224, 0.18);
+        --career: #5de6ff;
+        --finance: #ffb95f;
+        --life: #61d29a;
+        --data: #bec6e0;
+        --shadow: 0 26px 70px -44px rgba(0, 203, 230, 0.34);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100dvh;
+      }
+
+      body {
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 16% 12%, rgba(93, 230, 255, 0.15), transparent 31%),
+          radial-gradient(circle at 84% 78%, rgba(255, 185, 95, 0.12), transparent 32%),
+          linear-gradient(180deg, #010f1f, #051424 52%, #0d1c2d);
+        font-family:
+          "Avenir Next", "Nunito Sans", Geist, "Pretendard", ui-sans-serif,
+          system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.2;
+        background-image:
+          linear-gradient(rgba(190, 198, 224, 0.09) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(190, 198, 224, 0.09) 1px, transparent 1px);
+        background-size: 48px 48px;
+      }
+
+      .wrap {
+        width: min(1320px, calc(100vw - 34px));
+        min-height: calc(100dvh - 34px);
+        margin: 17px auto;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 14px;
+      }
+
+      header {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background:
+          linear-gradient(180deg, rgba(212, 228, 250, 0.08), transparent),
+          rgba(18, 33, 49, 0.72);
+        box-shadow: var(--shadow), inset 0 1px 0 rgba(212, 228, 250, 0.12);
+        backdrop-filter: blur(18px);
+        padding: 20px;
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr) auto;
+        gap: 20px;
+        align-items: center;
+      }
+
+      .generated-icon {
+        width: 112px;
+        height: 112px;
+        border: 1px solid rgba(93, 230, 255, 0.38);
+        border-radius: 28px;
+        object-fit: cover;
+        box-shadow:
+          inset 0 1px 0 rgba(212, 228, 250, 0.22),
+          0 18px 42px -26px rgba(93, 230, 255, 0.72);
+      }
+
+      .label {
+        color: var(--career);
+        font-size: 11px;
+        font-weight: 950;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      h1,
+      h2 {
+        margin: 8px 0 0;
+        line-height: 1.04;
+        font-family:
+          "Avenir Next Rounded", "Trebuchet MS", "Nunito Sans", Geist,
+          "Pretendard", ui-rounded, system-ui, sans-serif;
+      }
+
+      h1 {
+        font-size: clamp(32px, 3.4vw, 48px);
+      }
+
+      p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .button {
+        min-height: 46px;
+        border: 1px solid rgba(93, 230, 255, 0.48);
+        border-radius: 16px;
+        color: #00363e;
+        background: var(--career);
+        box-shadow:
+          inset 0 1px 0 rgba(212, 228, 250, 0.48),
+          0 0 28px -14px var(--career);
+        padding: 0 18px;
+        font-weight: 950;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .concepts {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .concept {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background:
+          linear-gradient(180deg, rgba(212, 228, 250, 0.075), transparent),
+          var(--panel);
+        box-shadow: var(--shadow), inset 0 1px 0 rgba(212, 228, 250, 0.13);
+        backdrop-filter: blur(18px);
+        padding: 22px;
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr);
+        gap: 18px;
+      }
+
+      .icon-stage {
+        aspect-ratio: 1;
+        border: 1px solid rgba(190, 198, 224, 0.16);
+        border-radius: 28px;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 30% 18%, rgba(212, 228, 250, 0.25), transparent 28%),
+          linear-gradient(145deg, rgba(93, 230, 255, 0.12), rgba(255, 185, 95, 0.08)),
+          #102235;
+      }
+
+      .app-icon {
+        width: min(72%, 260px);
+        height: min(72%, 260px);
+      }
+
+      .raster-icon {
+        width: min(74%, 270px);
+        height: min(74%, 270px);
+        border-radius: 26%;
+        object-fit: cover;
+        display: block;
+        box-shadow: 0 18px 44px -30px rgba(93, 230, 255, 0.92);
+      }
+
+      .concept h2 {
+        font-size: 23px;
+      }
+
+      .notes {
+        display: grid;
+        gap: 9px;
+        align-content: start;
+      }
+
+      .note {
+        border-top: 1px solid var(--line);
+        padding-top: 10px;
+        color: var(--muted);
+        font-size: 12.5px;
+        line-height: 1.4;
+      }
+
+      .note b {
+        color: var(--ink);
+      }
+
+      @media (max-width: 1040px) {
+        .concepts,
+        header {
+          grid-template-columns: 1fr;
+        }
+
+        .generated-icon {
+          width: 96px;
+          height: 96px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <img class="generated-icon" src="./assets/productiveme-tetra-glyph-only-depth.png" alt="Generated ProductiveME standalone tetrahedron constellation glyph with central diamond spark" />
+        <div>
+          <div class="label">ProductiveME · service icon exploration</div>
+          <h1>Tetra constellation console.</h1>
+          <p>This version keeps the soft personal console, connects the four domains as a tetrahedron-like signal network, and marks the center as the orchestration point.</p>
+        </div>
+        <a class="button" href="./dashboard-game.html">Back Home</a>
+      </header>
+
+      <main class="concepts">
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-tetra-glyph-only-depth.png" alt="Standalone tetrahedron ProductiveME glyph with raised pale node" />
+          </div>
+          <div>
+            <div class="label">Glyph · Standalone Depth</div>
+            <h2>Tetra Glyph Only</h2>
+            <p>바깥 네모와 원형 디스크를 제거하고 정사각형 캔버스 안에 정사면체 구조만 남긴 안입니다. 흰점은 위로 올려 후면 깊이감을 더했습니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 정사면체 의미가 가장 직접적이고, 불필요한 장식이 줄었습니다.</div>
+            <div class="note"><b>Risk:</b> 앱 아이콘의 물성보다 심볼/로고 느낌이 더 강합니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-tetra-glyph-only-compact.png" alt="Compact standalone tetrahedron ProductiveME glyph with raised pale node" />
+          </div>
+          <div>
+            <div class="label">Glyph · Compact</div>
+            <h2>Compact Tetra Glyph</h2>
+            <p>같은 구조를 더 작고 여백 있게 둔 안입니다. 심볼로는 깔끔하지만, 작은 크기에서는 선이 약해질 수 있습니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 가장 미니멀하고 로고 마크처럼 보입니다.</div>
+            <div class="note"><b>Risk:</b> 서비스 아이콘으로는 존재감이 약할 수 있습니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-tetra-right-perspective-depth.png" alt="Right perspective tetrahedron ProductiveME icon variation with depth" />
+          </div>
+          <div>
+            <div class="label">Tetra · Right Depth</div>
+            <h2>Right Tetra Depth</h2>
+            <p>살짝 오른쪽에서 본 원형 디스크 위에 정사면체 구조를 얹은 안입니다. 후면 노드와 흐린 변으로 평면 사각형보다 3D 피라미드처럼 읽히게 했습니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 현재까지 가장 정사면체 느낌이 강하고, 중앙 spark도 총괄 포인트로 잘 보입니다.</div>
+            <div class="note"><b>Risk:</b> 비대칭 원근 때문에 기존 정면 아이콘보다 약간 더 동적인 인상입니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-tetra-right-perspective.png" alt="Right perspective tetrahedron ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">Tetra · Right View</div>
+            <h2>Right Tetra View</h2>
+            <p>같은 오른쪽 시점이지만 연결선이 더 균일한 안입니다. 원형 디스크의 입체감은 좋지만, 구조는 조금 더 마름모처럼 읽힙니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 디스크의 오른쪽 시점과 원형 테두리가 안정적입니다.</div>
+            <div class="note"><b>Risk:</b> 정사면체보다 평면 와이어프레임 느낌이 조금 남습니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-tetra-spark-round-asym.png" alt="Round asymmetrical tetra spark ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">Tetra · Round Spark</div>
+            <h2>Round Tetra Spark</h2>
+            <p>두 번째 spark 스타일을 유지하면서 외곽을 자연스러운 원형 디스크로 정리한 안입니다. 중앙 spark도 더 커져 총괄 포인트가 명확합니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 현재까지 가장 서비스 아이콘답고, 4영역과 총괄 의미가 함께 읽힙니다.</div>
+            <div class="note"><b>Risk:</b> 원형 구조 때문에 약간 더 정제된 시스템 아이콘처럼 보입니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-tetra-spark-round.png" alt="Round symmetrical tetra spark ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">Tetra · Round Symmetric</div>
+            <h2>Round Spark Symmetric</h2>
+            <p>같은 원형 디스크 방향이지만 노드 배치가 더 대칭적인 안입니다. 선명하지만 사방진 느낌이 살짝 남습니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 구성이 가장 또렷하고 작은 크기에서도 읽기 쉽습니다.</div>
+            <div class="note"><b>Risk:</b> 대칭성이 강해 방향키 인상이 약간 돌아옵니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-tetra-diamond-spark.png" alt="Tetrahedron constellation ProductiveME icon with central diamond spark" />
+          </div>
+          <div>
+            <div class="label">Tetra · Diamond Spark</div>
+            <h2>Tetra Spark</h2>
+            <p>두 번째 스타일의 밝은 연결선을 유지하고, 중앙에 작은 다이아 별표를 둔 안입니다. 네 영역을 지휘하는 총괄 포인트가 가장 자연스럽게 읽힙니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 중앙이 다섯 번째 영역이 아니라 오케스트레이션 신호처럼 보입니다.</div>
+            <div class="note"><b>Risk:</b> 선과 별표가 강해서 soft-mascot보다 게임 UI 쪽으로 살짝 기웁니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-tetra-center-dot.png" alt="Tetrahedron constellation ProductiveME icon with central coordinating dot" />
+          </div>
+          <div>
+            <div class="label">Tetra · Center Dot</div>
+            <h2>Tetra Center Dot</h2>
+            <p>중앙에 작은 총괄 점을 둔 안입니다. 의미는 직접적이지만, 점이 실제 노드처럼 보여 다섯 번째 영역으로 오해될 여지가 있습니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 컨트롤 타워의 중심점 의미가 가장 명확합니다.</div>
+            <div class="note"><b>Risk:</b> 중앙 점이 너무 노드처럼 보여 4영역 구조를 흐릴 수 있습니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-tetra-constellation-soft.png" alt="Soft tetrahedron constellation ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">Tetra · Recommended</div>
+            <h2>Tetra Constellation Soft</h2>
+            <p>Control Constellation을 유지하면서 네 영역을 하나의 정사면체 와이어프레임처럼 연하게 연결한 안입니다. 중앙 허브 없이 네 점 사이 관계가 먼저 보입니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 4영역이 하나의 구조로 묶인다는 의미가 가장 자연스럽습니다.</div>
+            <div class="note"><b>Risk:</b> 작은 크기에서는 연한 선 일부가 약하게 보일 수 있습니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-tetra-constellation.png" alt="Tetrahedron constellation ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">Tetra · Brighter Lines</div>
+            <h2>Tetra Constellation</h2>
+            <p>같은 정사면체 연결 컨셉이지만 선이 더 밝고 구조가 선명한 안입니다. 게임 대시보드 느낌은 더 강하게 살아납니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 네 점의 연결 관계가 한눈에 잘 읽힙니다.</div>
+            <div class="note"><b>Risk:</b> 선이 강해서 조용한 soft-mascot 감성은 조금 줄어듭니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-status-pebbles.png" alt="Status Pebbles soft ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">No Cross A · Status Pebbles</div>
+            <h2>Status Pebbles</h2>
+            <p>네 영역을 버튼이 아니라 조약돌처럼 콘솔 표면에 자연스럽게 박은 안입니다. 사방진 느낌이 가장 적고 soft-mascot 감성이 잘 남습니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 부드럽고 친근하며 서비스 아이콘으로 오래 쓰기 좋습니다.</div>
+            <div class="note"><b>Risk:</b> 4영역의 구조적 의미는 비교적 은근하게 읽힙니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-control-constellation.png" alt="Control Constellation soft ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">No Cross B · Control Constellation</div>
+            <h2>Control Constellation</h2>
+            <p>네 개의 신호를 작은 연결 구조로 묶은 안입니다. 궤도처럼 돌기보다는 콘솔 안의 상태 네트워크처럼 보이도록 잡았습니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 컨트롤 플레인과 신호 분석의 의미가 살아납니다.</div>
+            <div class="note"><b>Risk:</b> 작은 크기에서는 연결선이 약해질 수 있습니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-dashboard-tiles.png" alt="Dashboard Tiles soft ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">No Cross C · Dashboard Tiles</div>
+            <h2>Dashboard Tiles</h2>
+            <p>네 영역을 네 개의 작은 대시보드 타일로 표현한 안입니다. 생산성 플랫폼이라는 의미가 가장 직접적으로 보입니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> Career, Finance, Data, Life가 모듈처럼 읽힙니다.</div>
+            <div class="note"><b>Risk:</b> 내부 심볼이 들어가면서 다른 안보다 설명적입니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-signal-capsules.png" alt="Signal Capsules soft ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">No Cross D · Signal Capsules</div>
+            <h2>Signal Capsules</h2>
+            <p>네 영역을 작은 캡슐형 상태 표시등으로 만든 안입니다. 게임 HUD 느낌은 남기면서 방향키 형태는 피합니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 상태 대시보드 느낌이 강하고 조작 가능한 콘솔처럼 보입니다.</div>
+            <div class="note"><b>Risk:</b> 여전히 UI 버튼 느낌이 조금 남을 수 있습니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-core-satellites.png" alt="Core and Satellites soft ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">No Cross E · Core + Satellites</div>
+            <h2>Core + Satellites</h2>
+            <p>중심 코어 가까이에 네 신호를 모은 안입니다. 하나의 개인 콘솔 안에 여러 상태가 붙어 있다는 느낌이 납니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 기존 콘솔 개념과 연결성이 좋습니다.</div>
+            <div class="note"><b>Risk:</b> 생성 결과에 따라 사방 배치로 되돌아갈 가능성이 있습니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-four-inlays.png" alt="Four Inlays soft ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">No Cross F · Four Inlays</div>
+            <h2>Four Inlays</h2>
+            <p>네 영역을 빛나는 버튼보다 재질 인레이처럼 넣은 안입니다. 차분하고 고급스러워 서비스 아이콘으로 가장 안정적입니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 가장 덜 딱딱하고 오래 봐도 부담이 적습니다.</div>
+            <div class="note"><b>Risk:</b> 게임 대시보드 감성은 상대적으로 약합니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-soft-embedded-chips.png" alt="Embedded Chips soft ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">No Cross G · Embedded Chips</div>
+            <h2>Embedded Chips</h2>
+            <p>초코칩처럼 네 개의 신호가 콘솔 표면에 박혀 있는 안입니다. 음식처럼 보이지 않게 색상과 재질은 기존 콘솔 톤을 유지했습니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 가장 자연스럽게 비대칭이고 soft-mascot의 친근함이 강합니다.</div>
+            <div class="note"><b>Risk:</b> 너무 단순해지면 4영역보다 장식으로 보일 수 있습니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-console-retro-arcade.png" alt="Retro Arcade ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">Style A · Retro Arcade</div>
+            <h2>Retro Arcade</h2>
+            <p>픽셀/CRT 질감이 들어간 게임 아이콘형입니다. 중심 코어는 작고, 네 영역등이 게임 스탯 슬롯처럼 가장 선명하게 보입니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 게임 감성이 가장 직접적이고 기억에 남습니다.</div>
+            <div class="note"><b>Risk:</b> 서비스가 너무 레트로 게임처럼 보일 수 있습니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-console-character.png" alt="Character Console ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">Style B · Character Console</div>
+            <h2>Character Console</h2>
+            <p>작은 동료 콘솔처럼 느껴지는 안입니다. 얼굴을 넣지 않고도 부드러운 형태와 균형 잡힌 4개 신호로 친근감을 줍니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 가장 친근하고 앱 아이콘으로 안정적입니다.</div>
+            <div class="note"><b>Risk:</b> 게임성은 레트로/RPG 안보다 덜 강합니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-console-rpg-emblem.png" alt="Retro RPG Emblem ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">Style C · RPG Emblem</div>
+            <h2>RPG Emblem</h2>
+            <p>스킬 휠이나 속성석 문장처럼 읽히는 안입니다. 네 영역이 각각의 스탯/속성으로 보이는 구조가 강합니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 4영역 의미와 게임적 상징성이 가장 강합니다.</div>
+            <div class="note"><b>Risk:</b> 생산성 플랫폼보다는 판타지 UI처럼 보일 수 있습니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-console-soft-mascot.png" alt="Soft Mascot Console ProductiveME icon variation" />
+          </div>
+          <div>
+            <div class="label">Style D · Soft Mascot Console</div>
+            <h2>Soft Mascot</h2>
+            <p>게임 대시보드와 조용한 개인 콘솔의 중간입니다. 중심 코어를 가장 작게 두고 네 영역등을 부드럽게 강조합니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 가장 현대적인 앱 아이콘 느낌이고 오래 써도 부담이 적습니다.</div>
+            <div class="note"><b>Risk:</b> 추상도가 높아 ProductiveME의 컨트롤 플레인 의미는 설명이 필요합니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-console-four-a.png" alt="Four Lights icon variation" />
+          </div>
+          <div>
+            <div class="label">Generated A</div>
+            <h2>Four Lights</h2>
+            <p>가장 단순한 콘솔형. 네 개의 영역등이 한눈에 보이고 앱 아이콘으로 축소해도 구조가 잘 남습니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 제일 명확하고 안정적입니다.</div>
+            <div class="note"><b>Risk:</b> 의미가 조금 일반적인 시스템 상태 아이콘처럼 보일 수 있습니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-console-four-b.png" alt="Quadrant Lens icon variation" />
+          </div>
+          <div>
+            <div class="label">Generated B · applied</div>
+            <h2>Quadrant Lens</h2>
+            <p>네 영역이 4분할 구조로 읽히는 안입니다. ProductiveME가 각 도메인을 묶는 컨트롤 플레인이라는 의미가 가장 분명합니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> Career, Finance, Personal Data, Life의 구조가 가장 잘 드러납니다.</div>
+            <div class="note"><b>Risk:</b> A보다 약간 더 장치적이고 정교한 인상입니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <img class="raster-icon" src="./assets/productiveme-console-four-c.png" alt="Minimal Glyph icon variation" />
+          </div>
+          <div>
+            <div class="label">Generated C</div>
+            <h2>Minimal Glyph</h2>
+            <p>가장 아이콘다운 밀도를 가진 안입니다. 중심 코어와 네 개의 신호가 깔끔하게 보이지만 설명성은 B보다 낮습니다.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> 앱 아이콘으로 가장 정돈되어 보입니다.</div>
+            <div class="note"><b>Risk:</b> 네 영역의 의미가 작은 크기에서는 조금 약해질 수 있습니다.</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <svg class="app-icon" viewBox="0 0 256 256" fill="none" aria-label="Life Compass icon concept">
+              <defs>
+                <linearGradient id="compass-bg" x1="48" x2="212" y1="36" y2="220">
+                  <stop stop-color="#5de6ff" />
+                  <stop offset="0.55" stop-color="#61d29a" />
+                  <stop offset="1" stop-color="#ffb95f" />
+                </linearGradient>
+              </defs>
+              <rect x="18" y="18" width="220" height="220" rx="54" fill="#0d1c2d" />
+              <rect x="18" y="18" width="220" height="220" rx="54" stroke="url(#compass-bg)" stroke-width="7" />
+              <path d="M128 46c34 0 61 27 61 61 0 48-61 104-61 104S67 155 67 107c0-34 27-61 61-61Z" fill="rgba(93,230,255,.12)" stroke="#d4e4fa" stroke-width="7" />
+              <path d="M111 128l51-42-22 63-46 24 17-45Z" fill="url(#compass-bg)" />
+              <circle cx="128" cy="128" r="13" fill="#051424" stroke="#d4e4fa" stroke-width="5" />
+              <circle cx="84" cy="86" r="8" fill="#5de6ff" />
+              <circle cx="181" cy="97" r="8" fill="#ffb95f" />
+              <circle cx="171" cy="177" r="8" fill="#61d29a" />
+              <circle cx="76" cy="171" r="8" fill="#bec6e0" />
+            </svg>
+          </div>
+          <div>
+            <div class="label">Concept A</div>
+            <h2>Life Compass</h2>
+            <p>A personal navigation mark. Best if ProductiveME should feel like a direction-setting companion.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> More emotional and personal than a dashboard glyph.</div>
+            <div class="note"><b>Risk:</b> Can feel like a travel or location app if simplified poorly.</div>
+            <div class="note"><b>Use when:</b> The service identity is “where should my life go next?”</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <svg class="app-icon" viewBox="0 0 256 256" fill="none" aria-label="Signal Crest icon concept">
+              <defs>
+                <linearGradient id="crest-bg" x1="50" x2="210" y1="38" y2="224">
+                  <stop stop-color="#d4e4fa" />
+                  <stop offset="0.45" stop-color="#5de6ff" />
+                  <stop offset="1" stop-color="#61d29a" />
+                </linearGradient>
+              </defs>
+              <rect x="18" y="18" width="220" height="220" rx="52" fill="#0d1c2d" />
+              <path d="M128 36l72 27v55c0 47-27 80-72 103-45-23-72-56-72-103V63l72-27Z" fill="rgba(212,228,250,.08)" stroke="url(#crest-bg)" stroke-width="7" />
+              <path d="M88 140c18-32 36-47 77-58" stroke="#5de6ff" stroke-width="12" stroke-linecap="round" />
+              <path d="M89 168h78" stroke="#ffb95f" stroke-width="12" stroke-linecap="round" />
+              <path d="M96 103c16 10 31 10 46 0" stroke="#61d29a" stroke-width="10" stroke-linecap="round" />
+              <circle cx="88" cy="140" r="8" fill="#5de6ff" />
+              <circle cx="165" cy="82" r="8" fill="#5de6ff" />
+              <circle cx="89" cy="168" r="8" fill="#ffb95f" />
+              <circle cx="167" cy="168" r="8" fill="#ffb95f" />
+            </svg>
+          </div>
+          <div>
+            <div class="label">Concept B</div>
+            <h2>Signal Crest</h2>
+            <p>A private emblem for review, protection, and alignment. More brand-like and less literal.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> Feels like a real product mark, not a diagram.</div>
+            <div class="note"><b>Risk:</b> Crest shape can feel too formal if the UI gets too serious.</div>
+            <div class="note"><b>Use when:</b> The service identity is “my protected operating system.”</div>
+          </div>
+        </section>
+
+        <section class="concept">
+          <div class="icon-stage">
+            <svg class="app-icon" viewBox="0 0 256 256" fill="none" aria-label="Orbit Desk icon concept">
+              <defs>
+                <linearGradient id="orbit-bg" x1="44" x2="212" y1="44" y2="212">
+                  <stop stop-color="#5de6ff" />
+                  <stop offset="0.5" stop-color="#bec6e0" />
+                  <stop offset="1" stop-color="#ffb95f" />
+                </linearGradient>
+              </defs>
+              <rect x="18" y="18" width="220" height="220" rx="52" fill="#0d1c2d" />
+              <rect x="18" y="18" width="220" height="220" rx="52" stroke="url(#orbit-bg)" stroke-width="7" />
+              <ellipse cx="128" cy="128" rx="76" ry="42" stroke="#5de6ff" stroke-width="6" opacity=".85" />
+              <ellipse cx="128" cy="128" rx="76" ry="42" stroke="#61d29a" stroke-width="6" opacity=".68" transform="rotate(58 128 128)" />
+              <ellipse cx="128" cy="128" rx="76" ry="42" stroke="#ffb95f" stroke-width="6" opacity=".68" transform="rotate(-58 128 128)" />
+              <rect x="93" y="93" width="70" height="70" rx="22" fill="rgba(212,228,250,.12)" stroke="#d4e4fa" stroke-width="6" />
+              <path d="M110 128h36M128 110v36" stroke="#d4e4fa" stroke-width="7" stroke-linecap="round" />
+              <circle cx="55" cy="128" r="10" fill="#5de6ff" />
+              <circle cx="177" cy="70" r="10" fill="#ffb95f" />
+              <circle cx="176" cy="186" r="10" fill="#61d29a" />
+              <circle cx="81" cy="185" r="10" fill="#bec6e0" />
+            </svg>
+          </div>
+          <div>
+            <div class="label">Concept C</div>
+            <h2>Orbit Desk</h2>
+            <p>A control-plane symbol. The four domains orbit a stable center that turns scattered inputs into next actions.</p>
+          </div>
+          <div class="notes">
+            <div class="note"><b>Strength:</b> Closest to the current dashboard metaphor.</div>
+            <div class="note"><b>Risk:</b> Can become too technical if every line is preserved at small sizes.</div>
+            <div class="note"><b>Use when:</b> The service identity is “hub that connects my systems.”</div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

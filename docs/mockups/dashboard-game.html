@@ -1,0 +1,1228 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ProductiveME Game Dashboard</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #051424;
+        --stage: #0d1c2d;
+        --panel: rgba(18, 33, 49, 0.68);
+        --panel-2: rgba(39, 54, 71, 0.74);
+        --tile: #d4e4fa;
+        --tile-ink: #00363e;
+        --ink: #d4e4fa;
+        --muted: #c6c6cd;
+        --soft: #798098;
+        --line: rgba(190, 198, 224, 0.16);
+        --line-strong: rgba(190, 198, 224, 0.3);
+        --accent: #5de6ff;
+        --accent-dark: #00515d;
+        --accent-soft: rgba(93, 230, 255, 0.12);
+        --career: #5de6ff;
+        --career-soft: rgba(93, 230, 255, 0.12);
+        --finance: #ffb95f;
+        --finance-soft: rgba(255, 185, 95, 0.14);
+        --life: #61d29a;
+        --life-soft: rgba(97, 210, 154, 0.13);
+        --data: #bec6e0;
+        --data-soft: rgba(190, 198, 224, 0.11);
+        --gold: #ffb95f;
+        --gold-soft: rgba(255, 185, 95, 0.14);
+        --danger: #ffb4ab;
+        --good: #61d29a;
+        --radius: 18px;
+        --shadow: 0 26px 70px -44px rgba(0, 203, 230, 0.34);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100dvh;
+      }
+
+      body {
+        overflow: hidden;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 14% 14%, rgba(93, 230, 255, 0.16), transparent 30%),
+          radial-gradient(circle at 84% 72%, rgba(255, 185, 95, 0.12), transparent 30%),
+          linear-gradient(180deg, #010f1f, #051424 50%, #0d1c2d);
+        font-family:
+          "Avenir Next", "Nunito Sans", Geist, "Pretendard", ui-sans-serif,
+          system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        letter-spacing: 0;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.24;
+        background-image:
+          linear-gradient(rgba(190, 198, 224, 0.09) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(190, 198, 224, 0.09) 1px, transparent 1px);
+        background-size: 48px 48px;
+        mask-image: linear-gradient(to bottom, #000, transparent 88%);
+      }
+
+      button,
+      a {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .game {
+        width: min(1500px, calc(100vw - 34px));
+        height: calc(100dvh - 34px);
+        margin: 17px auto;
+        display: grid;
+        grid-template-rows: 74px minmax(0, 1fr);
+        gap: 14px;
+      }
+
+      .topbar {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background:
+          linear-gradient(180deg, rgba(212, 228, 250, 0.08), transparent),
+          rgba(18, 33, 49, 0.72);
+        box-shadow: var(--shadow), inset 0 1px 0 rgba(212, 228, 250, 0.12);
+        backdrop-filter: blur(18px);
+        display: grid;
+        grid-template-columns: minmax(260px, 0.9fr) minmax(420px, 1fr) auto;
+        gap: 14px;
+        align-items: center;
+        padding: 11px 14px;
+      }
+
+      .brand {
+        display: inline-grid;
+        grid-template-columns: 50px minmax(0, 1fr);
+        gap: 12px;
+        align-items: center;
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .badge {
+        width: 50px;
+        height: 50px;
+        border: 1px solid rgba(93, 230, 255, 0.42);
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 30% 22%, rgba(212, 228, 250, 0.55), transparent 34%),
+          linear-gradient(145deg, rgba(93, 230, 255, 0.3), rgba(255, 185, 95, 0.1)),
+          var(--accent);
+        box-shadow:
+          inset 0 1px 0 rgba(212, 228, 250, 0.42),
+          0 0 32px -12px rgba(93, 230, 255, 0.86);
+      }
+
+      .badge span {
+        width: 22px;
+        height: 22px;
+        border: 2px solid #00363e;
+        border-radius: 8px;
+        transform: rotate(45deg);
+        background: rgba(255, 255, 255, 0.28);
+      }
+
+      .badge img {
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+        object-fit: cover;
+        display: block;
+      }
+
+      .brand b {
+        display: block;
+        font-size: 17px;
+        line-height: 1;
+      }
+
+      .brand small {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .tabs {
+        justify-self: center;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .tabs a {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0 15px;
+        color: var(--muted);
+        background: rgba(212, 228, 250, 0.04);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .tabs a[aria-current="page"] {
+        color: #00363e;
+        border-color: rgba(93, 230, 255, 0.7);
+        background: linear-gradient(180deg, #a2eeff, #2fd9f4);
+      }
+
+      .top-actions {
+        display: flex;
+        justify-content: end;
+        gap: 10px;
+      }
+
+      .icon-button,
+      .play-button,
+      .small-button {
+        border: 1px solid rgba(93, 230, 255, 0.44);
+        color: var(--tile-ink);
+        background: var(--accent);
+        box-shadow:
+          inset 0 1px 0 rgba(212, 228, 250, 0.5),
+          0 0 28px -12px rgba(93, 230, 255, 0.9);
+        transition:
+          transform 0.26s cubic-bezier(0.16, 1, 0.3, 1),
+          filter 0.26s;
+      }
+
+      .icon-button {
+        width: 46px;
+        height: 46px;
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+      }
+
+      .icon-button i {
+        width: 16px;
+        height: 16px;
+        border: 3px solid currentColor;
+        border-radius: 50%;
+        position: relative;
+      }
+
+      .icon-button i::after {
+        content: "";
+        position: absolute;
+        width: 9px;
+        height: 3px;
+        right: -8px;
+        bottom: -4px;
+        background: currentColor;
+        transform: rotate(45deg);
+        border-radius: 999px;
+      }
+
+      .play-button {
+        min-height: 46px;
+        border-radius: 16px;
+        padding: 0 18px;
+        font-weight: 950;
+      }
+
+      .icon-button:hover,
+      .play-button:hover,
+      .small-button:hover,
+      .quest:hover,
+      .domain:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.04);
+      }
+
+      .icon-button:active,
+      .play-button:active,
+      .small-button:active,
+      .quest:active,
+      .domain:active {
+        transform: translateY(2px) scale(0.985);
+      }
+
+      .board {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(310px, 0.86fr) minmax(440px, 1.12fr) minmax(330px, 0.92fr);
+        gap: 14px;
+      }
+
+      .panel {
+        min-height: 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background:
+          linear-gradient(180deg, rgba(212, 228, 250, 0.075), transparent),
+          var(--panel);
+        box-shadow: var(--shadow), inset 0 1px 0 rgba(212, 228, 250, 0.13);
+        backdrop-filter: blur(18px);
+        overflow: hidden;
+      }
+
+      .left,
+      .right {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+      }
+
+      .left {
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+      }
+
+      .panel-head {
+        padding: 20px 20px 15px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .label {
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 950;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .panel-head h1,
+      .panel-head h2,
+      .panel-head h3 {
+        margin: 8px 0 0;
+        line-height: 1.04;
+        letter-spacing: 0;
+        font-family:
+          "Avenir Next Rounded", "Trebuchet MS", "Nunito Sans", Geist,
+          "Pretendard", ui-rounded, system-ui, sans-serif;
+        font-weight: 800;
+      }
+
+      .panel-head h1 {
+        font-size: clamp(30px, 3vw, 44px);
+        max-width: 430px;
+      }
+
+      .panel-head h2 {
+        font-size: 27px;
+      }
+
+      .panel-head h3 {
+        font-size: 23px;
+      }
+
+      .panel-head p {
+        margin: 11px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.42;
+      }
+
+      .player-card {
+        margin: 14px 16px;
+        border: 1px solid rgba(93, 230, 255, 0.26);
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at 16% 0%, rgba(93, 230, 255, 0.14), transparent 42%),
+          rgba(212, 228, 250, 0.045);
+        padding: 14px;
+      }
+
+      .player-card b {
+        display: block;
+        font-size: 15px;
+        margin-bottom: 6px;
+      }
+
+      .player-card span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.42;
+      }
+
+      .signal-list {
+        min-height: 0;
+        overflow: hidden;
+        display: grid;
+        gap: 9px;
+        margin: 0 16px 16px;
+        align-content: start;
+      }
+
+      .signal {
+        --signal: var(--accent);
+        --signal-soft: var(--accent-soft);
+        min-height: 50px;
+        border: 1px solid color-mix(in srgb, var(--signal) 28%, transparent);
+        border-radius: 15px;
+        background:
+          linear-gradient(90deg, var(--signal-soft), transparent 42%),
+          rgba(212, 228, 250, 0.035);
+        padding: 8px 11px;
+        display: grid;
+        grid-template-columns: 68px minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--signal) 72%, transparent);
+      }
+
+      .signal time {
+        color: var(--signal);
+        font-family: "Space Mono", "JetBrains Mono", ui-monospace, monospace;
+        font-size: 10px;
+        line-height: 1.35;
+      }
+
+      .signal b {
+        display: block;
+        font-size: 11.5px;
+        margin-bottom: 3px;
+      }
+
+      .signal span {
+        display: block;
+        color: var(--muted);
+        font-size: 10.5px;
+        line-height: 1.35;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 0 16px 16px;
+      }
+
+      .stat {
+        min-height: 92px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(212, 228, 250, 0.04);
+        padding: 13px;
+      }
+
+      .stat small {
+        display: block;
+        color: var(--soft);
+        font-size: 10px;
+        font-weight: 950;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+      }
+
+      .stat b {
+        display: block;
+        margin-top: 8px;
+        color: var(--accent);
+        font-family: "Space Mono", "JetBrains Mono", ui-monospace, monospace;
+        font-size: 28px;
+      }
+
+      .stat span {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.32;
+      }
+
+      .ui-states {
+        border-top: 1px solid var(--line);
+        padding: 9px 16px 12px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .state {
+        min-height: 52px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 9px;
+        background: rgba(212, 228, 250, 0.035);
+      }
+
+      .state b {
+        display: block;
+        font-size: 10px;
+        margin-bottom: 6px;
+      }
+
+      .state p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.28;
+      }
+
+      .skeleton {
+        position: relative;
+        overflow: hidden;
+        width: 78%;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(212, 228, 250, 0.1);
+      }
+
+      .skeleton::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, transparent, rgba(93, 230, 255, 0.8), transparent);
+        animation: shimmer 2.1s infinite;
+      }
+
+      @keyframes shimmer {
+        to {
+          transform: translateX(100%);
+        }
+      }
+
+      .map-panel {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+      }
+
+      .map-wrap {
+        min-height: 0;
+        padding: 16px;
+        display: grid;
+      }
+
+      .present-grid {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .domain-tile {
+        --tile-glow: var(--career-soft);
+        --tile-line: color-mix(in srgb, var(--career) 42%, transparent);
+        position: relative;
+        min-height: 0;
+        border: 1px solid color-mix(in srgb, var(--tile-line) 52%, var(--line));
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at 85% 20%, var(--tile-glow), transparent 34%),
+          linear-gradient(180deg, rgba(212, 228, 250, 0.075), transparent),
+          rgba(212, 228, 250, 0.035);
+        padding: 16px;
+        overflow: hidden;
+        color: inherit;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        transition:
+          transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+          border-color 0.3s,
+          background 0.3s;
+      }
+
+      .domain-tile:hover {
+        transform: translateY(-2px);
+        border-color: var(--tile-line);
+      }
+
+      .domain-tile:active {
+        transform: translateY(2px) scale(0.985);
+      }
+
+      .domain-tile::before {
+        content: "";
+        position: absolute;
+        right: 14px;
+        top: 14px;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 1px solid var(--tile-line);
+        opacity: 0.72;
+      }
+
+      .domain-tile::after {
+        content: "";
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: 0;
+        height: 2px;
+        border-radius: 999px 999px 0 0;
+        background: linear-gradient(90deg, transparent, var(--tile-line), transparent);
+        opacity: 0.92;
+      }
+
+      .domain-tile h3 {
+        margin: 0 0 10px;
+        font-size: 19px;
+        line-height: 1.08;
+        font-family:
+          "Avenir Next Rounded", "Trebuchet MS", "Nunito Sans", Geist,
+          "Pretendard", ui-rounded, system-ui, sans-serif;
+        font-weight: 800;
+      }
+
+      .domain-tile p {
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: 12.5px;
+        line-height: 1.42;
+        max-width: 26ch;
+      }
+
+      .readouts {
+        display: grid;
+        gap: 5px;
+        margin-top: auto;
+      }
+
+      .readout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.25;
+      }
+
+      .readout b {
+        color: color-mix(in srgb, var(--tile-line) 74%, var(--ink));
+        font-family: "Space Mono", "JetBrains Mono", ui-monospace, monospace;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .open-detail {
+        position: relative;
+        justify-self: end;
+        align-self: end;
+        margin-top: 5px;
+        color: color-mix(in srgb, var(--tile-line) 82%, var(--ink));
+        font-family: "Space Mono", "JetBrains Mono", ui-monospace, monospace;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+
+      .source-gates {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        padding: 0 16px 16px;
+      }
+
+      .gate {
+        --gate: var(--accent);
+        --gate-soft: var(--accent-soft);
+        min-height: 28px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid color-mix(in srgb, var(--gate) 30%, transparent);
+        border-radius: 999px;
+        padding: 0 9px;
+        color: color-mix(in srgb, var(--gate) 38%, var(--muted));
+        background: var(--gate-soft);
+        font-size: 10.5px;
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      .gate::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--gate);
+        margin-right: 6px;
+        box-shadow: 0 0 0 4px var(--gate-soft);
+      }
+
+      .map {
+        min-height: 0;
+        position: relative;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(93, 230, 255, 0.12), transparent 34%),
+          radial-gradient(circle at 82% 54%, rgba(255, 185, 95, 0.08), transparent 28%),
+          linear-gradient(135deg, rgba(212, 228, 250, 0.04), transparent),
+          #0d1c2d;
+        overflow: hidden;
+      }
+
+      .map::before {
+        content: "";
+        position: absolute;
+        left: 13%;
+        right: 13%;
+        top: 50%;
+        height: 1px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, transparent, rgba(93, 230, 255, 0.36), transparent);
+      }
+
+      .map::after {
+        content: "";
+        position: absolute;
+        top: 12%;
+        bottom: 12%;
+        left: 50%;
+        width: 1px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, transparent, rgba(93, 230, 255, 0.36), transparent);
+      }
+
+      .ring {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: min(48vh, 390px);
+        height: min(48vh, 390px);
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(93, 230, 255, 0.24);
+        border-radius: 50%;
+        animation: spin 24s linear infinite;
+      }
+
+      .ring::after {
+        content: "";
+        position: absolute;
+        inset: 18%;
+        border: 1px solid rgba(255, 185, 95, 0.18);
+        border-radius: 50%;
+      }
+
+      @keyframes spin {
+        to {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      .core {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 142px;
+        height: 142px;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(93, 230, 255, 0.54);
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        background:
+          radial-gradient(circle at 28% 18%, rgba(212, 228, 250, 0.48), transparent 32%),
+          linear-gradient(180deg, rgba(93, 230, 255, 0.22), rgba(18, 33, 49, 0.92));
+        color: var(--ink);
+        box-shadow:
+          inset 0 1px 0 rgba(212, 228, 250, 0.28),
+          0 0 42px -12px rgba(93, 230, 255, 0.72);
+        animation: float 4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translate(-50%, -50%) translateY(0);
+        }
+
+        50% {
+          transform: translate(-50%, -50%) translateY(-7px);
+        }
+      }
+
+      .core b {
+        display: block;
+        font-family: "Space Mono", "JetBrains Mono", ui-monospace, monospace;
+        font-size: 38px;
+      }
+
+      .core span {
+        display: block;
+        font-size: 11px;
+        font-weight: 950;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .domain {
+        position: absolute;
+        width: min(176px, 28%);
+        min-height: 92px;
+        transform: translate(-50%, -50%);
+        border: 1px solid var(--line-strong);
+        border-radius: 16px;
+        background:
+          linear-gradient(180deg, rgba(212, 228, 250, 0.08), transparent),
+          var(--panel-2);
+        box-shadow:
+          inset 0 1px 0 rgba(212, 228, 250, 0.1),
+          0 0 28px -20px rgba(93, 230, 255, 0.8);
+        padding: 12px;
+        transition:
+          transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+          border-color 0.3s;
+      }
+
+      .domain::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        display: inline-block;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 6px rgba(93, 230, 255, 0.11);
+        margin-right: 6px;
+      }
+
+      .domain b {
+        font-size: 13px;
+      }
+
+      .domain span {
+        display: block;
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 11.5px;
+        line-height: 1.35;
+      }
+
+      .career {
+        left: 50%;
+        top: 17%;
+      }
+
+      .finance {
+        left: 83%;
+        top: 51%;
+      }
+
+      .data {
+        left: 50%;
+        top: 84%;
+      }
+
+      .life {
+        left: 17%;
+        top: 51%;
+      }
+
+      .quest-list {
+        min-height: 0;
+        overflow: hidden;
+        padding: 0 16px;
+      }
+
+      .task-list {
+        min-height: 0;
+        overflow: hidden;
+        padding: 0 16px;
+        display: grid;
+        align-content: start;
+      }
+
+      .task {
+        min-height: 78px;
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr) auto;
+        gap: 11px;
+        align-items: center;
+        border-top: 1px solid var(--line);
+      }
+
+      .task:first-child {
+        border-top: 0;
+      }
+
+      .check {
+        --task: var(--accent);
+        width: 20px;
+        height: 20px;
+        border: 1px solid color-mix(in srgb, var(--task) 42%, transparent);
+        border-radius: 6px;
+        background:
+          radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--task) 32%, transparent), transparent 44%),
+          rgba(212, 228, 250, 0.035);
+      }
+
+      .task b {
+        display: block;
+        font-size: 13.5px;
+        margin-bottom: 3px;
+      }
+
+      .task span {
+        color: var(--muted);
+        font-size: 11.5px;
+        line-height: 1.34;
+      }
+
+      .task .due {
+        --due: var(--gold);
+        color: var(--due);
+        font-family: "Space Mono", "JetBrains Mono", ui-monospace, monospace;
+        font-size: 10.5px;
+        white-space: nowrap;
+      }
+
+      .quest {
+        min-height: 74px;
+        display: grid;
+        grid-template-columns: 58px minmax(0, 1fr) auto;
+        gap: 11px;
+        align-items: center;
+        border-top: 1px solid var(--line);
+        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .quest:first-child {
+        border-top: 0;
+      }
+
+      .quest time {
+        color: var(--accent);
+        font-family: "Space Mono", "JetBrains Mono", ui-monospace, monospace;
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .quest b {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 3px;
+      }
+
+      .quest span {
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.34;
+      }
+
+      .pill {
+        min-height: 28px;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0 10px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .quick {
+        border-top: 1px solid var(--line);
+        padding: 13px 16px 16px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .small-button {
+        min-height: 48px;
+        border-radius: 16px;
+        padding: 9px;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .small-button span {
+        display: block;
+        margin-top: 2px;
+        color: #00363e;
+        font-size: 10px;
+      }
+
+      @media (max-width: 1040px) {
+        body {
+          overflow: auto;
+        }
+
+        .game {
+          width: min(100% - 24px, 760px);
+          height: auto;
+          min-height: 100dvh;
+          grid-template-rows: auto auto;
+        }
+
+        .topbar,
+        .board {
+          grid-template-columns: 1fr;
+        }
+
+        .tabs {
+          justify-self: start;
+          overflow-x: auto;
+        }
+
+        .top-actions {
+          justify-content: start;
+        }
+
+        .map {
+          min-height: 560px;
+        }
+      }
+
+      @media (max-height: 780px) {
+        .ui-states {
+          display: none;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .game {
+          width: min(100% - 18px, 520px);
+          margin: 9px auto;
+        }
+
+        .panel,
+        .topbar {
+          border-radius: 22px;
+        }
+
+        .panel-head h1 {
+          font-size: clamp(34px, 12vw, 48px);
+        }
+
+        .stats,
+        .ui-states,
+        .quick {
+          grid-template-columns: 1fr;
+        }
+
+        .quest {
+          grid-template-columns: 1fr;
+          gap: 5px;
+          padding: 12px 0;
+        }
+
+        .map {
+          min-height: 630px;
+        }
+
+        .domain {
+          width: 144px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game">
+      <header class="topbar">
+        <a class="brand" href="./productive-me-icon-concepts.html">
+          <span class="badge" aria-hidden="true"><img src="./assets/productiveme-console-four-b.png" alt="" /></span>
+          <span>
+            <b>ProductiveME</b>
+            <small>Lumina life-map HUD</small>
+          </span>
+        </a>
+
+        <nav class="tabs" aria-label="Primary">
+          <a href="#" aria-current="page">Home</a>
+          <a href="./dashboard-career.html">Career</a>
+          <a href="./dashboard-finance.html">Finance</a>
+          <a href="./dashboard-data.html">Personal Data</a>
+          <a href="./dashboard-life.html">Life</a>
+          <a href="#">Review</a>
+        </nav>
+
+        <div class="top-actions">
+          <button class="icon-button" aria-label="Open registry"><i></i></button>
+          <button class="play-button">Start Review</button>
+        </div>
+      </header>
+
+      <main class="board">
+        <section class="panel left">
+          <div class="panel-head">
+            <div class="label">Past Signals · what changed</div>
+            <h1>What happened recently?</h1>
+            <p>This panel explains why the board is recommending today's priorities.</p>
+          </div>
+
+          <div class="player-card">
+            <b>Brief</b>
+            <span>The last cycle shows Career expanding faster than Life capacity. Finance also needs a real monthly checkpoint before planning.</span>
+          </div>
+
+          <div class="signal-list">
+            <div class="signal" style="--signal: var(--career); --signal-soft: var(--career-soft)">
+              <time>Last 7d</time>
+              <div>
+                <b>Career activity increased</b>
+                <span>Work and Study are both active, but Dream still needs a visible artifact.</span>
+              </div>
+            </div>
+            <div class="signal" style="--signal: var(--finance); --signal-soft: var(--finance-soft)">
+              <time>Month start</time>
+              <div>
+                <b>Finance checkpoint is due</b>
+                <span>July asset snapshot has not been confirmed yet.</span>
+              </div>
+            </div>
+            <div class="signal" style="--signal: var(--life); --signal-soft: var(--life-soft)">
+              <time>Last review</time>
+              <div>
+                <b>Life was under-planned</b>
+                <span>Exercise and rest did not get calendar protection before work expanded.</span>
+              </div>
+            </div>
+            <div class="signal" style="--signal: var(--data); --signal-soft: var(--data-soft)">
+              <time>Backlog</time>
+              <div>
+                <b>Personal files are accumulating</b>
+                <span>Downloads and photos should become a queue, not a surprise cleanup project.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ui-states">
+            <div class="state">
+              <b>Loading</b>
+              <div class="skeleton"></div>
+            </div>
+            <div class="state">
+              <b>Empty</b>
+              <p>No Finance repo linked.</p>
+            </div>
+            <div class="state">
+              <b>Error</b>
+              <p>Notion failed. Local state shown.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel map-panel">
+          <div class="panel-head">
+            <div class="label">Current State · where things stand</div>
+            <h2>Four domains, four detail pages.</h2>
+            <p>Each status node opens a domain page. This is the current control surface.</p>
+          </div>
+
+          <div class="map-wrap">
+            <div class="present-grid">
+              <a class="domain-tile" href="./dashboard-career.html" style="--tile-glow: var(--career-soft); --tile-line: var(--career)">
+                <h3>Career</h3>
+                <p>Work, Study, Dream, and portfolio-facing projects.</p>
+                <div class="readouts">
+                  <div class="readout"><span>Work</span><b>high</b></div>
+                  <div class="readout"><span>Study</span><b>active</b></div>
+                  <div class="readout"><span>Dream</span><b>artifact needed</b></div>
+                </div>
+                <span class="open-detail">OPEN</span>
+              </a>
+
+              <a class="domain-tile" href="./dashboard-finance.html" style="--tile-glow: var(--finance-soft); --tile-line: var(--finance)">
+                <h3>Finance</h3>
+                <p>Money state, monthly snapshot, spending, and portfolio.</p>
+                <div class="readouts">
+                  <div class="readout"><span>Snapshot</span><b>due</b></div>
+                  <div class="readout"><span>Cash flow</span><b>pending</b></div>
+                  <div class="readout"><span>Portfolio</span><b>stable</b></div>
+                </div>
+                <span class="open-detail">OPEN</span>
+              </a>
+
+              <a class="domain-tile" href="./dashboard-data.html" style="--tile-glow: var(--data-soft); --tile-line: var(--data)">
+                <h3>Personal Data</h3>
+                <p>Photos, files, music, videos, and long-term archive cleanup.</p>
+                <div class="readouts">
+                  <div class="readout"><span>Downloads</span><b>growing</b></div>
+                  <div class="readout"><span>Photos</span><b>queued</b></div>
+                  <div class="readout"><span>HeartPin</span><b>linked</b></div>
+                </div>
+                <span class="open-detail">OPEN</span>
+              </a>
+
+              <a class="domain-tile" href="./dashboard-life.html" style="--tile-glow: var(--life-soft); --tile-line: var(--life)">
+                <h3>Life</h3>
+                <p>Travel, exercise, church, rest, games, and non-work time.</p>
+                <div class="readouts">
+                  <div class="readout"><span>Exercise</span><b>0 / 2</b></div>
+                  <div class="readout"><span>Church</span><b>scheduled</b></div>
+                  <div class="readout"><span>Rest</span><b>low</b></div>
+                </div>
+                <span class="open-detail">OPEN</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="source-gates" aria-label="Source gates">
+            <a class="gate" href="#" style="--gate: var(--career); --gate-soft: var(--career-soft)">Notion records</a>
+            <a class="gate" href="#" style="--gate: var(--career); --gate-soft: var(--career-soft)">Tasks queue</a>
+            <a class="gate" href="#" style="--gate: var(--career); --gate-soft: var(--career-soft)">TechVest</a>
+            <a class="gate" href="#" style="--gate: var(--finance); --gate-soft: var(--finance-soft)">Finance repo</a>
+            <a class="gate" href="#" style="--gate: var(--life); --gate-soft: var(--life-soft)">HeartPin</a>
+            <a class="gate" href="#" style="--gate: var(--data); --gate-soft: var(--data-soft)">Local files</a>
+          </div>
+        </section>
+
+        <section class="panel right">
+          <div class="panel-head">
+            <div class="label">Future Actions · what to do next</div>
+            <h3>Task list for the next cycle.</h3>
+            <p>These are executable tasks derived from the current domain state.</p>
+          </div>
+
+          <div class="task-list">
+            <div class="task">
+              <span class="check" style="--task: var(--career)"></span>
+              <div>
+                <b>Define TechVest ingestion slice.</b>
+                <span>Career output: source, result, and verification for one MVP step.</span>
+              </div>
+              <span class="due" style="--due: var(--career)">TODAY</span>
+            </div>
+            <div class="task">
+              <span class="check" style="--task: var(--finance)"></span>
+              <div>
+                <b>Record July asset state.</b>
+                <span>Finance input: actual snapshot before any spending analysis.</span>
+              </div>
+              <span class="due" style="--due: var(--finance)">DUE</span>
+            </div>
+            <div class="task">
+              <span class="check" style="--task: var(--life)"></span>
+              <div>
+                <b>Reserve two exercise blocks.</b>
+                <span>Life protection: place recovery time before more work appears.</span>
+              </div>
+              <span class="due" style="--due: var(--life)">WEEK</span>
+            </div>
+            <div class="task">
+              <span class="check" style="--task: var(--data)"></span>
+              <div>
+                <b>Create file cleanup queue.</b>
+                <span>Personal Data parked: prepare but do not start unless capacity opens.</span>
+              </div>
+              <span class="due" style="--due: var(--data)">PARK</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

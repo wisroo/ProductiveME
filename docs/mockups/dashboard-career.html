@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ProductiveME Career</title>
+    <link rel="stylesheet" href="./domain-detail.css" />
+  </head>
+  <body style="--accent: var(--career); --accent-soft: var(--career-soft)">
+    <div class="page">
+      <header class="topbar">
+        <a class="brand" href="./dashboard-game.html">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none">
+              <path d="M32 8c10 0 18 8 18 18 0 14-18 30-18 30S14 40 14 26C14 16 22 8 32 8Z" stroke="currentColor" stroke-width="3" />
+              <path d="M24 28h16M32 20v16" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span>
+            <b>ProductiveME</b>
+            <small>Career control page</small>
+          </span>
+        </a>
+        <nav class="tabs" aria-label="Primary">
+          <a href="./dashboard-game.html">Home</a>
+          <a href="./dashboard-career.html" aria-current="page">Career</a>
+          <a href="./dashboard-finance.html">Finance</a>
+          <a href="./dashboard-data.html">Personal Data</a>
+          <a href="./dashboard-life.html">Life</a>
+        </nav>
+        <div class="top-actions">
+          <a class="button" href="./dashboard-game.html">Back Home</a>
+        </div>
+      </header>
+
+      <main class="detail-board">
+        <section class="panel">
+          <div class="panel-head">
+            <div class="label">Career · signal</div>
+            <h1>Turn work into proof.</h1>
+            <p>Work, Study, and Dream are tracked together so effort becomes visible career capital.</p>
+          </div>
+          <div class="summary-card">
+            <b>Current interpretation</b>
+            <span>Work is consuming the most attention. Study is active, but Dream needs one portfolio-facing artifact to avoid staying abstract.</span>
+          </div>
+          <div class="metric-stack">
+            <div class="metric"><small>WORK</small><b>High execution load</b><span>Requests and current-job output are active. Keep the next slice small.</span></div>
+            <div class="metric"><small>STUDY</small><b>AI and architecture track open</b><span>Use Project TechVest as the bridge between study and visible output.</span></div>
+            <div class="metric"><small>DREAM</small><b>Artifact needed</b><span>One public or repo-backed proof should be created before adding more reading.</span></div>
+          </div>
+        </section>
+
+        <section class="panel main-panel">
+          <div class="panel-head">
+            <div class="label">Career map · current state</div>
+            <h2>Three lanes, one portfolio story.</h2>
+            <p>The page should answer what career action matters next and what skill it proves.</p>
+          </div>
+          <div class="subdomain-grid">
+            <article class="subdomain">
+              <h3>Work</h3>
+              <p>Current job execution, request handling, and professional reliability.</p>
+              <div class="readout"><span>Mode</span><b>delivery</b></div>
+              <div class="readout"><span>Risk</span><b>scope creep</b></div>
+              <div class="readout"><span>Next</span><b>request queue review</b></div>
+            </article>
+            <article class="subdomain">
+              <h3>Study</h3>
+              <p>AI, cloud, network, CS fundamentals, architecture, and senior engineering depth.</p>
+              <div class="readout"><span>Track</span><b>AI + infra</b></div>
+              <div class="readout"><span>Cadence</span><b>active</b></div>
+              <div class="readout"><span>Proof</span><b>notes to repo</b></div>
+            </article>
+            <article class="subdomain">
+              <h3>Dream</h3>
+              <p>Long-term career identity, overseas preparation, and portfolio direction.</p>
+              <div class="readout"><span>State</span><b>abstract</b></div>
+              <div class="readout"><span>Need</span><b>visible artifact</b></div>
+              <div class="readout"><span>Candidate</span><b>TechVest MVP</b></div>
+            </article>
+            <article class="subdomain">
+              <h3>Skill Proof</h3>
+              <p>Evidence that connects what you studied to what you can build.</p>
+              <div class="readout"><span>Format</span><b>repo + writeup</b></div>
+              <div class="readout"><span>Audience</span><b>future reviewer</b></div>
+              <div class="readout"><span>Status</span><b>not packaged</b></div>
+            </article>
+          </div>
+          <div class="panel-link-row">
+            <a class="panel-link" href="#">Work Notion DB</a>
+            <a class="panel-link" href="#">Study roadmap</a>
+            <a class="panel-link" href="#">TechVest repo</a>
+            <a class="panel-link" href="#">Portfolio notes</a>
+          </div>
+        </section>
+
+        <section class="panel right-panel">
+          <div class="panel-head">
+            <div class="label">Career · next actions</div>
+            <h3>Make one proof small enough to finish.</h3>
+            <p>Actions are selected by career leverage, not only urgency.</p>
+          </div>
+          <div class="action-list">
+            <a class="action" href="#"><span class="check"></span><div><b>Define TechVest ingestion slice.</b><span>One data source, one extraction result, one verification note.</span></div><span class="due">TODAY</span></a>
+            <a class="action" href="#"><span class="check"></span><div><b>Write a study-to-output note.</b><span>Connect RAG, pipeline, or infra learning to a concrete implementation decision.</span></div><span class="due">WEEK</span></a>
+            <a class="action" href="#"><span class="check"></span><div><b>Review work request queue.</b><span>Separate real obligations from noisy incoming requests.</span></div><span class="due">NEXT</span></a>
+          </div>
+          <div class="footer-strip">
+            <div class="mini"><b>Loading</b><span>Pulling repo status.</span></div>
+            <div class="mini"><b>Empty</b><span>No Dream artifact linked.</span></div>
+            <div class="mini"><b>Error</b><span>Git source unavailable.</span></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

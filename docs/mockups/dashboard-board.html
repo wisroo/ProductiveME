@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ProductiveME Board Dashboard</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #e9ece6;
+        --board: #f9faf6;
+        --panel: rgba(255, 255, 250, 0.78);
+        --panel-solid: #fffefa;
+        --ink: #181b1b;
+        --muted: #656d6c;
+        --quiet: #8e9693;
+        --line: rgba(24, 27, 27, 0.12);
+        --line-strong: rgba(24, 27, 27, 0.22);
+        --accent: #b63b4a;
+        --accent-soft: rgba(182, 59, 74, 0.1);
+        --accent-line: rgba(182, 59, 74, 0.36);
+        --good: #326d58;
+        --shadow: 0 24px 70px -46px rgba(54, 61, 58, 0.55);
+        --radius: 24px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100dvh;
+      }
+
+      body {
+        overflow: hidden;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 18% 18%, rgba(182, 59, 74, 0.11), transparent 28%),
+          radial-gradient(circle at 82% 72%, rgba(50, 109, 88, 0.1), transparent 30%),
+          linear-gradient(135deg, #f1f2ed, var(--bg));
+        font-family:
+          Satoshi, Geist, "Cabinet Grotesk", "Pretendard", ui-sans-serif,
+          system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        letter-spacing: 0;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(24, 27, 27, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(24, 27, 27, 0.04) 1px, transparent 1px);
+        background-size: 42px 42px;
+        mask-image: linear-gradient(to bottom, #000, transparent 86%);
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.16;
+        background:
+          linear-gradient(120deg, transparent 0 46%, rgba(255, 255, 255, 0.72) 48%, transparent 52%),
+          repeating-linear-gradient(0deg, transparent 0 8px, rgba(255, 255, 255, 0.4) 9px);
+        mix-blend-mode: soft-light;
+      }
+
+      button,
+      a {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .screen {
+        position: relative;
+        z-index: 1;
+        width: min(1500px, calc(100vw - 36px));
+        height: calc(100dvh - 36px);
+        margin: 18px auto;
+        display: grid;
+        grid-template-rows: 64px minmax(0, 1fr);
+        gap: 14px;
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: minmax(230px, 0.8fr) minmax(420px, 1fr) auto;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .brand {
+        min-width: 0;
+        display: inline-grid;
+        grid-template-columns: 46px minmax(0, 1fr);
+        align-items: center;
+        gap: 12px;
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .mark {
+        width: 46px;
+        height: 46px;
+        border: 1px solid var(--line-strong);
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        background:
+          linear-gradient(135deg, rgba(182, 59, 74, 0.16), transparent 58%),
+          rgba(255, 255, 255, 0.66);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      }
+
+      .mark span {
+        width: 21px;
+        height: 21px;
+        border: 2px solid var(--ink);
+        border-radius: 7px;
+        position: relative;
+        transform: rotate(45deg);
+      }
+
+      .mark span::after {
+        content: "";
+        position: absolute;
+        inset: 4px;
+        border: 1px solid var(--accent);
+        border-radius: 3px;
+      }
+
+      .brand b {
+        display: block;
+        font-size: 15px;
+        line-height: 1.1;
+      }
+
+      .brand small {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .nav {
+        justify-self: center;
+        max-width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        min-height: 46px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 250, 0.68);
+        padding: 4px;
+        backdrop-filter: blur(16px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+      }
+
+      .nav a {
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0 14px;
+        color: #343a39;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 850;
+        white-space: nowrap;
+      }
+
+      .nav a[aria-current="page"] {
+        background: var(--ink);
+        color: white;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: end;
+        gap: 10px;
+      }
+
+      .round,
+      .primary,
+      .mini-button {
+        border: 1px solid var(--line);
+        color: var(--ink);
+        background: rgba(255, 255, 250, 0.72);
+        transition:
+          transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+          border-color 0.28s,
+          background 0.28s;
+      }
+
+      .round {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+      }
+
+      .round i {
+        width: 16px;
+        height: 16px;
+        border: 2px solid currentColor;
+        border-radius: 50%;
+        position: relative;
+      }
+
+      .round i::after {
+        content: "";
+        position: absolute;
+        width: 8px;
+        height: 2px;
+        right: -7px;
+        bottom: -3px;
+        background: currentColor;
+        transform: rotate(45deg);
+      }
+
+      .primary {
+        min-height: 44px;
+        border-radius: 16px;
+        padding: 0 17px;
+        background: var(--accent);
+        border-color: transparent;
+        color: white;
+        font-weight: 900;
+      }
+
+      .round:hover,
+      .primary:hover,
+      .mini-button:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent-line);
+      }
+
+      .round:active,
+      .primary:active,
+      .mini-button:active,
+      .quest:active {
+        transform: translateY(1px) scale(0.985);
+      }
+
+      .board {
+        min-height: 0;
+        border: 1px solid var(--line);
+        border-radius: 32px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 250, 0.9), rgba(246, 247, 242, 0.76)),
+          var(--board);
+        box-shadow: var(--shadow);
+        padding: 18px;
+        display: grid;
+        grid-template-columns: minmax(280px, 0.9fr) minmax(420px, 1.18fr) minmax(300px, 0.92fr);
+        grid-template-rows: minmax(0, 1fr);
+        gap: 14px;
+        overflow: hidden;
+      }
+
+      .panel {
+        min-height: 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(18px);
+        overflow: hidden;
+      }
+
+      .left-panel,
+      .right-panel {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+      }
+
+      .panel-head {
+        padding: 18px 18px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 950;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+      }
+
+      .panel-head h2,
+      .panel-head h3 {
+        margin: 7px 0 0;
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      .panel-head h2 {
+        font-size: clamp(28px, 3.4vw, 52px);
+        max-width: 640px;
+      }
+
+      .panel-head h3 {
+        font-size: 22px;
+      }
+
+      .panel-head p {
+        margin: 9px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.46;
+      }
+
+      .mission {
+        padding: 18px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .stance {
+        border: 1px solid var(--accent-line);
+        border-radius: 18px;
+        background: var(--accent-soft);
+        padding: 14px;
+      }
+
+      .stance b {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 14px;
+      }
+
+      .stance span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.42;
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .stat {
+        min-height: 86px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(255, 255, 250, 0.55);
+        padding: 12px;
+      }
+
+      .stat small {
+        display: block;
+        color: var(--quiet);
+        font-size: 10px;
+        font-weight: 950;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .stat b {
+        display: block;
+        margin-top: 7px;
+        font-family: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
+        font-size: 26px;
+      }
+
+      .stat span {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.35;
+      }
+
+      .state-strip {
+        padding: 14px 18px 18px;
+        border-top: 1px solid var(--line);
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .state {
+        min-height: 64px;
+        border: 1px solid var(--line);
+        border-radius: 15px;
+        padding: 10px;
+        background: rgba(255, 255, 250, 0.55);
+      }
+
+      .state b {
+        display: block;
+        font-size: 11px;
+        margin-bottom: 6px;
+      }
+
+      .state p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 10.5px;
+        line-height: 1.34;
+      }
+
+      .skeleton {
+        position: relative;
+        overflow: hidden;
+        width: 74%;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(24, 27, 27, 0.08);
+      }
+
+      .skeleton::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, transparent, rgba(182, 59, 74, 0.38), transparent);
+        animation: shimmer 2.2s infinite;
+      }
+
+      @keyframes shimmer {
+        to {
+          transform: translateX(100%);
+        }
+      }
+
+      .map-panel {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .map-wrap {
+        min-height: 0;
+        padding: 14px;
+        display: grid;
+      }
+
+      .map {
+        min-height: 0;
+        position: relative;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(182, 59, 74, 0.09), transparent 34%),
+          linear-gradient(135deg, rgba(24, 27, 27, 0.035), transparent);
+      }
+
+      .map::before {
+        content: "";
+        position: absolute;
+        left: 13%;
+        right: 13%;
+        top: 50%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--accent-line), transparent);
+      }
+
+      .map::after {
+        content: "";
+        position: absolute;
+        top: 12%;
+        bottom: 12%;
+        left: 50%;
+        width: 1px;
+        background: linear-gradient(180deg, transparent, var(--accent-line), transparent);
+      }
+
+      .ring {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: min(48vh, 410px);
+        height: min(48vh, 410px);
+        border: 1px solid rgba(182, 59, 74, 0.18);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        animation: turn 22s linear infinite;
+      }
+
+      .ring::before,
+      .ring::after {
+        content: "";
+        position: absolute;
+        inset: 14%;
+        border: 1px solid rgba(24, 27, 27, 0.11);
+        border-radius: 50%;
+      }
+
+      .ring::after {
+        inset: 30%;
+        border-color: rgba(182, 59, 74, 0.2);
+      }
+
+      @keyframes turn {
+        to {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      .core {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 138px;
+        height: 138px;
+        border: 1px solid var(--accent-line);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        display: grid;
+        place-items: center;
+        text-align: center;
+        background: rgba(255, 255, 250, 0.86);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.9),
+          0 18px 50px -38px rgba(182, 59, 74, 0.7);
+      }
+
+      .core b {
+        display: block;
+        font-family: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
+        font-size: 34px;
+      }
+
+      .core span {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 950;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .domain {
+        position: absolute;
+        width: min(180px, 27%);
+        min-height: 90px;
+        border: 1px solid var(--line-strong);
+        border-radius: 18px;
+        background: rgba(255, 255, 250, 0.82);
+        padding: 12px;
+        transform: translate(-50%, -50%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+      }
+
+      .domain::before {
+        content: "";
+        position: absolute;
+        left: 12px;
+        top: 13px;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 5px rgba(182, 59, 74, 0.08);
+      }
+
+      .domain b {
+        display: block;
+        padding-left: 15px;
+        font-size: 13px;
+        margin-bottom: 7px;
+      }
+
+      .domain span {
+        display: block;
+        color: var(--muted);
+        font-size: 11.5px;
+        line-height: 1.34;
+      }
+
+      .career {
+        left: 50%;
+        top: 17%;
+      }
+
+      .finance {
+        left: 82%;
+        top: 52%;
+      }
+
+      .data {
+        left: 50%;
+        top: 83%;
+      }
+
+      .life {
+        left: 18%;
+        top: 52%;
+      }
+
+      .quest-list {
+        min-height: 0;
+        padding: 0 18px;
+        overflow: hidden;
+      }
+
+      .quest {
+        display: grid;
+        grid-template-columns: 66px minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        min-height: 76px;
+        border-top: 1px solid var(--line);
+        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .quest:first-child {
+        border-top: 0;
+      }
+
+      .quest time {
+        color: var(--quiet);
+        font-family: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
+        font-size: 11px;
+      }
+
+      .quest b {
+        display: block;
+        font-size: 13.5px;
+        margin-bottom: 3px;
+      }
+
+      .quest span {
+        color: var(--muted);
+        font-size: 11.5px;
+        line-height: 1.34;
+      }
+
+      .tag {
+        min-height: 28px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--accent-line);
+        border-radius: 999px;
+        padding: 0 9px;
+        color: var(--accent);
+        background: var(--accent-soft);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .links {
+        border-top: 1px solid var(--line);
+        padding: 14px 18px 18px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .mini-button {
+        min-height: 48px;
+        border-radius: 14px;
+        padding: 9px;
+        text-align: left;
+        font-size: 11.5px;
+        font-weight: 850;
+      }
+
+      .mini-button span {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 10.5px;
+        font-weight: 650;
+      }
+
+      @media (max-width: 980px) {
+        body {
+          overflow: auto;
+        }
+
+        .screen {
+          height: auto;
+          min-height: 100dvh;
+          width: min(100% - 24px, 760px);
+          grid-template-rows: auto auto;
+        }
+
+        .topbar,
+        .board {
+          grid-template-columns: 1fr;
+        }
+
+        .nav {
+          justify-self: start;
+          max-width: 100%;
+          overflow-x: auto;
+        }
+
+        .actions {
+          justify-content: start;
+        }
+
+        .board {
+          overflow: visible;
+        }
+
+        .map {
+          min-height: 540px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .screen {
+          width: min(100% - 20px, 520px);
+          margin-block: 10px;
+        }
+
+        .board,
+        .panel {
+          border-radius: 20px;
+        }
+
+        .board {
+          padding: 10px;
+        }
+
+        .panel-head h2 {
+          font-size: clamp(30px, 12vw, 46px);
+        }
+
+        .stat-grid,
+        .state-strip,
+        .links {
+          grid-template-columns: 1fr;
+        }
+
+        .quest {
+          grid-template-columns: 1fr;
+          gap: 6px;
+          padding: 12px 0;
+        }
+
+        .map {
+          min-height: 620px;
+        }
+
+        .domain {
+          width: 150px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="screen">
+      <header class="topbar">
+        <a class="brand" href="#">
+          <span class="mark" aria-hidden="true"><span></span></span>
+          <span>
+            <b>ProductiveME</b>
+            <small>One-board control plane</small>
+          </span>
+        </a>
+
+        <nav class="nav" aria-label="Primary">
+          <a href="#" aria-current="page">Board</a>
+          <a href="#">Career</a>
+          <a href="#">Finance</a>
+          <a href="#">Personal Data</a>
+          <a href="#">Life</a>
+          <a href="#">Review</a>
+        </nav>
+
+        <div class="actions">
+          <button class="round" aria-label="Open registry"><i></i></button>
+          <button class="primary">Run review</button>
+        </div>
+      </header>
+
+      <main class="board" aria-label="ProductiveME single board dashboard">
+        <section class="panel left-panel">
+          <div class="panel-head">
+            <div class="label">Week 27 board · Balance stance</div>
+            <h2>One board. Four fronts. Three moves.</h2>
+            <p>
+              No scroll, no report wall. This board compresses the week into
+              attention, pressure, and action.
+            </p>
+          </div>
+
+          <div class="mission">
+            <div class="stance">
+              <b>Primary stance</b>
+              <span>Do not expand Career until Life capacity is protected and Finance has an actual July snapshot.</span>
+            </div>
+
+            <div class="stat-grid">
+              <div class="stat">
+                <small>Attention</small>
+                <b>64.7</b>
+                <span>Enough to execute, not enough to expand.</span>
+              </div>
+              <div class="stat">
+                <small>Risk</small>
+                <b>31.4</b>
+                <span>Work and Study are both active.</span>
+              </div>
+              <div class="stat">
+                <small>Reserve</small>
+                <b>18.6</b>
+                <span>Recovery slots are not defended.</span>
+              </div>
+              <div class="stat">
+                <small>Review</small>
+                <b>07.01</b>
+                <span>Finance snapshot is due today.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="state-strip" aria-label="UI states">
+            <div class="state">
+              <b>Loading</b>
+              <div class="skeleton"></div>
+            </div>
+            <div class="state">
+              <b>Empty</b>
+              <p>No linked Finance repo yet.</p>
+            </div>
+            <div class="state">
+              <b>Error</b>
+              <p>Notion source failed. Local state shown.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel map-panel">
+          <div class="panel-head">
+            <div class="label">Campaign map</div>
+            <h3>The whole system at a glance.</h3>
+            <p>Career leads, but Life is the constraint. Finance and Data keep the system honest.</p>
+          </div>
+
+          <div class="map-wrap">
+            <div class="map">
+              <div class="ring"></div>
+              <div class="domain career"><b>Career</b><span>Work, Study, Dream are active. Scope must shrink.</span></div>
+              <div class="domain finance"><b>Finance</b><span>July asset state must be captured before analysis.</span></div>
+              <div class="domain data"><b>Personal Data</b><span>Downloads and photos are forming a cleanup queue.</span></div>
+              <div class="domain life"><b>Life</b><span>Exercise and rest need protected time.</span></div>
+              <div class="core">
+                <span>
+                  <b>62</b>
+                  <span>balance</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel right-panel">
+          <div class="panel-head">
+            <div class="label">Quest log</div>
+            <h3>Only the next three moves.</h3>
+            <p>Everything else is parked until these are resolved.</p>
+          </div>
+
+          <div class="quest-list">
+            <div class="quest">
+              <time>Move 01</time>
+              <div>
+                <b>Define TechVest as one ingestion slice.</b>
+                <span>Source, output, verification. No full platform build.</span>
+              </div>
+              <span class="tag">Career</span>
+            </div>
+            <div class="quest">
+              <time>Move 02</time>
+              <div>
+                <b>Record actual July asset state.</b>
+                <span>Finance starts from snapshot truth.</span>
+              </div>
+              <span class="tag">Finance</span>
+            </div>
+            <div class="quest">
+              <time>Move 03</time>
+              <div>
+                <b>Reserve two exercise blocks.</b>
+                <span>Life capacity keeps the campaign sustainable.</span>
+              </div>
+              <span class="tag">Life</span>
+            </div>
+            <div class="quest">
+              <time>Parked</time>
+              <div>
+                <b>Create file cleanup queue.</b>
+                <span>Personal Data waits until the week has space.</span>
+              </div>
+              <span class="tag">Data</span>
+            </div>
+          </div>
+
+          <div class="links" aria-label="Action hub">
+            <button class="mini-button">Notion<span>daily ops</span></button>
+            <button class="mini-button">Tasks<span>requests</span></button>
+            <button class="mini-button">TechVest<span>career</span></button>
+            <button class="mini-button">Finance<span>snapshot</span></button>
+            <button class="mini-button">HeartPin<span>photos</span></button>
+            <button class="mini-button">Files<span>cleanup</span></button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

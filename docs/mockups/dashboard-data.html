@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ProductiveME Personal Data</title>
+    <link rel="stylesheet" href="./domain-detail.css" />
+  </head>
+  <body style="--accent: var(--data); --accent-soft: var(--data-soft)">
+    <div class="page">
+      <header class="topbar">
+        <a class="brand" href="./dashboard-game.html">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none">
+              <path d="M14 20h16l5 6h15v24H14V20Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
+              <path d="M22 36h20M22 44h12" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span>
+            <b>ProductiveME</b>
+            <small>Personal Data control page</small>
+          </span>
+        </a>
+        <nav class="tabs" aria-label="Primary">
+          <a href="./dashboard-game.html">Home</a>
+          <a href="./dashboard-career.html">Career</a>
+          <a href="./dashboard-finance.html">Finance</a>
+          <a href="./dashboard-data.html" aria-current="page">Personal Data</a>
+          <a href="./dashboard-life.html">Life</a>
+        </nav>
+        <div class="top-actions">
+          <a class="button" href="./dashboard-game.html">Back Home</a>
+        </div>
+      </header>
+
+      <main class="detail-board">
+        <section class="panel">
+          <div class="panel-head">
+            <div class="label">Personal Data · signal</div>
+            <h1>Make archives visible.</h1>
+            <p>Personal files should become a queue with ownership, not an occasional cleanup emergency.</p>
+          </div>
+          <div class="summary-card">
+            <b>Current interpretation</b>
+            <span>Downloads and photos are accumulating. The right move is not cleanup yet, but queue creation.</span>
+          </div>
+          <div class="metric-stack">
+            <div class="metric"><small>DOWNLOADS</small><b>Growing unmanaged</b><span>Needs classification before deletion or archiving.</span></div>
+            <div class="metric"><small>PHOTOS</small><b>Queued</b><span>HeartPin context can become the eventual organizing layer.</span></div>
+            <div class="metric"><small>ARCHIVE</small><b>Not indexed</b><span>Long-term files need a simple registry before automation.</span></div>
+          </div>
+        </section>
+
+        <section class="panel main-panel">
+          <div class="panel-head">
+            <div class="label">Data map · current state</div>
+            <h2>Files, media, memories, and cleanup.</h2>
+            <p>This page should show where digital clutter is growing and which queue should be touched next.</p>
+          </div>
+          <div class="subdomain-grid">
+            <article class="subdomain">
+              <h3>Photos</h3>
+              <p>Personal photos, memory context, HeartPin links, and future tagging.</p>
+              <div class="readout"><span>Status</span><b>queued</b></div>
+              <div class="readout"><span>Link</span><b>HeartPin</b></div>
+              <div class="readout"><span>Next</span><b>sample batch</b></div>
+            </article>
+            <article class="subdomain">
+              <h3>Files</h3>
+              <p>Downloads, documents, screenshots, installers, and old folders.</p>
+              <div class="readout"><span>Pressure</span><b>growing</b></div>
+              <div class="readout"><span>Need</span><b>queue</b></div>
+              <div class="readout"><span>Rule</span><b>classify first</b></div>
+            </article>
+            <article class="subdomain">
+              <h3>Music & Video</h3>
+              <p>Owned media, playlists, clips, personal videos, and long-term storage.</p>
+              <div class="readout"><span>Status</span><b>unscanned</b></div>
+              <div class="readout"><span>Priority</span><b>low</b></div>
+              <div class="readout"><span>Next</span><b>inventory</b></div>
+            </article>
+            <article class="subdomain">
+              <h3>Archive Registry</h3>
+              <p>A lightweight index that points to where things live without duplicating files.</p>
+              <div class="readout"><span>Format</span><b>local index</b></div>
+              <div class="readout"><span>Policy</span><b>no backup MVP</b></div>
+              <div class="readout"><span>Status</span><b>not started</b></div>
+            </article>
+          </div>
+          <div class="panel-link-row">
+            <a class="panel-link" href="#">Downloads folder</a>
+            <a class="panel-link" href="#">Photos queue</a>
+            <a class="panel-link" href="#">HeartPin</a>
+            <a class="panel-link" href="#">Archive notes</a>
+          </div>
+        </section>
+
+        <section class="panel right-panel">
+          <div class="panel-head">
+            <div class="label">Personal Data · next actions</div>
+            <h3>Create the queue first.</h3>
+            <p>The goal is to reduce surprise cleanup, not to reorganize everything at once.</p>
+          </div>
+          <div class="action-list">
+            <a class="action" href="#"><span class="check"></span><div><b>Create file cleanup queue.</b><span>Define categories before touching files.</span></div><span class="due">PARK</span></a>
+            <a class="action" href="#"><span class="check"></span><div><b>Pick one photo sample batch.</b><span>Use a small memory set to test the future workflow.</span></div><span class="due">NEXT</span></a>
+            <a class="action" href="#"><span class="check"></span><div><b>List archive roots.</b><span>Identify the top-level folders ProductiveME should point to.</span></div><span class="due">WEEK</span></a>
+          </div>
+          <div class="footer-strip">
+            <div class="mini"><b>Loading</b><span>Scanning local registry.</span></div>
+            <div class="mini"><b>Empty</b><span>No cleanup queue yet.</span></div>
+            <div class="mini"><b>Error</b><span>Folder access missing.</span></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
