@@ -163,9 +163,9 @@ extension exercise.
   registry, runs all connectors concurrently (`Promise.allSettled`), writes
   snapshot files atomically.
 - CLI entry (`pnpm sync run`) for manual runs from day one.
-- **Decision point (Phase 4)**: keep in TypeScript, or rewrite in Python
-  (FastAPI/apscheduler) as the polyglot/contract exercise aligned with a
-  studio career path. Deferred until the owner's Disney target is clearer.
+- **Decided 2026-07-10**: TypeScript, like the rest of the repo. The owner
+  pursues studio-relevant skills (C++/graphics) in a separate study track
+  outside this repository; this project stays single-stack for depth.
 
 ## 11. LLM Review Generation (Phase 6)
 
@@ -213,7 +213,7 @@ Open decisions (each gets an ADR when made):
 
 1. **Visual direction** — which `docs/mockups/` direction wins (blocks Phase 3 polish, not Phase 3 start).
 2. **Real registry inventory** — owner's actual repos/Notion pages/folders (placeholder entries until provided).
-3. **Sync worker language** — TS vs Python (Phase 4).
+3. ~~**Sync worker language**~~ — decided 2026-07-10: TypeScript (§10).
 4. **AWS deployment target** — EC2/Lightsail vs ECS (Phase 5).
 5. **Snapshot store** — JSON files vs SQLite (revisit when history queries appear, likely Phase 6).
 
