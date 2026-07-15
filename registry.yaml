@@ -1,0 +1,46 @@
+# ProductiveME registry — what the control plane knows about.
+# Placeholder locators: replace with real repos/pages/folders as they connect.
+entries:
+  - id: career-portfolio-repo
+    name: Portfolio repo
+    kind: repo
+    domain: career
+    subdomain: dream
+    locator: https://github.com/placeholder/portfolio
+    connector: static-file
+
+  - id: career-study-notes
+    name: Study notes
+    kind: notion-page
+    domain: career
+    subdomain: study
+    locator: https://www.notion.so/placeholder-study
+    connector: static-file
+    cadence: weekly
+
+  - id: finance-monthly-snapshot
+    name: Monthly asset snapshot
+    kind: tool
+    domain: finance
+    subdomain: assets
+    locator: file:///placeholder/finance
+    connector: static-file
+    cadence: monthly
+
+  - id: personal-data-photos
+    name: Photo library
+    kind: folder
+    domain: personal-data
+    subdomain: photos
+    locator: file:///placeholder/photos
+    connector: local-folder
+    cadence: quarterly
+
+  - id: life-exercise-log
+    name: Exercise log
+    kind: notion-page
+    domain: life
+    subdomain: exercise
+    locator: https://www.notion.so/placeholder-exercise
+    connector: static-file
+    cadence: weekly
