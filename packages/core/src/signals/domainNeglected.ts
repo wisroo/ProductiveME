@@ -14,7 +14,7 @@ export function domainNeglected(
     if (domainEntries.length === 0) continue;
     let newest: string | undefined;
     for (const entry of domainEntries) {
-      const activity = lastActivity(latest.get(entry.id));
+      const activity = lastActivity(latest.get(entry.id), now);
       if (activity && (!newest || activity > newest)) newest = activity;
     }
     if (!newest || daysBetween(newest, now) > thresholdDays) {

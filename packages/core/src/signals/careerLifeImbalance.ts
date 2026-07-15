@@ -22,7 +22,8 @@ export function careerLifeImbalance(
     if (!entry || snapshot.status !== 'ok') continue;
     if (entry.domain !== 'career' && entry.domain !== 'life') continue;
     for (const item of snapshot.items) {
-      if (!item.timestamp || daysBetween(item.timestamp, now) > windowDays) continue;
+      const ageDays = item.timestamp ? daysBetween(item.timestamp, now) : undefined;
+      if (ageDays === undefined || ageDays < 0 || ageDays > windowDays) continue;
       if (entry.domain === 'career') career += 1;
       else life += 1;
     }

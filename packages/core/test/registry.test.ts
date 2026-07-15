@@ -48,6 +48,11 @@ describe('parseRegistry', () => {
     expect(() => parseRegistry(bad)).toThrow(/duplicate entry id "career-work-notes"/);
   });
 
+  it('rejects unknown entry fields so typos do not get ignored', () => {
+    const bad = VALID.replace('    cadence: monthly\n', '    cadance: monthly\n');
+    expect(() => parseRegistry(bad)).toThrow(/entries\.1: Unrecognized key\(s\) in object: 'cadance'/);
+  });
+
   it('rejects non-object yaml without a stray path prefix', () => {
     expect(() => parseRegistry('just a string')).toThrow(RegistryValidationError);
     // top-level issue has an empty path — the message must not begin "invalid registry: : "

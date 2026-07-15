@@ -18,10 +18,11 @@ const entrySchema = z.object({
   locator: z.string().min(1),
   connector: z.string().min(1),
   cadence: z.enum(CADENCES).optional(),
-});
+}).strict();
 
 const registrySchema = z
   .object({ entries: z.array(entrySchema) })
+  .strict()
   .superRefine((registry, ctx) => {
     const seen = new Set<string>();
     registry.entries.forEach((entry, index) => {

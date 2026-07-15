@@ -65,4 +65,13 @@ describe('careerLifeImbalance', () => {
     );
     expect(signals).toHaveLength(0);
   });
+
+  it('ignores future-dated items', () => {
+    const signals = careerLifeImbalance(
+      [entry('c', 'career'), entry('l', 'life')],
+      [snap('c', items(9, '2026-07-12T00:00:00Z'))],
+      NOW,
+    );
+    expect(signals).toHaveLength(0);
+  });
 });

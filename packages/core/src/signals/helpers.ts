@@ -11,10 +11,11 @@ export function latestSnapshots(snapshots: Snapshot[]): Map<string, Snapshot> {
   return latest;
 }
 
-export function lastActivity(snapshot: Snapshot | undefined): string | undefined {
+export function lastActivity(snapshot: Snapshot | undefined, now?: string): string | undefined {
   if (!snapshot || snapshot.status !== 'ok') return undefined;
   let max: string | undefined;
   for (const item of snapshot.items) {
+    if (now && item.timestamp && daysBetween(item.timestamp, now) < 0) continue;
     if (item.timestamp && (!max || item.timestamp > max)) max = item.timestamp;
   }
   return max;

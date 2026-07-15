@@ -30,6 +30,16 @@ describe('lastActivity', () => {
     expect(lastActivity(snapshot)).toBe('2026-07-04T00:00:00Z');
   });
 
+  it('ignores activity after now when a reference time is provided', () => {
+    const snapshot = snap('a', '2026-07-05T00:00:00Z', {
+      items: [
+        { title: 'recent', timestamp: '2026-07-04T00:00:00Z' },
+        { title: 'future', timestamp: '2026-07-12T00:00:00Z' },
+      ],
+    });
+    expect(lastActivity(snapshot, '2026-07-10T00:00:00Z')).toBe('2026-07-04T00:00:00Z');
+  });
+
   it('returns undefined for undefined, error, or activity-less snapshots', () => {
     expect(lastActivity(undefined)).toBeUndefined();
     expect(lastActivity(snap('a', '2026-07-05T00:00:00Z', { status: 'error' }))).toBeUndefined();

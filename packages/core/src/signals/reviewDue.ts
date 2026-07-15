@@ -12,7 +12,7 @@ export function reviewDue(entries: RegistryEntry[], snapshots: Snapshot[], now: 
   const signals: Signal[] = [];
   for (const entry of entries) {
     if (!entry.cadence) continue;
-    const activity = lastActivity(latest.get(entry.id));
+    const activity = lastActivity(latest.get(entry.id), now);
     const overdue = !activity || daysBetween(activity, now) > CADENCE_DAYS[entry.cadence];
     if (overdue) {
       signals.push({
