@@ -169,6 +169,90 @@ h1 {
   line-height: 1.6;
 }
 
+.domain-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 72px;
+  padding: 1px;
+  background: var(--line);
+}
+
+.domain-grid button {
+  min-height: 148px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 24px;
+  border: 0;
+  color: var(--text);
+  background: var(--surface);
+  text-align: left;
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.domain-grid button:hover {
+  background: var(--surface-raised);
+}
+
+.domain-grid button:active {
+  transform: translateY(1px);
+}
+
+.domain-grid button span:first-child {
+  font-size: 1.2rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.domain-grid button span:last-child,
+.domain-nav {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.domain-grid button span:last-child {
+  color: var(--muted);
+}
+
+.domain-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 48px;
+}
+
+.domain-nav button {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.domain-nav button[aria-pressed='true'] {
+  color: var(--text);
+  background: var(--surface-raised);
+}
+
+.domain-nav button:hover {
+  color: var(--text);
+}
+
+.domain-nav button:active {
+  transform: translateY(1px);
+}
+
 .foundation-panel {
   max-width: 680px;
   margin-top: 72px;
@@ -215,6 +299,11 @@ h1 {
   }
 
   .foundation-panel {
+    margin-top: 48px;
+  }
+
+  .domain-grid {
+    grid-template-columns: 1fr;
     margin-top: 48px;
   }
 }

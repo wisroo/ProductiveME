@@ -1,15 +1,10 @@
 import { useState } from 'react';
+import Domains from './components/Domains.js';
+import Home from './components/Home.js';
 import TopBar from './components/TopBar.js';
-
-export type PrimaryTab = 'home' | 'review' | 'mcp';
-export type Theme = 'dark' | 'light';
+import type { AppTab, DomainId, PrimaryTab, Theme } from './types.js';
 
 const views = {
-  home: {
-    eyebrow: 'Personal operating system',
-    heading: 'Today, at a glance',
-    description: 'A focused read on the four domains shaping your week.',
-  },
   review: {
     eyebrow: 'Weekly review',
     heading: 'Review your trajectory',
@@ -20,12 +15,41 @@ const views = {
     heading: 'MCP connections',
     description: 'See which systems can contribute trusted context.',
   },
-} as const;
+} satisfies Record<Exclude<PrimaryTab, 'home'>, {
+  eyebrow: string;
+  heading: string;
+  description: string;
+}>;
 
 export default function App() {
-  const [tab, setTab] = useState<PrimaryTab>('home');
+  const [tab, setTab] = useState<AppTab>('home');
+  const [domain, setDomain] = useState<DomainId>('finance');
   const [theme, setTheme] = useState<Theme>('dark');
-  const view = views[tab];
+
+  const openDomain = (nextDomain: DomainId) => {
+    setDomain(nextDomain);
+    setTab('domain');
+  };
+
+  const content =
+    tab === 'home' ? (
+      <Home onDomainSelect={openDomain} />
+    ) : tab === 'domain' ? (
+      <Domains activeDomain={domain} onDomainChange={setDomain} />
+    ) : (
+      <>
+        <p className="eyebrow">{views[tab].eyebrow}</p>
+        <h1>{views[tab].heading}</h1>
+        <p className="lede">{views[tab].description}</p>
+        <section
+          className="foundation-panel"
+          aria-label={`${views[tab].heading} preview`}
+        >
+          <span>Phase 3 foundation</span>
+          <p>The detailed {tab} view arrives as its own tested roadmap slice.</p>
+        </section>
+      </>
+    );
 
   return (
     <div className="app-shell" data-theme={theme}>
@@ -38,16 +62,7 @@ export default function App() {
         }
       />
       <main className="workspace" id="main-content">
-        <p className="eyebrow">{view.eyebrow}</p>
-        <h1>{view.heading}</h1>
-        <p className="lede">{view.description}</p>
-        <section
-          className="foundation-panel"
-          aria-label={`${view.heading} preview`}
-        >
-          <span>Phase 3 foundation</span>
-          <p>The detailed {tab} view arrives as its own tested roadmap slice.</p>
-        </section>
+        {content}
       </main>
       <footer className="status-line">
         <span>Local prototype</span>

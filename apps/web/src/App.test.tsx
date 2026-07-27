@@ -52,4 +52,26 @@ describe('App shell', () => {
       screen.getByRole('button', { name: 'Switch to dark theme' }),
     ).toBeInTheDocument();
   });
+
+  it('opens the selected domain from a Home card', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Finance' }));
+
+    expect(
+      screen.getByRole('heading', { name: 'Finance' }),
+    ).toBeInTheDocument();
+  });
+
+  it('switches domains from the domain navigation', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Career' }));
+    expect(screen.getByRole('heading', { name: 'Career' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Life' }));
+    expect(screen.getByRole('heading', { name: 'Life' })).toBeInTheDocument();
+  });
 });

@@ -1,7 +1,7 @@
-import type { PrimaryTab, Theme } from '../App.js';
+import type { AppTab, PrimaryTab, Theme } from '../types.js';
 
 type TopBarProps = {
-  activeTab: PrimaryTab;
+  activeTab: AppTab;
   theme: Theme;
   onTabChange: (tab: PrimaryTab) => void;
   onThemeToggle: () => void;
