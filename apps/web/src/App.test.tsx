@@ -9,18 +9,16 @@ describe('App shell', () => {
     render(<App />);
 
     expect(
-      screen.getByRole('heading', { name: 'Today, at a glance' }),
+      screen.getByRole('heading', { name: /close the July finance snapshot/ }),
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Review' }));
     expect(
-      screen.getByRole('heading', { name: 'Review your trajectory' }),
+      screen.getByRole('heading', { name: 'Weekly review · Week 29' }),
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'MCP' }));
-    expect(
-      screen.getByRole('heading', { name: 'MCP connections' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'MCP' })).toBeInTheDocument();
   });
 
   it('marks only the active primary tab', async () => {
@@ -57,11 +55,21 @@ describe('App shell', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Finance' }));
+    await user.click(screen.getByRole('button', { name: 'Career' }));
 
-    expect(
-      screen.getByRole('heading', { name: 'Finance' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Career' })).toBeInTheDocument();
+    expect(screen.getByText('STUDY · WRITING BY FIELD')).toBeInTheDocument();
+  });
+
+  it("opens Finance from today's call to action", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', { name: '▶ Record July asset snapshot' }),
+    );
+
+    expect(screen.getByRole('heading', { name: 'Finance' })).toBeInTheDocument();
   });
 
   it('switches domains from the domain navigation', async () => {
@@ -73,5 +81,26 @@ describe('App shell', () => {
 
     await user.click(screen.getByRole('button', { name: 'Life' }));
     expect(screen.getByRole('heading', { name: 'Life' })).toBeInTheDocument();
+  });
+
+  it('starts the weekly review from Home and switches it to monthly', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Start weekly review →' }));
+    expect(
+      screen.getByRole('heading', { name: 'Weekly review · Week 29' }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'MONTHLY' }));
+    expect(
+      screen.getByRole('heading', { name: 'Monthly review · July 2026' }),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the current week visible in the top bar', () => {
+    render(<App />);
+
+    expect(screen.getByText('WK 29 · JUL 13–19')).toBeInTheDocument();
   });
 });
