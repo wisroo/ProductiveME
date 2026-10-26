@@ -1,34 +1,27 @@
 import { useState } from 'react';
+import Domains from './components/Domains.js';
+import Home from './components/Home.js';
+import Mcp from './components/Mcp.js';
+import Review from './components/Review.js';
 import TopBar from './components/TopBar.js';
-
-export type PrimaryTab = 'home' | 'review' | 'mcp';
-export type Theme = 'dark' | 'light';
-
-const views = {
-  home: {
-    eyebrow: 'Personal operating system',
-    heading: 'Today, at a glance',
-    description: 'A focused read on the four domains shaping your week.',
-  },
-  review: {
-    eyebrow: 'Weekly review',
-    heading: 'Review your trajectory',
-    description: 'Turn recent signals into one deliberate adjustment.',
-  },
-  mcp: {
-    eyebrow: 'Connected context',
-    heading: 'MCP connections',
-    description: 'See which systems can contribute trusted context.',
-  },
-} as const;
+import type { AppTab, DomainId, ReviewMode, Theme } from './types.js';
 
 export default function App() {
-  const [tab, setTab] = useState<PrimaryTab>('home');
+  const [tab, setTab] = useState<AppTab>('home');
+  const [domain, setDomain] = useState<DomainId>('finance');
+  const [reviewMode, setReviewMode] = useState<ReviewMode>('weekly');
   const [theme, setTheme] = useState<Theme>('dark');
-  const view = views[tab];
+
+  const openDomain = (nextDomain: DomainId) => {
+    setDomain(nextDomain);
+    setTab('domain');
+  };
 
   return (
-    <div className="app-shell" data-theme={theme}>
+    <div
+      data-theme={theme}
+      style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)' }}
+    >
       <TopBar
         activeTab={tab}
         theme={theme}
@@ -37,22 +30,21 @@ export default function App() {
           setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
         }
       />
-      <main className="workspace" id="main-content">
-        <p className="eyebrow">{view.eyebrow}</p>
-        <h1>{view.heading}</h1>
-        <p className="lede">{view.description}</p>
-        <section
-          className="foundation-panel"
-          aria-label={`${view.heading} preview`}
-        >
-          <span>Phase 3 foundation</span>
-          <p>The detailed {tab} view arrives as its own tested roadmap slice.</p>
-        </section>
+      <main id="main-content">
+        {tab === 'home' ? (
+          <Home
+            onDomainSelect={openDomain}
+            onOpenDomains={() => setTab('domain')}
+            onStartReview={() => setTab('review')}
+          />
+        ) : tab === 'review' ? (
+          <Review mode={reviewMode} onModeChange={setReviewMode} />
+        ) : tab === 'domain' ? (
+          <Domains activeDomain={domain} onDomainChange={setDomain} />
+        ) : (
+          <Mcp />
+        )}
       </main>
-      <footer className="status-line">
-        <span>Local prototype</span>
-        <span>Static data</span>
-      </footer>
     </div>
   );
 }
