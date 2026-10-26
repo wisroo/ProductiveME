@@ -1,0 +1,14 @@
+FROM node:24.22.1-slim
+
+ENV NODE_ENV=production
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@10.12.1 --activate
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/sync ./apps/sync
+COPY packages/core ./packages/core
+RUN pnpm install --frozen-lockfile --prod --filter @productiveme/sync...
+RUN mkdir -p /app/snapshots && chown node:node /app/snapshots
+
+USER node
+CMD ["node", "--import", "./apps/sync/node_modules/tsx/dist/loader.mjs", "apps/sync/src/main.ts", "run"]
