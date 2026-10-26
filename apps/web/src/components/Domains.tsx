@@ -24,6 +24,8 @@ import {
   panel,
   ProgressBar,
 } from './bits.js';
+import { toApiDomainId, useDomainSnapshots, useRegistry, useDomainSignals } from '../lib/api.js';
+import QuerySection from './QuerySection.js';
 
 type DomainsProps = {
   activeDomain: DomainId;
@@ -468,6 +470,12 @@ const panels: Readonly<Record<DomainId, () => JSX.Element>> = {
 
 export default function Domains({ activeDomain, onDomainChange }: DomainsProps) {
   const Panel = panels[activeDomain];
+  const registry = useRegistry();
+  const snapshots = useDomainSnapshots(activeDomain);
+  const signals = useDomainSignals(activeDomain);
+  const apiDomain = toApiDomainId(activeDomain);
+  const entries = registry.data?.filter((entry) => entry.domain === apiDomain) ?? [];
+  const domainSignals = signals.data ?? [];
 
   return (
     <div
@@ -501,6 +509,23 @@ export default function Domains({ activeDomain, onDomainChange }: DomainsProps) 
           </button>
         ))}
       </nav>
+      <div className="mono" style={{ fontSize: '9px', letterSpacing: '.12em', color: 'var(--accent)' }}>LIVE API DATA · {apiDomain.toUpperCase()}</div>
+      <QuerySection title="Registry sources" isPending={registry.isPending} isError={registry.isError} error={registry.error} empty={!entries.length} onRetry={() => void registry.refetch()}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {entries.map((entry) => <div key={entry.id} style={{ padding: '9px 11px', border: '1px solid var(--line)', borderRadius: 'var(--r)' }}><b>{entry.name}</b><div className="mono" style={{ color: 'var(--muted)', fontSize: '9px', marginTop: '4px' }}>{entry.kind} · {entry.connector}</div></div>)}
+        </div>
+      </QuerySection>
+      <QuerySection title="Latest snapshots" isPending={snapshots.isPending} isError={snapshots.isError} error={snapshots.error} empty={!snapshots.data?.length} onRetry={() => void snapshots.refetch()}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {snapshots.data?.map((snapshot) => <div key={snapshot.entryId} style={{ padding: '9px 11px', border: '1px solid var(--line)', borderRadius: 'var(--r)' }}><b>{entries.find((entry) => entry.id === snapshot.entryId)?.name ?? snapshot.entryId}</b><div className="mono" style={{ color: snapshot.status === 'ok' ? 'var(--done)' : 'var(--due)', fontSize: '9px', marginTop: '4px' }}>{snapshot.status.toUpperCase()} · {snapshot.fetchedAt}</div>{snapshot.error ? <div>{snapshot.error}</div> : null}{snapshot.items.map((item, index) => <div key={`${item.title}-${index}`} style={{ fontSize: '12px', marginTop: '6px' }}>{item.link ? <a href={item.link}>{item.title}</a> : item.title}{item.detail ? ` · ${item.detail}` : ''}</div>)}</div>)}
+        </div>
+      </QuerySection>
+      <QuerySection title="Domain signals" isPending={signals.isPending} isError={signals.isError} error={signals.error} empty={!domainSignals.length} onRetry={() => void signals.refetch()}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {domainSignals.map((signal, index) => <div key={`${signal.entryId ?? index}-${signal.message}`} style={{ padding: '9px 11px', border: '1px solid var(--line)', borderRadius: 'var(--r)' }}>{signal.message}<div className="mono" style={{ color: 'var(--muted)', fontSize: '9px', marginTop: '4px' }}>{signal.severity.toUpperCase()}{signal.suggestedAction ? ` · ${signal.suggestedAction}` : ''}</div></div>)}
+        </div>
+      </QuerySection>
+      <div className="mono" style={{ fontSize: '9px', color: 'var(--muted)', borderLeft: '2px solid var(--due)', paddingLeft: '10px' }}>Prototype metrics below are illustrative design data and are not loaded from the API.</div>
       <Panel />
     </div>
   );

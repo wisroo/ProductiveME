@@ -234,6 +234,7 @@ export default function Review({ mode, onModeChange }: ReviewProps) {
         gap: '18px',
       }}
     >
+      <div className="mono" style={{ fontSize: '9px', letterSpacing: '.12em', color: 'var(--muted)' }}>PROTOTYPE · illustrative review content</div>
       <div
         style={{
           display: 'flex',

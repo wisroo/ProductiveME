@@ -1,13 +1,25 @@
 import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import type { ApiClient } from '@productiveme/api-client';
 import type { DomainId } from '../types.js';
+import { ApiContext } from '../lib/api.js';
 import Domains from './Domains.js';
 
-const renderDomains = (activeDomain: DomainId) => {
+const renderDomains = (activeDomain: DomainId, overrides: Partial<ApiClient> = {}) => {
   const onDomainChange = vi.fn();
-  render(<Domains activeDomain={activeDomain} onDomainChange={onDomainChange} />);
-  return { onDomainChange, user: userEvent.setup() };
+  const api = {
+    getRegistry: vi.fn().mockResolvedValue([]),
+    getSnapshots: vi.fn().mockResolvedValue([]),
+    getSignals: vi.fn().mockResolvedValue([]),
+    getDomains: vi.fn().mockResolvedValue([]),
+    ...overrides,
+  } as unknown as ApiClient;
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const view = render(<QueryClientProvider client={queryClient}><ApiContext.Provider value={api}><Domains activeDomain={activeDomain} onDomainChange={onDomainChange} /></ApiContext.Provider></QueryClientProvider>);
+  const renderDomain = (domain: DomainId) => view.rerender(<QueryClientProvider client={queryClient}><ApiContext.Provider value={api}><Domains activeDomain={domain} onDomainChange={onDomainChange} /></ApiContext.Provider></QueryClientProvider>);
+  return { onDomainChange, user: userEvent.setup(), renderDomain };
 };
 
 describe('Domains', () => {
@@ -87,5 +99,46 @@ describe('Domains', () => {
     expect(screen.getByText('⚠ IMBALANCE')).toBeInTheDocument();
     expect(screen.getByText('Sat afternoon → exercise')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '▶ Protect block' })).toBeInTheDocument();
+  });
+
+  it('loads the selected domain entries and snapshots using the API domain ID', async () => {
+    const entry = { id: 'finance-assets', name: 'Asset Ledger', kind: 'folder', domain: 'finance', locator: '/data/assets', connector: 'local-folder' } as const;
+    renderDomains('finance', {
+      getRegistry: vi.fn().mockResolvedValue([entry]),
+      getSnapshots: vi.fn().mockResolvedValue([{ entryId: 'finance-assets', fetchedAt: '2026-10-26T08:00:00.000Z', status: 'ok', items: [{ title: 'October balance', detail: 'Updated today' }] }]),
+      getSignals: vi.fn().mockResolvedValue([{ severity: 'due', domain: 'finance', message: 'Balance review due', suggestedAction: 'Review the balance' }]),
+    });
+
+    expect(await screen.findAllByText('Asset Ledger')).toHaveLength(2);
+    expect(await screen.findByText('October balance · Updated today')).toBeInTheDocument();
+    expect(await screen.findByText('Balance review due')).toBeInTheDocument();
+    expect(screen.getByText(/Prototype metrics below are illustrative/)).toBeInTheDocument();
+  });
+
+  it('keeps snapshots visible when registry fails and retries registry independently', async () => {
+    const getRegistry = vi.fn().mockRejectedValueOnce(new Error('Registry unavailable')).mockResolvedValue([]);
+    renderDomains('pdata', {
+      getRegistry,
+      getSnapshots: vi.fn().mockResolvedValue([{ entryId: 'photo-library', fetchedAt: '2026-10-26T08:00:00.000Z', status: 'ok', items: [{ title: 'Photo index' }] }]),
+    });
+
+    expect(await screen.findByText('Registry unavailable')).toBeInTheDocument();
+    expect(await screen.findByText('Photo index')).toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Retry registry sources' }));
+    expect(await screen.findByText('No registry sources yet.')).toBeInTheDocument();
+    expect(getRegistry).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses a distinct snapshot query when the selected domain changes', async () => {
+    const getSnapshots = vi.fn().mockResolvedValue([]);
+    const getSignals = vi.fn().mockResolvedValue([]);
+    const { user, renderDomain } = renderDomains('finance', { getSnapshots, getSignals });
+
+    await user.click(screen.getByRole('button', { name: 'Life' }));
+    renderDomain('life');
+    expect(await screen.findByText('No latest snapshots yet.')).toBeInTheDocument();
+    expect(getSnapshots).toHaveBeenNthCalledWith(1, { domain: 'finance' });
+    expect(getSnapshots).toHaveBeenNthCalledWith(2, { domain: 'life' });
+    expect(getSignals).toHaveBeenCalledTimes(2);
   });
 });

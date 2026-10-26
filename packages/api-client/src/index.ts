@@ -15,7 +15,7 @@ export interface ApiClient {
 
 export function createApiClient(baseUrl: string, fetcher: typeof fetch = fetch): ApiClient {
   async function get<T>(path: string): Promise<T> {
-    const response = await fetcher(new URL(path, baseUrl));
+    const response = await fetcher(new URL(`${baseUrl.replace(/\/$/, '')}${path}`));
     if (!response.ok) throw new Error(`ProductiveME API request failed: ${response.status}`);
     return response.json() as Promise<T>;
   }
