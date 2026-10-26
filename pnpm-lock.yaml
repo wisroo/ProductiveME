@@ -46,6 +46,25 @@ importers:
         specifier: ^3.2.0
         version: 3.2.7(@types/node@22.20.1)(jsdom@29.1.1)(tsx@4.23.15)(yaml@2.9.0)
 
+  apps/sync:
+    dependencies:
+      '@productiveme/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.1
+      tsx:
+        specifier: ^4.0.0
+        version: 4.23.15
+      vitest:
+        specifier: ^3.2.0
+        version: 3.2.7(@types/node@22.20.1)(jsdom@29.1.1)(tsx@4.23.15)(yaml@2.9.0)
+
   apps/web:
     dependencies:
       '@productiveme/api-client':

@@ -34,3 +34,14 @@ snapshots found” status. Empty registry, snapshot, and signal results have
 their own empty states, and a failure in one section leaves other sections
 available for retry. Domain detail also retains illustrative prototype panels,
 which are labeled separately from live API data.
+
+Run the sync worker manually with `pnpm sync run` from the repository root.
+It reads `registry.yaml` and writes validated snapshot history under
+`snapshots/<registry-entry-id>/`. Configure a GitHub personal access token in
+`GITHUB_TOKEN` only when private repository access is needed; it is not saved.
+For scheduled runs, add an OS cron entry such as `0 * * * * cd /path/to/ProductiveME && pnpm sync run`.
+
+The `static-file` connector reads a Snapshot JSON fixture from a local path or
+`file://` URL. `local-folder` records immediate file and directory children,
+using modification times as activity timestamps. `github` reads repository
+metadata and recent repository events using GitHub's REST API.
