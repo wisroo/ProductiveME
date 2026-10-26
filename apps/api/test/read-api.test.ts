@@ -1,4 +1,4 @@
-import { cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,14 +12,21 @@ afterEach(async () => {
   await Promise.all(directories.splice(0).map((path) => rm(path, { recursive: true })));
 });
 
-async function fixtureApp() {
+async function fixtureApp(extraRegistry = '') {
   const directory = await mkdtemp(join(tmpdir(), 'productiveme-read-api-'));
   directories.push(directory);
   const registryPath = join(directory, 'registry.yaml');
   const snapshotDir = join(directory, 'snapshots');
   await cp(join(fixtureRoot, 'registry.yaml'), registryPath);
+  if (extraRegistry) {
+    await writeFile(registryPath, `${await readFile(registryPath, 'utf8')}${extraRegistry}`);
+  }
   await cp(join(fixtureRoot, 'snapshots'), snapshotDir, { recursive: true });
-  return { app: await buildApp({ registryPath, snapshotDir, now: () => '2026-10-26T12:00:00.000Z' }), snapshotDir };
+  return {
+    app: await buildApp({ registryPath, snapshotDir, now: () => '2026-10-26T12:00:00.000Z' }),
+    snapshotDir,
+    directory,
+  };
 }
 
 describe('snapshot read API', () => {
@@ -40,7 +47,7 @@ describe('snapshot read API', () => {
         },
         { entryId: 'finance-ledger', fetchedAt: '2026-10-25T10:00:00.000Z', status: 'error', items: [], error: 'Finance export was unavailable' },
         { entryId: 'finance-budget', fetchedAt: '2026-10-24T09:00:00.000Z', status: 'ok', items: [{ title: 'October budget reviewed', timestamp: '2026-10-24T09:00:00.000Z' }] },
-        { entryId: 'personal-photos', fetchedAt: '', status: 'error', items: [], error: 'No snapshots found' },
+        { entryId: 'personal-photos', fetchedAt: '2026-10-26T12:00:00.000Z', status: 'error', items: [], error: 'No snapshots found' },
         { entryId: 'life-exercise', fetchedAt: '2026-10-01T09:00:00.000Z', status: 'ok', items: [{ title: 'Evening walk', timestamp: '2026-10-01T18:00:00.000Z' }] },
       ]);
     } finally {
@@ -69,7 +76,33 @@ describe('snapshot read API', () => {
       await writeFile(join(snapshotDir, 'personal-photos', 'bad.json'), JSON.stringify({ entryId: 'wrong-id', fetchedAt: 'bad', status: 'ok', items: [] }));
       const response = await app.inject({ method: 'GET', url: '/snapshots?domain=personal-data' });
       expect(response.statusCode).toBe(200);
-      expect(response.json()).toEqual([{ entryId: 'personal-photos', fetchedAt: '', status: 'error', items: [], error: 'No valid snapshots found' }]);
+      expect(response.json()).toEqual([{ entryId: 'personal-photos', fetchedAt: '2026-10-26T12:00:00.000Z', status: 'error', items: [], error: 'No valid snapshots found' }]);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('does not let a registry entry escape the snapshot directory', async () => {
+    const { app, directory } = await fixtureApp(`  - id: ../secrets
+    name: Unsafe source
+    kind: folder
+    domain: personal-data
+    locator: file:///fixture/secrets
+    connector: local-folder
+`);
+    try {
+      await mkdir(join(directory, 'secrets'));
+      await writeFile(join(directory, 'secrets', '2026-10-26.json'), JSON.stringify({
+        entryId: '../secrets', fetchedAt: '2026-10-26T11:00:00.000Z', status: 'ok',
+        items: [{ title: 'Must not be read' }],
+      }));
+      const response = await app.inject({ method: 'GET', url: '/snapshots' });
+      expect(response.statusCode).toBe(200);
+      expect(response.json().find((snapshot: { entryId: string }) => snapshot.entryId === '../secrets')).toEqual({
+        entryId: '../secrets', fetchedAt: '2026-10-26T12:00:00.000Z', status: 'error', items: [],
+        error: 'Unsafe registry entry ID; snapshot source not read',
+      });
+      expect(response.json().find((snapshot: { entryId: string }) => snapshot.entryId === 'career-notes')?.status).toBe('ok');
     } finally {
       await app.close();
     }
@@ -91,6 +124,27 @@ describe('signal and domain read APIs', () => {
         message: 'Connector "static-file" failed for "Finance ledger": Finance export was unavailable',
         suggestedAction: 'Check the static-file connector',
       });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('compares item timestamps chronologically across timezone offsets', async () => {
+    const { app, snapshotDir } = await fixtureApp();
+    try {
+      await writeFile(join(snapshotDir, 'career-notes', '2026-10-26-offset.json'), JSON.stringify({
+        entryId: 'career-notes', fetchedAt: '2026-10-26T11:00:00.000Z', status: 'ok',
+        items: [
+          { title: 'Earlier instant', timestamp: '2026-10-19T14:00:00+03:00' },
+          { title: 'Later instant', timestamp: '2026-10-19T13:00:00.000Z' },
+        ],
+      }));
+      const snapshots = await app.inject({ method: 'GET', url: '/snapshots?domain=career' });
+      expect(snapshots.json()[0].items.map((item: { timestamp: string }) => item.timestamp)).toEqual([
+        '2026-10-19T11:00:00.000Z', '2026-10-19T13:00:00.000Z',
+      ]);
+      const signals = await app.inject({ method: 'GET', url: '/signals' });
+      expect(signals.json()).not.toContainEqual(expect.objectContaining({ severity: 'due', entryId: 'career-notes' }));
     } finally {
       await app.close();
     }
@@ -123,6 +177,7 @@ describe('OpenAPI contract', () => {
       expect(document.openapi).toBe('3.0.3');
       expect(Object.keys(document.paths)).toEqual(expect.arrayContaining(['/registry', '/snapshots', '/signals', '/domains']));
       expect(document.paths['/snapshots'].get.parameters[0].schema.enum).toEqual(['career', 'finance', 'personal-data', 'life']);
+      expect(document.paths['/snapshots'].get.responses['200'].content['application/json'].schema.items.properties.fetchedAt.format).toBe('date-time');
       expect(document.paths['/domains'].get.responses['200'].content['application/json'].schema.items.properties.health.enum).toEqual(['healthy', 'degraded', 'unavailable']);
     } finally {
       await app.close();

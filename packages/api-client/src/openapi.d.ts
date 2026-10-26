@@ -77,13 +77,16 @@ export interface paths {
                     content: {
                         "application/json": {
                             entryId: string;
+                            /** Format: date-time */
                             fetchedAt: string;
                             /** @enum {string} */
                             status: "ok" | "error";
                             items: {
                                 title: string;
                                 detail?: string;
+                                /** Format: date-time */
                                 timestamp?: string;
+                                /** Format: uri */
                                 link?: string;
                             }[];
                             error?: string;
@@ -187,6 +190,7 @@ export interface paths {
                             okCount: number;
                             errorCount: number;
                             itemCount: number;
+                            /** Format: date-time */
                             latestActivityAt: string | null;
                         }[];
                     };

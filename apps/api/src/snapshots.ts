@@ -17,7 +17,30 @@ const snapshotSchema = z.object({
   error: z.string().optional(),
 });
 
-async function latestForEntry(snapshotDir: string, entry: RegistryEntry): Promise<Snapshot> {
+function errorSnapshot(entryId: string, fetchedAt: string, error: string): Snapshot {
+  return { entryId, fetchedAt, status: 'error', items: [], error };
+}
+
+function isSafeEntryId(entryId: string): boolean {
+  return /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(entryId);
+}
+
+function normalizeSnapshot(snapshot: z.infer<typeof snapshotSchema>): Snapshot {
+  return {
+    ...snapshot,
+    fetchedAt: new Date(snapshot.fetchedAt).toISOString(),
+    items: snapshot.items.map((item) => ({
+      ...item,
+      ...(item.timestamp ? { timestamp: new Date(item.timestamp).toISOString() } : {}),
+    })),
+  };
+}
+
+async function latestForEntry(snapshotDir: string, entry: RegistryEntry, fallbackFetchedAt: string): Promise<Snapshot> {
+  if (!isSafeEntryId(entry.id)) {
+    return errorSnapshot(entry.id, fallbackFetchedAt, 'Unsafe registry entry ID; snapshot source not read');
+  }
+
   let filenames: string[];
   try {
     filenames = (await readdir(join(snapshotDir, entry.id), { withFileTypes: true }))
@@ -26,20 +49,20 @@ async function latestForEntry(snapshotDir: string, entry: RegistryEntry): Promis
       .sort();
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return { entryId: entry.id, fetchedAt: '', status: 'error', items: [], error: 'No snapshots found' };
+      return errorSnapshot(entry.id, fallbackFetchedAt, 'No snapshots found');
     }
-    return { entryId: entry.id, fetchedAt: '', status: 'error', items: [], error: 'Snapshot source could not be read' };
+    return errorSnapshot(entry.id, fallbackFetchedAt, 'Snapshot source could not be read');
   }
 
   if (filenames.length === 0) {
-    return { entryId: entry.id, fetchedAt: '', status: 'error', items: [], error: 'No snapshots found' };
+    return errorSnapshot(entry.id, fallbackFetchedAt, 'No snapshots found');
   }
 
   const valid: Array<{ filename: string; snapshot: Snapshot }> = [];
   for (const filename of filenames) {
     try {
       const data: unknown = JSON.parse(await readFile(join(snapshotDir, entry.id, filename), 'utf8'));
-      const snapshot = snapshotSchema.parse(data);
+      const snapshot = normalizeSnapshot(snapshotSchema.parse(data));
       if (snapshot.entryId === entry.id) valid.push({ filename, snapshot });
     } catch {
       // Keep scanning; a bad file must not hide another valid snapshot.
@@ -51,22 +74,18 @@ async function latestForEntry(snapshotDir: string, entry: RegistryEntry): Promis
     if (timeDifference !== 0) return timeDifference;
     return left.filename < right.filename ? -1 : left.filename > right.filename ? 1 : 0;
   });
-  return valid[0]?.snapshot ?? {
-    entryId: entry.id,
-    fetchedAt: '',
-    status: 'error',
-    items: [],
-    error: 'No valid snapshots found',
-  };
+  return valid[0]?.snapshot ?? errorSnapshot(entry.id, fallbackFetchedAt, 'No valid snapshots found');
 }
 
 export async function loadLatestSnapshots(
   snapshotDir: string,
   entries: RegistryEntry[],
   domain?: DomainId,
+  now = new Date().toISOString(),
 ): Promise<Snapshot[]> {
   const selected = domain ? entries.filter((entry) => entry.domain === domain) : entries;
-  return Promise.all(selected.map((entry) => latestForEntry(snapshotDir, entry)));
+  const fallbackFetchedAt = new Date(now).toISOString();
+  return Promise.all(selected.map((entry) => latestForEntry(snapshotDir, entry, fallbackFetchedAt)));
 }
 
 export interface DomainRollup {

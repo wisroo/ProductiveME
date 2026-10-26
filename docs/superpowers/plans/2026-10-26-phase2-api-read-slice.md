@@ -9,8 +9,12 @@
 - For each registry entry, choose the valid snapshot with greatest
   `fetchedAt`; ties sort by filename. Ignore invalid snapshots when a valid
   one exists. If none exists, return a synthetic `error` snapshot that says
-  whether the source is missing or contains no valid snapshots. One entry's
-  read/parse/validation failure must not hide other entries' good data.
+  whether the source is missing or contains no valid snapshots. Its `fetchedAt`
+  is the request clock time. Normalize valid snapshot and item timestamps to
+  UTC ISO strings after validation. One entry's read/parse/validation failure
+  must not hide other entries' good data.
+- Only registry IDs matching a safe single path segment are read from disk;
+  an unsafe ID becomes an isolated error snapshot.
 - `GET /snapshots?domain=` accepts only the four core domain IDs and returns
   latest snapshots for registered entries (including error snapshots).
 - `GET /signals` calls Core `computeSignals` over those latest snapshots and

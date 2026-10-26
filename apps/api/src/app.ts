@@ -21,14 +21,14 @@ const snapshotSchema = {
   type: 'object',
   required: ['entryId', 'fetchedAt', 'status', 'items'],
   properties: {
-    entryId: { type: 'string' }, fetchedAt: { type: 'string' },
+    entryId: { type: 'string' }, fetchedAt: { type: 'string', format: 'date-time' },
     status: { type: 'string', enum: ['ok', 'error'] },
     items: {
       type: 'array', items: {
         type: 'object', required: ['title'],
         properties: {
           title: { type: 'string' }, detail: { type: 'string' },
-          timestamp: { type: 'string' }, link: { type: 'string' },
+          timestamp: { type: 'string', format: 'date-time' }, link: { type: 'string', format: 'uri' },
         },
       },
     },
@@ -54,7 +54,7 @@ const domainRollupSchema = {
     health: { type: 'string', enum: ['healthy', 'degraded', 'unavailable'] },
     entryCount: { type: 'integer', minimum: 0 }, okCount: { type: 'integer', minimum: 0 },
     errorCount: { type: 'integer', minimum: 0 }, itemCount: { type: 'integer', minimum: 0 },
-    latestActivityAt: { type: ['string', 'null'] },
+    latestActivityAt: { type: ['string', 'null'], format: 'date-time' },
   },
 } as const;
 
@@ -82,14 +82,15 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
     },
   }, async (request) => {
     const domain = (request.query as { domain?: (typeof DOMAIN_IDS)[number] }).domain;
-    return loadLatestSnapshots(snapshotDir, entries, domain);
+    return loadLatestSnapshots(snapshotDir, entries, domain, now());
   });
   app.get('/signals', { schema: { response: { 200: { type: 'array', items: signalSchema } } } }, async () => {
-    const snapshots = await loadLatestSnapshots(snapshotDir, entries);
-    return computeSignals(entries, snapshots, now());
+    const currentTime = now();
+    const snapshots = await loadLatestSnapshots(snapshotDir, entries, undefined, currentTime);
+    return computeSignals(entries, snapshots, currentTime);
   });
   app.get('/domains', { schema: { response: { 200: { type: 'array', items: domainRollupSchema } } } }, async () => {
-    const snapshots = await loadLatestSnapshots(snapshotDir, entries);
+    const snapshots = await loadLatestSnapshots(snapshotDir, entries, undefined, now());
     return summarizeDomains(entries, snapshots);
   });
   app.get('/openapi.json', async () => app.swagger());

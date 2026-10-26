@@ -117,7 +117,8 @@
                         "type": "string"
                       },
                       "fetchedAt": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "date-time"
                       },
                       "status": {
                         "type": "string",
@@ -141,10 +142,12 @@
                               "type": "string"
                             },
                             "timestamp": {
-                              "type": "string"
+                              "type": "string",
+                              "format": "date-time"
                             },
                             "link": {
-                              "type": "string"
+                              "type": "string",
+                              "format": "uri"
                             }
                           }
                         }
@@ -291,6 +294,7 @@
                       },
                       "latestActivityAt": {
                         "type": "string",
+                        "format": "date-time",
                         "nullable": true
                       }
                     }
