@@ -21,7 +21,21 @@ const snapshotSchema = z.object({
 
 function safeError(error: unknown): string {
   const message = error instanceof Error ? error.message : 'connector failed';
-  return /^unknown connector "[A-Za-z0-9._-]+"$/.test(message) ? message : 'connector failed';
+  return safeErrorMessage(message);
+}
+
+function safeErrorMessage(message: string | undefined): string {
+  const knownMessages = [
+    'connector failed',
+    'static Snapshot fixture could not be read',
+    'local folder could not be read',
+    'GitHub locator must be a repository URL',
+    'GitHub locator must use https://github.com',
+    'GitHub locator must identify owner/repository',
+    'GitHub repository could not be read',
+  ];
+  if (message && (knownMessages.includes(message) || /^unknown connector "[A-Za-z0-9._-]+"$/.test(message))) return message;
+  return 'connector failed';
 }
 
 function errorSnapshot(entryId: string, fetchedAt: string, error: string): Snapshot {
@@ -45,7 +59,9 @@ export async function runSync(
       if (parsed.entryId !== entry.id) throw new Error('connector returned a Snapshot for a different registry entry');
       snapshot = {
         ...parsed,
+        ...(parsed.error || parsed.status === 'error' ? { error: safeErrorMessage(parsed.error) } : {}),
         fetchedAt,
+        ...(parsed.status === 'error' ? { items: [] } : {}),
         items: parsed.items.map((item) => ({
           ...item,
           ...(item.timestamp ? { timestamp: new Date(item.timestamp).toISOString() } : {}),

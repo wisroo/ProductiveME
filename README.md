@@ -37,7 +37,8 @@ which are labeled separately from live API data.
 
 Run the sync worker manually with `pnpm sync run` from the repository root.
 It reads `registry.yaml` and writes validated snapshot history under
-`snapshots/<registry-entry-id>/`. Configure a GitHub personal access token in
+`snapshots/<registry-entry-id>/`. Pass `--root <path>` to use a different
+checkout or a temporary registry. Configure a GitHub personal access token in
 `GITHUB_TOKEN` only when private repository access is needed; it is not saved.
 For scheduled runs, add an OS cron entry such as `0 * * * * cd /path/to/ProductiveME && pnpm sync run`.
 

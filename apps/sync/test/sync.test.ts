@@ -56,6 +56,17 @@ describe('runSync', () => {
     expect(snapshot).toMatchObject({ entryId: 'one', fetchedAt, status: 'error', items: [] });
   });
 
+  it('sanitizes error text returned inside a Snapshot before exposing or saving it', async () => {
+    tempDir = await mkdtemp(join(tmpdir(), 'productiveme-sync-'));
+    const [snapshot] = await runSync([entry('one')], new Map([
+      ['test', { load: async () => ({ ...ok('one'), status: 'error', items: [], error: 'Bearer test-secret provider body' }) }],
+    ]), join(tempDir, 'snapshots'), () => new Date(fetchedAt));
+    const saved = await readFile(join(tempDir, 'snapshots', 'one', `${fetchedAt}.json`), 'utf8');
+    expect(snapshot?.error).toBe('connector failed');
+    expect(saved).not.toContain('test-secret');
+    expect(saved).not.toContain('provider body');
+  });
+
   it('rejects unsafe entry IDs without writing outside the snapshot root', async () => {
     tempDir = await mkdtemp(join(tmpdir(), 'productiveme-sync-'));
     const [snapshot] = await runSync([entry('../escape')], new Map([
