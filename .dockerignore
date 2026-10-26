@@ -1,0 +1,13 @@
+.git
+.claude
+.codex
+.aws
+**/node_modules
+snapshots
+**/snapshots
+.env
+.env.*
+**/.env
+**/.env.*
+*.log
+.DS_Store

@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import type { Writable } from 'node:stream';
 import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import { computeSignals, DOMAIN_IDS, parseRegistry } from '@productiveme/core';
@@ -62,16 +63,29 @@ export interface BuildAppOptions {
   registryPath: string;
   snapshotDir?: string;
   now?: () => string;
+  loggerStream?: Writable;
 }
 
-export async function buildApp({ registryPath, snapshotDir = join(dirname(registryPath), 'snapshots'), now = () => new Date().toISOString() }: BuildAppOptions) {
+export async function buildApp({ registryPath, snapshotDir = join(dirname(registryPath), 'snapshots'), now = () => new Date().toISOString(), loggerStream }: BuildAppOptions) {
   const entries = parseRegistry(await readFile(registryPath, 'utf8'));
-  const app = Fastify();
+  const app = Fastify({
+    logger: {
+      level: 'info',
+      redact: {
+        paths: ['req.headers.authorization', 'req.headers.cookie', 'req.headers.x-api-key', 'req.headers.x-auth-token', 'req.url'],
+        censor: '[REDACTED]',
+      },
+      ...(loggerStream ? { stream: loggerStream } : {}),
+    },
+  });
   await app.register(swagger, {
     openapi: { info: { title: 'ProductiveME API', version: '0.1.0' }, openapi: '3.0.3' },
   });
 
   app.get('/registry', { schema: { response: { 200: { type: 'array', items: registryEntrySchema } } } }, async () => entries);
+  app.get('/healthz', {
+    schema: { response: { 200: { type: 'object', required: ['status'], properties: { status: { type: 'string', enum: ['ok'] } } } } },
+  }, async () => ({ status: 'ok' }));
   app.get('/snapshots', {
     schema: {
       querystring: { type: 'object', properties: { domain: { type: 'string', enum: DOMAIN_IDS } }, additionalProperties: false },

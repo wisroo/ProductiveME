@@ -1,0 +1,8 @@
+# Phase 5 Local Container and Operations Design
+
+- **Intent:** Make ProductiveME's API and one-shot Sync reproducible local containers with observable, safe runtime behavior.
+- **Approach:** Build both workspace apps with Node 24.22.1 and pnpm 10.12.1, installing only the selected app's production workspace dependencies. Compose gives Sync a writable shared snapshot volume, API a read-only snapshot mount and read-only registry bind, and exposes API only on loopback at the host boundary. Runtime processes use a non-root user; the snapshot volume is initialized for Sync's user.
+- **Operations:** `GET /healthz` is a liveness check independent of registry or snapshot health. API requests emit Pino JSON logs with authorization, cookies, and query strings redacted; Sync emits one structured completion record with aggregate outcome counts. API handles SIGTERM by closing Fastify cleanly. Host and port are configurable with safe local defaults.
+- **Validation:** Focused tests cover health, invalid host/port configuration, sanitized request logs, Sync outcome records, and shutdown. A fixture-only Docker smoke script builds and runs both services, confirms API reads generated snapshots and health succeeds, then confirms API termination. CI runs the same smoke path on Ubuntu.
+- **Out of scope:** AWS provisioning/deployment, CloudWatch metrics/alarms, scheduler registration, credentials setup, and registry inventory. Those remain for a follow-up Phase 5 unit after the deployment target is decided.
+- **Decisions:** Container API listens on `0.0.0.0` while Compose maps only `127.0.0.1`; Compose defaults to the repository registry and an isolated named snapshot volume. Smoke tests use a temporary fixture registry and private Compose project/volume.

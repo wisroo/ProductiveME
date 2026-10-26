@@ -176,9 +176,23 @@ describe('OpenAPI contract', () => {
       const document = response.json();
       expect(document.openapi).toBe('3.0.3');
       expect(Object.keys(document.paths)).toEqual(expect.arrayContaining(['/registry', '/snapshots', '/signals', '/domains']));
+      expect(document.paths['/healthz'].get.responses['200'].content['application/json'].schema).toEqual({ type: 'object', required: ['status'], properties: { status: { type: 'string', enum: ['ok'] } } });
       expect(document.paths['/snapshots'].get.parameters[0].schema.enum).toEqual(['career', 'finance', 'personal-data', 'life']);
       expect(document.paths['/snapshots'].get.responses['200'].content['application/json'].schema.items.properties.fetchedAt.format).toBe('date-time');
       expect(document.paths['/domains'].get.responses['200'].content['application/json'].schema.items.properties.health.enum).toEqual(['healthy', 'degraded', 'unavailable']);
+    } finally {
+      await app.close();
+    }
+  });
+});
+
+describe('liveness API', () => {
+  it('reports process liveness without depending on registry or snapshot state', async () => {
+    const { app } = await fixtureApp();
+    try {
+      const response = await app.inject({ method: 'GET', url: '/healthz' });
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({ status: 'ok' });
     } finally {
       await app.close();
     }

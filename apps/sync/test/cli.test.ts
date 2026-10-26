@@ -45,7 +45,7 @@ describe('sync CLI', () => {
       cwd: packageDir,
       encoding: 'utf8',
     });
-    expect(output).toContain('Sync complete: 1 entries, 0 errors');
+    expect(JSON.parse(output)).toEqual({ event: 'sync.completed', total: 1, ok: 1, errors: 0 });
     const [filename] = await readdir(join(tempDir, 'snapshots', 'sample'));
     const snapshot = JSON.parse(await readFile(join(tempDir, 'snapshots', 'sample', filename!), 'utf8'));
     expect(snapshot).toMatchObject({ entryId: 'sample', status: 'ok', items: [] });

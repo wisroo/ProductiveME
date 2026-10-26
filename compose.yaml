@@ -1,0 +1,40 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      API_HOST: 0.0.0.0
+      API_PORT: 3000
+    ports:
+      - "127.0.0.1:${API_PUBLISHED_PORT:-3000}:3000"
+    volumes:
+      - ./registry.yaml:/app/registry.yaml:ro
+      - snapshots:/app/snapshots:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  sync:
+    build:
+      context: .
+      dockerfile: Dockerfile.sync
+    environment:
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    volumes:
+      - ./registry.yaml:/app/registry.yaml:ro
+      - snapshots:/app/snapshots:rw
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: "no"
+
+volumes:
+  snapshots:

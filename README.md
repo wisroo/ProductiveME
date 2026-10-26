@@ -46,3 +46,30 @@ The `static-file` connector reads a Snapshot JSON fixture from a local path or
 `file://` URL. `local-folder` records immediate file and directory children,
 using modification times as activity timestamps. `github` reads repository
 metadata and recent repository events using GitHub's REST API.
+
+## Run the local containers
+
+Build the API and run one Sync pass with Docker Compose:
+
+```sh
+docker compose build
+docker compose run --rm sync
+docker compose up -d api
+```
+
+The API is available at `http://127.0.0.1:3000`; set `API_PUBLISHED_PORT` to
+choose a different host port. The API process listens on all interfaces inside
+its container, while Compose publishes it only on host loopback. The API sees
+the repository registry and shared snapshots read-only. Sync can write the
+same named snapshot volume. To stop the API and remove the local volume, run
+`docker compose down --volumes`.
+
+`API_HOST` and `API_PORT` configure the process listener (defaults:
+`127.0.0.1` and `3000`; Compose sets the container host to `0.0.0.0`). API
+requests and Sync outcomes are logged as JSON. The API's `GET /healthz` checks
+process liveness only. `scripts/docker-smoke.sh` builds and exercises the two
+images against temporary fixture data; CI runs the same smoke check.
+
+This local runtime is the first Phase 5 unit. AWS deployment and CloudWatch
+metrics/alarms remain deferred until the deployment target decision is made;
+no scheduler is installed by Compose.
