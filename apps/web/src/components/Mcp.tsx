@@ -19,6 +19,7 @@ export default function Mcp() {
         flexDirection: 'column',
       }}
     >
+      <div className="mono" style={{ fontSize: '9px', letterSpacing: '.12em', color: 'var(--muted)', marginBottom: '8px' }}>PROTOTYPE · illustrative server status</div>
       <DomainHeading title="MCP" scope={mcp.summary} />
       <ul
         aria-label="MCP servers"

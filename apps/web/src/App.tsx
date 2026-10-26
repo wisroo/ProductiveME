@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Domains from './components/Domains.js';
 import Home from './components/Home.js';
 import Mcp from './components/Mcp.js';
@@ -6,7 +7,7 @@ import Review from './components/Review.js';
 import TopBar from './components/TopBar.js';
 import type { AppTab, DomainId, ReviewMode, Theme } from './types.js';
 
-export default function App() {
+function AppContent() {
   const [tab, setTab] = useState<AppTab>('home');
   const [domain, setDomain] = useState<DomainId>('finance');
   const [reviewMode, setReviewMode] = useState<ReviewMode>('weekly');
@@ -47,4 +48,9 @@ export default function App() {
       </main>
     </div>
   );
+}
+
+export default function App() {
+  const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { retry: false } } }));
+  return <QueryClientProvider client={queryClient}><AppContent /></QueryClientProvider>;
 }

@@ -1,6 +1,7 @@
-import { domainCards, home, nextActions, timeline } from '../data/mock.js';
-import type { DomainId } from '../types.js';
-import { eyebrow, fill, ink, ProgressBar } from './bits.js';
+import { domains, type DomainId } from '../types.js';
+import { useDomainRollups, useSignals, toApiDomainId } from '../lib/api.js';
+import { ghostButton, primaryButton } from './bits.js';
+import QuerySection from './QuerySection.js';
 
 type HomeProps = {
   onDomainSelect: (domain: DomainId) => void;
@@ -8,11 +9,20 @@ type HomeProps = {
   onStartReview: () => void;
 };
 
+const healthLabel: Record<string, string> = {
+  healthy: 'HEALTHY',
+  degraded: 'DEGRADED',
+  unavailable: 'UNAVAILABLE',
+};
+
 export default function Home({
   onDomainSelect,
   onOpenDomains,
   onStartReview,
 }: HomeProps) {
+  const rollups = useDomainRollups();
+  const signals = useSignals();
+
   return (
     <div
       style={{
@@ -25,222 +35,106 @@ export default function Home({
       }}
     >
       <div>
-        <div className="mono" style={{ ...eyebrow('accent'), letterSpacing: '.16em' }}>
-          {home.eyebrow}
+        <div
+          className="mono"
+          style={{ fontSize: '10px', letterSpacing: '.16em', color: 'var(--accent)' }}
+        >
+          PRODUCTIVEME · LIVE READ MODEL
         </div>
         <h1
           className="hf"
-          style={{
-            fontSize: '30px',
-            lineHeight: 1.16,
-            fontWeight: 600,
-            marginTop: '9px',
-            letterSpacing: '-.015em',
-          }}
+          style={{ fontSize: '30px', lineHeight: 1.16, fontWeight: 600, marginTop: '9px' }}
         >
-          {home.headline[0]}
-          <br />
-          {home.headline[1]}
+          Where should your attention go?
         </h1>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4,1fr)',
-          gap: '10px',
-        }}
+      <QuerySection
+        title="Domain health"
+        isPending={rollups.isPending}
+        isError={rollups.isError}
+        error={rollups.error}
+        empty={!rollups.data?.length}
+        onRetry={() => void rollups.refetch()}
       >
-        {domainCards.map((card) => (
-          <button
-            key={card.id}
-            type="button"
-            className="domain-card"
-            data-tone={card.tone}
-            aria-label={card.label}
-            onClick={() => onDomainSelect(card.id)}
-            style={{
-              background: 'var(--panel)',
-              padding: '15px 16px',
-              textAlign: 'left',
-              color: 'var(--ink)',
-              border: '1px solid var(--line)',
-              borderTop: `2px solid ${fill(card.tone)}`,
-              borderRadius: 'var(--r)',
-              transition: 'background .15s ease',
-              cursor: 'pointer',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <b style={{ fontSize: '14px' }}>{card.label}</b>
-              <span
-                className="mono"
-                style={{ fontSize: '9px', color: ink(card.badgeTone) }}
-              >
-                {card.badge}
-              </span>
-            </div>
-            <div style={{ marginTop: '14px' }}>
-              <ProgressBar percent={card.progress} tone={card.tone} />
-            </div>
-            <div
-              className="mono"
-              style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '9px' }}
-            >
-              {card.note}
-            </div>
-          </button>
-        ))}
-      </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px' }}>
+          {domains.map((domain) => {
+            const rollup = rollups.data?.find(
+              (item) => item.domain === toApiDomainId(domain.id),
+            );
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1.15fr 1fr',
-          border: '1px solid var(--line-2)',
-          borderLeft: '3px solid var(--accent)',
-          borderRadius: '0 var(--r2) var(--r2) 0',
-          background: 'var(--panel)',
-          boxShadow: '-1px 0 16px -4px var(--accent)',
-        }}
-      >
-        <div style={{ borderRight: '1px solid var(--line)', padding: '20px 22px' }}>
-          <div className="mono" style={eyebrow('accent')}>
-            {home.today.label}
-          </div>
-          <p
-            className="hf"
-            style={{
-              fontSize: '16px',
-              lineHeight: 1.6,
-              margin: '11px 0 16px',
-              color: 'var(--ink)',
-            }}
-          >
-            {home.today.lead}
-            <span style={{ color: 'var(--due)', fontWeight: 600 }}>
-              {home.today.highlight}
-            </span>
-            {home.today.tail}
-          </p>
-          <button
-            type="button"
-            onClick={onOpenDomains}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '11px 17px',
-              border: 'none',
-              borderRadius: 'var(--r)',
-              background: 'var(--accent)',
-              color: 'var(--accent-ink)',
-              fontWeight: 700,
-              fontSize: '13px',
-              cursor: 'pointer',
-            }}
-          >
-            {home.today.cta}
-          </button>
+            return (
+              <button
+                key={domain.id}
+                type="button"
+                className="domain-card"
+                aria-label={domain.label}
+                onClick={() => onDomainSelect(domain.id)}
+                style={{
+                  background: 'var(--panel)',
+                  padding: '15px 16px',
+                  textAlign: 'left',
+                  color: 'var(--ink)',
+                  border: '1px solid var(--line)',
+                  borderRadius: 'var(--r)',
+                  cursor: 'pointer',
+                }}
+              >
+                <b style={{ fontSize: '14px' }}>{domain.label}</b>
+                <div
+                  className="mono"
+                  style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '12px' }}
+                >
+                  {healthLabel[rollup?.health ?? 'unavailable']}
+                </div>
+                <div className="mono" style={{ fontSize: '10px', marginTop: '5px' }}>
+                  {rollup?.okCount ?? 0}/{rollup?.entryCount ?? 0} sources ·{' '}
+                  {rollup?.itemCount ?? 0} items
+                </div>
+              </button>
+            );
+          })}
         </div>
-        <div
-          style={{
-            padding: '18px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '9px',
-          }}
-        >
-          <div className="mono" style={eyebrow('muted')}>
-            NEXT ACTIONS
-          </div>
-          {nextActions.map((action) => (
+      </QuerySection>
+
+      <QuerySection
+        title="Signals"
+        isPending={signals.isPending}
+        isError={signals.isError}
+        error={signals.error}
+        empty={!signals.data?.length}
+        onRetry={() => void signals.refetch()}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {signals.data?.map((signal, index) => (
             <div
-              key={action.rank}
+              key={`${signal.domain}-${signal.entryId ?? index}-${signal.message}`}
               style={{
                 padding: '10px 12px',
                 border: '1px solid var(--line)',
-                borderLeft: action.flagged
-                  ? `2px solid ${fill(action.tone)}`
-                  : undefined,
                 borderRadius: 'var(--r)',
               }}
             >
-              <b style={{ fontSize: '12px' }}>
-                {action.rank} · {action.title}
-              </b>
-              <div className="mono" style={{ fontSize: '9px', color: ink(action.tone) }}>
-                {action.meta}
+              <b style={{ fontSize: '12px' }}>{signal.message}</b>
+              <div
+                className="mono"
+                style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '4px' }}
+              >
+                {domains.find(
+                  (domain) => toApiDomainId(domain.id) === signal.domain,
+                )?.label ?? signal.domain}{' '}
+                · {signal.severity.toUpperCase()}
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </QuerySection>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr',
-          gap: '24px',
-          paddingTop: '16px',
-          borderTop: '1px solid var(--line-2)',
-        }}
-      >
-        {timeline.map((column) => (
-          <div key={column.label}>
-            <div className="mono" style={eyebrow(column.tone, 9)}>
-              {column.label}
-            </div>
-            <div
-              className="mono"
-              style={{
-                fontSize: '11px',
-                color: 'var(--muted)',
-                lineHeight: 2,
-                marginTop: '9px',
-              }}
-            >
-              {column.lines.map((line) => (
-                <div key={line}>{line}</div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div
-        className="mono"
-        style={{
-          fontSize: '11px',
-          color: 'var(--muted)',
-          padding: '13px 16px',
-          border: '1px dashed var(--line-2)',
-          borderRadius: 'var(--r)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <span>{home.sourceGates}</span>
-        <button
-          type="button"
-          onClick={onStartReview}
-          className="mono"
-          style={{
-            border: 'none',
-            background: 'transparent',
-            padding: 0,
-            fontSize: '11px',
-            color: 'var(--accent)',
-            cursor: 'pointer',
-          }}
-        >
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button type="button" onClick={onOpenDomains} style={primaryButton}>
+          Open domains
+        </button>
+        <button type="button" onClick={onStartReview} style={ghostButton}>
           Start weekly review →
         </button>
       </div>
