@@ -38,6 +38,22 @@ describe('API runtime', () => {
     }
   });
 
+  it('does not expose unknown route URLs or query secrets in the response or any log record', async () => {
+    const records: string[] = [];
+    const stream = new Writable({ write(chunk, _encoding, callback) { records.push(String(chunk)); callback(); } });
+    const app = await buildApp({ registryPath, loggerStream: stream });
+    try {
+      const response = await app.inject({ method: 'GET', url: '/private-locator?token=unknown-route-secret' });
+      expect(response.statusCode).toBe(404);
+      expect(response.body).not.toContain('/private-locator');
+      expect(response.body).not.toContain('unknown-route-secret');
+      expect(records.join('')).not.toContain('/private-locator');
+      expect(records.join('')).not.toContain('unknown-route-secret');
+    } finally {
+      await app.close();
+    }
+  });
+
   it('closes the Fastify server when SIGTERM is received', async () => {
     const processEvents = new EventEmitter();
     let closed = false;

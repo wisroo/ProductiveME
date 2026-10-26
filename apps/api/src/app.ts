@@ -108,5 +108,9 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
     return summarizeDomains(entries, snapshots);
   });
   app.get('/openapi.json', async () => app.swagger());
+  app.setNotFoundHandler((request, reply) => {
+    request.log.warn('Route not found');
+    return reply.code(404).send({ statusCode: 404, error: 'Not Found', message: 'Route not found' });
+  });
   return app;
 }
