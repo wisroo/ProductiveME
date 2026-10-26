@@ -21,9 +21,11 @@ pnpm --filter @productiveme/web dev
 Open the Vite URL shown in the web terminal (usually `http://localhost:5173`).
 By default, the web app sends `/api/*` requests through Vite's reverse proxy,
 which strips `/api` before forwarding to the root API at
-`http://127.0.0.1:3000`. For a different direct API origin, set
-`VITE_API_BASE_URL` to its root, such as `http://127.0.0.1:3000`. Include an
-`/api` suffix only when a reverse proxy actually mounts the API under that
+`http://127.0.0.1:3000`. This same-origin proxy is the recommended setup. A
+direct `VITE_API_BASE_URL` override can point to the API root, such as
+`http://127.0.0.1:3000`, but cross-origin browser requests require CORS to be
+enabled on the destination API; the API as shipped does not enable CORS. Include
+an `/api` suffix only when a reverse proxy actually mounts the API under that
 path.
 
 The API reads snapshots from `snapshots/<registry-entry-id>/*.json` at the
