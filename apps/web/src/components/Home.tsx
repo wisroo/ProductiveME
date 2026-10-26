@@ -12,7 +12,7 @@ type HomeProps = {
 const healthLabel: Record<string, string> = {
   healthy: 'HEALTHY',
   degraded: 'DEGRADED',
-  unavailable: 'NO SNAPSHOTS',
+  unavailable: 'UNAVAILABLE',
 };
 
 export default function Home({

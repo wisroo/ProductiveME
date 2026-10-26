@@ -36,6 +36,7 @@ describe('Home live API sections', () => {
 
     expect(await screen.findByText(/1\/2 sources · 3 items/)).toBeInTheDocument();
     expect(screen.getByText('Snapshot overdue')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Life' })).toHaveTextContent('UNAVAILABLE');
     await user.click(screen.getByRole('button', { name: 'Personal Data' }));
     expect(onDomainSelect).toHaveBeenCalledWith('pdata');
     expect(screen.queryByText('This week, close the July finance snapshot')).not.toBeInTheDocument();

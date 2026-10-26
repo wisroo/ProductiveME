@@ -141,4 +141,22 @@ describe('Domains', () => {
     expect(getSnapshots).toHaveBeenNthCalledWith(2, { domain: 'life' });
     expect(getSignals).toHaveBeenCalledTimes(2);
   });
+
+  it('does not show the previous domain snapshots while the next domain loads', async () => {
+    type SnapshotFixture = { entryId: string; fetchedAt: string; status: 'ok'; items: { title: string }[] };
+    let finishLifeSnapshots!: (snapshots: SnapshotFixture[]) => void;
+    const getSnapshots = vi.fn()
+      .mockResolvedValueOnce([{ entryId: 'finance-entry', fetchedAt: '2026-10-26T08:00:00.000Z', status: 'ok', items: [{ title: 'Finance only' }] }])
+      .mockImplementationOnce(() => new Promise<SnapshotFixture[]>((resolve) => { finishLifeSnapshots = resolve; }));
+    const { user, renderDomain } = renderDomains('finance', { getSnapshots });
+
+    expect(await screen.findByText('Finance only')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Life' }));
+    renderDomain('life');
+
+    expect(await screen.findByText('Loading latest snapshots…')).toBeInTheDocument();
+    expect(screen.queryByText('Finance only')).not.toBeInTheDocument();
+    finishLifeSnapshots([{ entryId: 'life-entry', fetchedAt: '2026-10-26T08:00:00.000Z', status: 'ok', items: [{ title: 'Life only' }] }]);
+    expect(await screen.findByText('Life only')).toBeInTheDocument();
+  });
 });

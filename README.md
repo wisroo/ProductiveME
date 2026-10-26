@@ -19,9 +19,12 @@ pnpm --filter @productiveme/web dev
 ```
 
 Open the Vite URL shown in the web terminal (usually `http://localhost:5173`).
-The web app sends `/api/*` requests through Vite to the API at
-`http://127.0.0.1:3000`; set `VITE_API_BASE_URL` to an absolute API base URL
-ending in `/api` when using a different setup.
+By default, the web app sends `/api/*` requests through Vite's reverse proxy,
+which strips `/api` before forwarding to the root API at
+`http://127.0.0.1:3000`. For a different direct API origin, set
+`VITE_API_BASE_URL` to its root, such as `http://127.0.0.1:3000`. Include an
+`/api` suffix only when a reverse proxy actually mounts the API under that
+path.
 
 The API reads snapshots from `snapshots/<registry-entry-id>/*.json` at the
 repository root. An absent snapshot directory appears as a per-entry “No
