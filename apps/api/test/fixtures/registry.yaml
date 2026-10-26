@@ -1,0 +1,33 @@
+entries:
+  - id: career-notes
+    name: Career notes
+    kind: notion-page
+    domain: career
+    locator: https://example.test/career-notes
+    connector: static-file
+    cadence: weekly
+  - id: finance-ledger
+    name: Finance ledger
+    kind: tool
+    domain: finance
+    locator: file:///fixture/finance
+    connector: static-file
+  - id: finance-budget
+    name: Monthly budget
+    kind: tool
+    domain: finance
+    locator: file:///fixture/budget
+    connector: static-file
+  - id: personal-photos
+    name: Photo library
+    kind: folder
+    domain: personal-data
+    locator: file:///fixture/photos
+    connector: local-folder
+  - id: life-exercise
+    name: Exercise log
+    kind: notion-page
+    domain: life
+    locator: https://example.test/exercise
+    connector: static-file
+    cadence: weekly

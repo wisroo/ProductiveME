@@ -1,0 +1,319 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ProductiveME API",
+    "version": "0.1.0"
+  },
+  "components": {
+    "schemas": {}
+  },
+  "paths": {
+    "/registry": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "name",
+                      "kind",
+                      "domain",
+                      "locator",
+                      "connector"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "repo",
+                          "notion-page",
+                          "folder",
+                          "tool",
+                          "project"
+                        ]
+                      },
+                      "domain": {
+                        "type": "string",
+                        "enum": [
+                          "career",
+                          "finance",
+                          "personal-data",
+                          "life"
+                        ]
+                      },
+                      "subdomain": {
+                        "type": "string"
+                      },
+                      "locator": {
+                        "type": "string"
+                      },
+                      "connector": {
+                        "type": "string"
+                      },
+                      "cadence": {
+                        "type": "string",
+                        "enum": [
+                          "weekly",
+                          "monthly",
+                          "quarterly"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/snapshots": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "career",
+                "finance",
+                "personal-data",
+                "life"
+              ]
+            },
+            "in": "query",
+            "name": "domain",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "entryId",
+                      "fetchedAt",
+                      "status",
+                      "items"
+                    ],
+                    "properties": {
+                      "entryId": {
+                        "type": "string"
+                      },
+                      "fetchedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "ok",
+                          "error"
+                        ]
+                      },
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "title"
+                          ],
+                          "properties": {
+                            "title": {
+                              "type": "string"
+                            },
+                            "detail": {
+                              "type": "string"
+                            },
+                            "timestamp": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "link": {
+                              "type": "string",
+                              "format": "uri"
+                            }
+                          }
+                        }
+                      },
+                      "error": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/signals": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "severity",
+                      "domain",
+                      "message"
+                    ],
+                    "properties": {
+                      "severity": {
+                        "type": "string",
+                        "enum": [
+                          "info",
+                          "due",
+                          "warning",
+                          "blocked"
+                        ]
+                      },
+                      "domain": {
+                        "type": "string",
+                        "enum": [
+                          "career",
+                          "finance",
+                          "personal-data",
+                          "life"
+                        ]
+                      },
+                      "entryId": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "type": "string"
+                      },
+                      "suggestedAction": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/domains": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "domain",
+                      "health",
+                      "entryCount",
+                      "okCount",
+                      "errorCount",
+                      "itemCount",
+                      "latestActivityAt"
+                    ],
+                    "properties": {
+                      "domain": {
+                        "type": "string",
+                        "enum": [
+                          "career",
+                          "finance",
+                          "personal-data",
+                          "life"
+                        ]
+                      },
+                      "health": {
+                        "type": "string",
+                        "enum": [
+                          "healthy",
+                          "degraded",
+                          "unavailable"
+                        ]
+                      },
+                      "entryCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "okCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "errorCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "itemCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "latestActivityAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    }
+  }
+}

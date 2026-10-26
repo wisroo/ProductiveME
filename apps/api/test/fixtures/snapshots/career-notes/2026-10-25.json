@@ -1,0 +1,9 @@
+{
+  "entryId": "career-notes",
+  "fetchedAt": "2026-10-25T09:00:00.000Z",
+  "status": "ok",
+  "items": [
+    { "title": "System design practice", "detail": "Queue tradeoffs", "timestamp": "2026-10-25T08:30:00.000Z", "link": "https://example.test/notes/queue" },
+    { "title": "Portfolio review", "timestamp": "2026-10-24T08:30:00.000Z" }
+  ]
+}
