@@ -109,11 +109,23 @@ INFERENCE_MODEL=qwen3:0.6b
 ```
 
 The Compose API runs in a separate network namespace, so its `127.0.0.1` points
-to the API container, not Ollama on the Docker host. For Compose, set
-`INFERENCE_BASE_URL` to an Ollama address reachable from the container on the
-private LAN or Tailscale network, and restrict the inference port with the host
-firewall to trusted devices. For example, if the inference host has the stable
-private address `192.168.1.20`, configure the Linux service to bind that address:
+to the API container, not Ollama on the Docker host. If Ollama and the API
+container share one Docker host, set `INFERENCE_BASE_URL` to that host's stable
+private interface address. Allow port 11434 only from the Compose API container's
+Docker bridge subnet in the host firewall. Discover the active network and
+subnet from the running API container instead of assuming a fixed Docker range:
+
+```sh
+api_container="$(docker compose ps -q api)"
+api_network="$(docker inspect "$api_container" --format '{{range $name, $network := .NetworkSettings.Networks}}{{$name}}{{end}}')"
+docker network inspect "$api_network" --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+```
+
+Use the reported subnet as the firewall's allowed source range for port 11434,
+with the host's private address as the destination. Firewall syntax varies by
+host. Do not allow the entire LAN or public interfaces.
+For example, if the inference host has the stable private address `192.168.1.20`,
+configure the Linux service to bind that address:
 
 ```sh
 sudo systemctl edit ollama.service
@@ -128,10 +140,23 @@ Environment="OLLAMA_HOST=192.168.1.20:11434"
 ```
 
 Then run `sudo systemctl daemon-reload` and `sudo systemctl restart ollama`, and
-configure the firewall to allow port 11434 only from the API host's private
-address. Set `INFERENCE_BASE_URL` to `http://192.168.1.20:11434` in Compose
-`.env`. Keep the inference port off public interfaces. Ollama binds to loopback
-by default; do not bind it to all interfaces without a restrictive firewall.
+configure the firewall using the source guidance above. Set
+`INFERENCE_BASE_URL` to `http://192.168.1.20:11434` in Compose `.env`. Keep the
+inference port off public interfaces. Ollama binds to loopback by default; do
+not bind it to all interfaces without a restrictive firewall.
+
+After starting the API container with this configuration, check connectivity
+from inside that container using the same URL Compose passed to the API:
+
+```sh
+docker compose exec api node -e 'fetch(new URL("/api/tags", process.env.INFERENCE_BASE_URL)).then((response) => { console.log(`Ollama HTTP ${response.status}`); process.exit(response.ok ? 0 : 1); }).catch(() => { console.error("Cannot reach Ollama from the API container"); process.exit(1); })'
+```
+
+If the API and Ollama run on separate hosts, use the Ollama host's private LAN
+or Tailscale address in `INFERENCE_BASE_URL`, and allow port 11434 only from
+the API host's private or Tailscale address in the Ollama host's firewall.
+The Docker bridge subnet rule above applies only when both services share one
+Docker host.
 
 For a same-host native API, leave Ollama bound to loopback and use the earlier
 `127.0.0.1` URL. For remote access, Ollama supports binding a specific private
