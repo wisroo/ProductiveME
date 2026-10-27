@@ -62,6 +62,90 @@ so select an Ollama model that supports disabling thinking. `POST /reviews`
 uses brief server-side snapshot facts and computed signals, and returns a draft
 without saving it.
 
+### First model to evaluate
+
+Use [`qwen3:0.6b`](https://ollama.com/library/qwen3:0.6b) with its Q4_K_M
+quantization as the initial smoke-test candidate (about 523 MB on the Ollama
+library page). Compare it with [`qwen3:1.7b`](https://ollama.com/library/qwen3:1.7b)
+Q4_K_M (about 1.4 GB) if the smaller model's drafts are too weak and the host has room.
+These are evaluation candidates, not a performance guarantee or final model
+choice. The Wyse 5060 has an older AMD CPU, so start with CPU inference; check
+`lscpu` flags on the actual machine before assuming a particular instruction
+set or GPU acceleration will work. Record draft quality, wall-clock latency,
+and peak memory for the same prompts on that host before deciding.
+
+### Install and check Ollama on the inference host
+
+Install Ollama using the current [official Linux instructions](https://docs.ollama.com/linux)
+on the machine that will host inference. The installer creates a system service;
+check it with `sudo systemctl status ollama`. Then pull the small candidate manually:
+
+```sh
+ollama pull qwen3:0.6b
+```
+
+Check the model through the local API on that machine. This makes one short
+request and does not configure ProductiveME:
+
+```sh
+curl http://127.0.0.1:11434/api/generate \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"qwen3:0.6b","prompt":"Summarize: completed one task; one task remains blocked.","stream":false,"think":false,"options":{"num_ctx":2048,"num_predict":128}}'
+```
+
+Use the same repeatable set of real review inputs to compare candidates. Note
+whether each draft stays grounded, whether it invents facts, its elapsed time,
+and the host's peak memory. Do not infer tokens per second or hardware support
+from the model's library size.
+
+### Connect the API to Ollama
+
+For the simplest first check, run the API on the same Linux host as Ollama and
+set these in the API process environment:
+
+```sh
+INFERENCE_BASE_URL=http://127.0.0.1:11434
+INFERENCE_MODEL=qwen3:0.6b
+```
+
+The Compose API runs in a separate network namespace, so its `127.0.0.1` points
+to the API container, not Ollama on the Docker host. For Compose, set
+`INFERENCE_BASE_URL` to an Ollama address reachable from the container on the
+private LAN or Tailscale network, and restrict the inference port with the host
+firewall to trusted devices. For example, if the inference host has the stable
+private address `192.168.1.20`, configure the Linux service to bind that address:
+
+```sh
+sudo systemctl edit ollama.service
+```
+
+Add this override, replacing the example address with that host's private
+interface address:
+
+```ini
+[Service]
+Environment="OLLAMA_HOST=192.168.1.20:11434"
+```
+
+Then run `sudo systemctl daemon-reload` and `sudo systemctl restart ollama`, and
+configure the firewall to allow port 11434 only from the API host's private
+address. Set `INFERENCE_BASE_URL` to `http://192.168.1.20:11434` in Compose
+`.env`. Keep the inference port off public interfaces. Ollama binds to loopback
+by default; do not bind it to all interfaces without a restrictive firewall.
+
+For a same-host native API, leave Ollama bound to loopback and use the earlier
+`127.0.0.1` URL. For remote access, Ollama supports binding a specific private
+address through `OLLAMA_HOST`; see the [official server configuration FAQ](https://docs.ollama.com/faq#how-can-i-expose-ollama-on-my-network).
+
+Compose reads `.env` values for variable substitution, and `compose.yaml`
+passes the inference variables into the API container. `pnpm --filter
+@productiveme/api dev` reads the shell's environment directly; Compose `.env`
+is not automatically loaded into that native process. Leave both required
+values blank to keep generation disabled. When configured, restart the API and
+use **Generate review** in the Review view. Weekly and monthly requests are
+manual; errors do not trigger automatic retries. Drafts are displayed only and
+are not saved or exported yet.
+
 ## Run the local containers
 
 Build the API and run one Sync pass with Docker Compose:

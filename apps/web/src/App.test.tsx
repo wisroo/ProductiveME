@@ -31,7 +31,7 @@ describe('App shell', () => {
 
     await user.click(screen.getByRole('button', { name: 'Review' }));
     expect(
-      screen.getByRole('heading', { name: 'Weekly review · Week 29' }),
+      screen.getByRole('heading', { name: 'Weekly review' }),
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'MCP' }));
@@ -104,12 +104,12 @@ describe('App shell', () => {
 
     await user.click(screen.getByRole('button', { name: 'Start weekly review →' }));
     expect(
-      screen.getByRole('heading', { name: 'Weekly review · Week 29' }),
+      screen.getByRole('heading', { name: 'Weekly review' }),
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'MONTHLY' }));
     expect(
-      screen.getByRole('heading', { name: 'Monthly review · July 2026' }),
+      screen.getByRole('heading', { name: 'Monthly review' }),
     ).toBeInTheDocument();
   });
 
