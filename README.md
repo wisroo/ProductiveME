@@ -47,6 +47,18 @@ The `static-file` connector reads a Snapshot JSON fixture from a local path or
 using modification times as activity timestamps. `github` reads repository
 metadata and recent repository events using GitHub's REST API.
 
+## Local inference and review drafts
+
+The API can optionally generate a short weekly or monthly draft using an
+Ollama server. It is disabled until both `INFERENCE_BASE_URL` and
+`INFERENCE_MODEL` are configured. The endpoint can run on the Wyse or another
+host reachable over the private network; Compose does not install an inference
+daemon or download model weights. Defaults bound each request to 2048 context
+tokens, 512 output tokens, and 30 seconds. Measure quality, latency, and memory
+for a small quantized model on the actual host. `POST /reviews` uses brief
+server-side snapshot facts and computed signals, and returns a draft without
+saving it.
+
 ## Run the local containers
 
 Build the API and run one Sync pass with Docker Compose:
@@ -70,6 +82,12 @@ requests and Sync outcomes are logged as JSON. The API's `GET /healthz` checks
 process liveness only. `scripts/docker-smoke.sh` builds and exercises the two
 images against temporary fixture data; CI runs the same smoke check.
 
-This local runtime is the first Phase 5 unit. AWS deployment and CloudWatch
-metrics/alarms remain deferred until the deployment target decision is made;
-no scheduler is installed by Compose.
+This local runtime is the first Phase 5 unit and is intended to run first on
+the Wyse 5060. AWS deployment remains optional learning work; no scheduler is
+installed by Compose.
+
+To enable local review drafts, copy `.env.example` to `.env` and set the
+Ollama URL and model. Use a private-network address reachable from the API
+container, such as a host name/IP on the home LAN or a Tailscale address. Keep
+the inference service off public interfaces. The API continues to start and
+serve read routes when these settings are empty.

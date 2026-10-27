@@ -19,7 +19,9 @@ deployment, observability, LLM integration — so that building it teaches the
 skills that US product companies (target: Disney Experiences digital /
 full-stack roles) hire for. Where "simplest possible" and "production-shaped"
 conflict, production-shaped wins if it teaches a named skill; otherwise
-simplest wins.
+simplest wins. The first personal deployment target is the Wyse 5060 (AMD
+quad-core CPU, 8 GB RAM, 64 GB storage); AWS is optional learning work, not a
+prerequisite for product operation.
 
 ## 2. Non-Goals
 
@@ -42,7 +44,7 @@ packages/core  — pure library: domain types, registry schema,
                  signal rules engine. No I/O, no framework imports.
         ▼
 apps/api       — REST service (Fastify): serves registry, snapshots,
-                 signals, domains; generates LLM review drafts.
+                 signals, domains; optionally generates local-model drafts.
         │  HTTP + OpenAPI-generated typed client
         ▼
 apps/web       — React SPA (Vite): Home, Domain Detail, Review, Registry.
@@ -138,7 +140,7 @@ extension exercise.
   - `GET /snapshots?domain=` — latest snapshot per entry
   - `GET /signals` — computed signals
   - `GET /domains` — per-domain rollup (health, counts, latest activity)
-  - `POST /reviews` — generate a review draft (LLM; see §11)
+  - `POST /reviews` — generate a review draft (local inference; see §11)
   - `GET /healthz` — liveness for Phase 5
 - OpenAPI document generated from route schemas; the web client is generated
   from it (contract-first: the spec is the contract, not the TS import).
@@ -167,23 +169,37 @@ extension exercise.
   pursues studio-relevant skills (C++/graphics) in a separate study track
   outside this repository; this project stays single-stack for depth.
 
-## 11. LLM Review Generation (Phase 6)
+## 11. Local Inference and Review Generation (Phase 6)
 
-- `POST /reviews` gathers the period's snapshots + signals + registry into a
-  structured context, calls the Claude API, and returns a drafted weekly or
-  monthly review (summary per domain, notable changes, suggested focus).
-- Drafts are editable and saved locally; the LLM never writes anywhere else.
-- Model/prompt/cost specifics decided in the Phase 6 spec.
+- Start with one small quantized local model served by Ollama. Measure draft
+  quality, end-to-end latency, and peak memory on the selected model/host
+  before settling the model choice. Initial evaluation is manual and records
+  model/quantization, hardware, prompt size, latency, memory, and groundedness.
+- The API's opt-in `POST /reviews` draft route accepts only `weekly` or
+  `monthly`, computes a rolling period from its clock, and derives short facts
+  from local snapshots and computed signals. It returns a draft only; saving,
+  editing, finalizing, and UI integration follow after evaluation.
+- Ollama's non-streaming `/api/generate` endpoint is configured through
+  `INFERENCE_BASE_URL` and `INFERENCE_MODEL`. The endpoint can be on the Wyse
+  or another private-network host; changing it requires no API/web code change.
+  Keep it reachable only on a trusted private network such as Tailscale.
+- Inference is disabled when configuration is absent. Context defaults to
+  2048 tokens, output is capped at 512 tokens, request timeout defaults to 30
+  seconds, and only one generation runs per API process. No model or daemon is
+  installed by the default Compose setup.
+- The first path sends bounded snapshot titles/details and computed signals;
+  it excludes registry locators and files. Source-data opt-in controls are a
+  prerequisite before adding more sensitive context.
 
 ## 12. CI/CD, Deployment, Observability (Phase 5 — weighted)
 
 - GitHub Actions from Phase 0: lint (eslint), typecheck, test (vitest) on
   every PR; merges to `main` blocked on green.
-- Phase 5 adds: Docker images for api and sync; deploy to a small AWS
-  target (single EC2/Lightsail or ECS — decided in the Phase 5 spec);
-  structured JSON logs (pino); `/healthz`; basic CloudWatch metrics/alarms.
-- Rationale: microservices + CI/CD + Docker + AWS + observability appear in
-  every target job posting; this phase is the portfolio centerpiece.
+- Phase 5 adds: Docker images for api and sync; structured JSON logs (pino);
+  `/healthz`; and local Compose operation on the Wyse.
+- Rationale: microservices + CI/CD + Docker + observability appear in target
+  job postings; AWS remains optional learning work after the personal server
+  and inference path are understood.
 
 ## 13. Development Process (the tech-lead loop)
 
@@ -206,16 +222,18 @@ Every phase runs the same cycle, with the owner in the tech-lead seat:
 | 2 | `apps/api` + OpenAPI + snapshot fixtures | Integration tests green; typed client generates from OpenAPI |
 | 3 | `apps/web`: 4 pages against real API | Pages render real fixture data; per-card error isolation demonstrated |
 | 4 | `apps/sync` + local-folder + GitHub connectors | Scheduled run writes snapshots; one failing connector doesn't block others |
-| 5 | Docker, AWS deploy, logs/metrics/health | Dashboard reachable on AWS; a killed api container is visible in metrics |
-| 6 | LLM weekly/monthly review generation | One-click review draft grounded in real snapshot history |
+| 5 | Docker, local Wyse deployment, logs/health | API and Sync run in containers on the personal server; API stays loopback-published by default |
+| 6 | Configurable local inference and review draft foundation | Opt-in weekly/monthly draft is grounded in snapshots/signals; quality, latency, and peak memory are measured on selected model/host |
+| 7 | Optional AWS learning deployment and operational metrics | A chosen AWS target can be deployed and observed without making it a ProductiveME runtime dependency |
 
 Open decisions (each gets an ADR when made):
 
 1. **Visual direction** — which `docs/mockups/` direction wins (blocks Phase 3 polish, not Phase 3 start).
 2. **Real registry inventory** — owner's actual repos/Notion pages/folders (placeholder entries until provided).
 3. ~~**Sync worker language**~~ — decided 2026-07-10: TypeScript (§10).
-4. **AWS deployment target** — EC2/Lightsail vs ECS (Phase 5).
-5. **Snapshot store** — JSON files vs SQLite (revisit when history queries appear, likely Phase 6).
+4. **Inference model and quantization** — decide after measured quality, latency, and memory evaluation on the Wyse or selected inference host.
+5. **AWS deployment target** — EC2/Lightsail vs ECS (optional Phase 7 learning work).
+6. **Snapshot store** — JSON files vs SQLite (revisit when history queries appear).
 
 ## 15. Testing Strategy
 
