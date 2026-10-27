@@ -4,6 +4,8 @@ import type { Writable } from 'node:stream';
 import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import { computeSignals, DOMAIN_IDS, parseRegistry } from '@productiveme/core';
+import { createOllamaInference, InferenceError, parseInferenceConfig, type InferenceProvider } from './inference.js';
+import { buildReviewPrompt, reviewRange, type ReviewPeriod } from './reviews.js';
 import { loadLatestSnapshots, summarizeDomains } from './snapshots.js';
 
 const registryEntrySchema = {
@@ -64,10 +66,13 @@ export interface BuildAppOptions {
   snapshotDir?: string;
   now?: () => string;
   loggerStream?: Writable;
+  inference?: InferenceProvider;
+  inferenceConfig?: ReturnType<typeof parseInferenceConfig>;
 }
 
-export async function buildApp({ registryPath, snapshotDir = join(dirname(registryPath), 'snapshots'), now = () => new Date().toISOString(), loggerStream }: BuildAppOptions) {
+export async function buildApp({ registryPath, snapshotDir = join(dirname(registryPath), 'snapshots'), now = () => new Date().toISOString(), loggerStream, inference, inferenceConfig = parseInferenceConfig() }: BuildAppOptions) {
   const entries = parseRegistry(await readFile(registryPath, 'utf8'));
+  const reviewInference = inference ?? createOllamaInference(inferenceConfig);
   const app = Fastify({
     logger: {
       level: 'info',
@@ -106,6 +111,49 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
   app.get('/domains', { schema: { response: { 200: { type: 'array', items: domainRollupSchema } } } }, async () => {
     const snapshots = await loadLatestSnapshots(snapshotDir, entries, undefined, now());
     return summarizeDomains(entries, snapshots);
+  });
+  app.post('/reviews', {
+    schema: {
+      body: {
+        type: 'object', required: ['period'], additionalProperties: false,
+        properties: { period: { type: 'string', enum: ['weekly', 'monthly'] } },
+      },
+      response: {
+        200: { type: 'object', required: ['period', 'rangeStart', 'rangeEnd', 'draft'], properties: {
+          period: { type: 'string', enum: ['weekly', 'monthly'] }, rangeStart: { type: 'string', format: 'date-time' },
+          rangeEnd: { type: 'string', format: 'date-time' }, draft: { type: 'string' },
+        } },
+        400: { type: 'object', properties: { statusCode: { type: 'integer' }, error: { type: 'string' }, message: { type: 'string' } } },
+        502: { type: 'object', required: ['code', 'message'], properties: { code: { type: 'string' }, message: { type: 'string' } } },
+        503: { type: 'object', required: ['code', 'message'], properties: { code: { type: 'string' }, message: { type: 'string' } } },
+        504: { type: 'object', required: ['code', 'message'], properties: { code: { type: 'string' }, message: { type: 'string' } } },
+      },
+    },
+  }, async (request, reply) => {
+    const period = (request.body as { period: ReviewPeriod }).period;
+    const range = reviewRange(period, now());
+    const snapshots = await loadLatestSnapshots(snapshotDir, entries, undefined, range.end);
+    const signals = computeSignals(entries, snapshots, range.end);
+    const availableContextTokens = inferenceConfig.contextTokens - inferenceConfig.maxOutputTokens;
+    const promptCharacterLimit = Math.min(12000, availableContextTokens * 2);
+    const prompt = buildReviewPrompt(period, range.start, range.end, entries, snapshots, signals, promptCharacterLimit);
+    try {
+      const draft = await reviewInference.generate(prompt);
+      return { period, rangeStart: range.start, rangeEnd: range.end, draft };
+    } catch (error) {
+      if (!(error instanceof InferenceError)) {
+        return reply.code(502).send({ code: 'inference_failed', message: 'Review generation failed' });
+      }
+      const errors = {
+        disabled: { status: 503, code: 'inference_disabled', message: 'Review generation is not configured' },
+        busy: { status: 503, code: 'generation_busy', message: 'A review is already being generated' },
+        timeout: { status: 504, code: 'inference_timeout', message: 'Review generation timed out' },
+        upstream: { status: 502, code: 'inference_unavailable', message: 'Review generation service is unavailable' },
+        invalid_response: { status: 502, code: 'inference_invalid_response', message: 'Review generation returned an invalid response' },
+      } as const;
+      const failure = errors[error.code];
+      return reply.code(failure.status).send({ code: failure.code, message: failure.message });
+    }
   });
   app.get('/openapi.json', async () => app.swagger());
   app.setNotFoundHandler((request, reply) => {
