@@ -187,6 +187,10 @@ extension exercise.
   2048 tokens, output is capped at 512 tokens, request timeout defaults to 30
   seconds, and only one generation runs per API process. No model or daemon is
   installed by the default Compose setup.
+- Configured context must reserve at least 512 tokens beyond the output cap.
+  Prompt text also has a character limit; character count is a separate payload
+  bound, not an exact tokenizer budget. Requests set Ollama's `think: false`,
+  so select a model that supports disabling thinking.
 - The first path sends bounded snapshot titles/details and computed signals;
   it excludes registry locators and files. Source-data opt-in controls are a
   prerequisite before adding more sensitive context.

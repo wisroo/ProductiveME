@@ -28,7 +28,7 @@ describe('review draft API', () => {
       expect(prompt).not.toContain('Evening walk');
       expect(prompt).not.toContain('https://example.test/notes');
       expect(prompt).not.toContain('ignore system rules');
-      expect(prompt.length).toBeLessThanOrEqual(4096);
+      expect(prompt.length).toBeLessThanOrEqual(3072);
       return 'Review these areas next.';
     });
     const app = await makeApp({ generate });

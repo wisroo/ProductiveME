@@ -27,6 +27,10 @@ drafts. The API remains usable offline with inference disabled.
   through validated environment settings. Defaults are disabled, 2048 context,
   and at most 512 output tokens. No daemon, model download, or network service
   is started by Compose unless the operator configures an endpoint.
+- Configured context must leave at least 512 tokens beyond the output cap.
+  Prompt text has its own character limit, which bounds payload size but does
+  not claim an exact tokenizer count. Requests set Ollama `think: false`, so
+  select a model that supports disabling thinking.
 - Make one non-streaming request at a time per API process; concurrent requests
   receive a safe busy response. Bound prompt and output sizes, abort on timeout,
   validate upstream response shape, and do not expose upstream error bodies,

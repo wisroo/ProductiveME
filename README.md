@@ -55,9 +55,12 @@ Ollama server. It is disabled until both `INFERENCE_BASE_URL` and
 host reachable over the private network; Compose does not install an inference
 daemon or download model weights. Defaults bound each request to 2048 context
 tokens, 512 output tokens, and 30 seconds. Measure quality, latency, and memory
-for a small quantized model on the actual host. `POST /reviews` uses brief
-server-side snapshot facts and computed signals, and returns a draft without
-saving it.
+for a small quantized model on the actual host. Configured context must leave
+at least 512 tokens beyond the output cap. Prompt text has a separate character
+limit; that limit is not an exact token estimate. Requests set `think: false`,
+so select an Ollama model that supports disabling thinking. `POST /reviews`
+uses brief server-side snapshot facts and computed signals, and returns a draft
+without saving it.
 
 ## Run the local containers
 

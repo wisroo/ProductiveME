@@ -134,7 +134,9 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
     const range = reviewRange(period, now());
     const snapshots = await loadLatestSnapshots(snapshotDir, entries, undefined, range.end);
     const signals = computeSignals(entries, snapshots, range.end);
-    const prompt = buildReviewPrompt(period, range.start, range.end, entries, snapshots, signals, Math.min(12000, inferenceConfig.contextTokens * 2));
+    const availableContextTokens = inferenceConfig.contextTokens - inferenceConfig.maxOutputTokens;
+    const promptCharacterLimit = Math.min(12000, availableContextTokens * 2);
+    const prompt = buildReviewPrompt(period, range.start, range.end, entries, snapshots, signals, promptCharacterLimit);
     try {
       const draft = await reviewInference.generate(prompt);
       return { period, rangeStart: range.start, rangeEnd: range.end, draft };

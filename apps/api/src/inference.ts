@@ -8,6 +8,7 @@ export interface InferenceConfig {
 }
 
 export type InferenceErrorCode = 'disabled' | 'busy' | 'timeout' | 'upstream' | 'invalid_response';
+const maxResponseBytes = 64 * 1024;
 
 export class InferenceError extends Error {
   constructor(readonly code: InferenceErrorCode) {
@@ -33,6 +34,9 @@ export function parseInferenceConfig(env: NodeJS.ProcessEnv = process.env): Infe
     contextTokens: integerSetting(env, 'INFERENCE_CONTEXT_TOKENS', 2048, 512, 8192),
     maxOutputTokens: integerSetting(env, 'INFERENCE_MAX_OUTPUT_TOKENS', 512, 1, 512),
   };
+  if (common.contextTokens - common.maxOutputTokens < 512) {
+    throw new Error('INFERENCE_CONTEXT_TOKENS must leave at least 512 tokens for the prompt');
+  }
   if (!rawUrl && !rawModel) return { enabled: false, ...common };
   if (!rawUrl || !rawModel) throw new Error('INFERENCE_BASE_URL and INFERENCE_MODEL must both be configured');
   let url: URL;
@@ -46,6 +50,49 @@ export function parseInferenceConfig(env: NodeJS.ProcessEnv = process.env): Infe
 
 export interface InferenceProvider {
   generate(prompt: string): Promise<string>;
+}
+
+async function readBoundedJson(response: Response, signal: AbortSignal): Promise<unknown> {
+  const declaredLength = response.headers.get('content-length');
+  if (declaredLength && /^\d+$/.test(declaredLength) && Number(declaredLength) > maxResponseBytes) {
+    await response.body?.cancel().catch(() => undefined);
+    throw new InferenceError('invalid_response');
+  }
+  if (!response.body) throw new InferenceError('invalid_response');
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxResponseBytes) {
+        await reader.cancel().catch(() => undefined);
+        throw new InferenceError('invalid_response');
+      }
+      chunks.push(value);
+    }
+  } catch (error) {
+    if (error instanceof InferenceError) throw error;
+    if (signal.aborted) throw new InferenceError('timeout');
+    throw new InferenceError('upstream');
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) as unknown;
+  } catch {
+    throw new InferenceError('invalid_response');
+  }
 }
 
 export function createOllamaInference(config: InferenceConfig, fetcher: typeof fetch = fetch): InferenceProvider {
@@ -63,7 +110,7 @@ export function createOllamaInference(config: InferenceConfig, fetcher: typeof f
           response = await fetcher(`${config.baseUrl}/api/generate`, {
             method: 'POST', headers: { 'content-type': 'application/json' }, signal: controller.signal,
             body: JSON.stringify({
-              model: config.model, prompt, stream: false,
+              model: config.model, prompt, stream: false, think: false,
               options: { num_ctx: config.contextTokens, num_predict: config.maxOutputTokens },
             }),
           });
@@ -71,12 +118,11 @@ export function createOllamaInference(config: InferenceConfig, fetcher: typeof f
           if (controller.signal.aborted) throw new InferenceError('timeout');
           throw new InferenceError('upstream');
         }
-        if (!response.ok) throw new InferenceError('upstream');
-        let data: unknown;
-        try { data = await response.json(); } catch {
-          if (controller.signal.aborted) throw new InferenceError('timeout');
-          throw new InferenceError('invalid_response');
+        if (!response.ok) {
+          await response.body?.cancel().catch(() => undefined);
+          throw new InferenceError('upstream');
         }
+        const data = await readBoundedJson(response, controller.signal);
         if (!data || typeof data !== 'object' || !('response' in data) || typeof data.response !== 'string' || !data.response.trim()) {
           throw new InferenceError('invalid_response');
         }
