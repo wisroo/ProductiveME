@@ -1,5 +1,7 @@
 export interface InferenceConfig {
   enabled: boolean;
+  provider?: 'openai-compatible';
+  apiKey?: string;
   baseUrl?: string;
   model?: string;
   timeoutMs: number;
@@ -27,6 +29,10 @@ function integerSetting(env: NodeJS.ProcessEnv, name: string, fallback: number, 
 }
 
 export function parseInferenceConfig(env: NodeJS.ProcessEnv = process.env): InferenceConfig {
+  const provider = env.INFERENCE_PROVIDER?.trim() || 'ollama';
+  if (provider !== 'ollama' && provider !== 'openai-compatible') {
+    throw new Error('INFERENCE_PROVIDER must be ollama or openai-compatible');
+  }
   const rawUrl = env.INFERENCE_BASE_URL?.trim();
   const rawModel = env.INFERENCE_MODEL?.trim();
   const common = {
@@ -37,7 +43,11 @@ export function parseInferenceConfig(env: NodeJS.ProcessEnv = process.env): Infe
   if (common.contextTokens - common.maxOutputTokens < 512) {
     throw new Error('INFERENCE_CONTEXT_TOKENS must leave at least 512 tokens for the prompt');
   }
-  if (!rawUrl && !rawModel) return { enabled: false, ...common };
+  const compatible = provider === 'openai-compatible';
+  if (compatible && env.INFERENCE_ALLOW_EXTERNAL !== 'true') {
+    throw new Error('INFERENCE_ALLOW_EXTERNAL=true is required for OpenAI-compatible inference');
+  }
+  if (!compatible && !rawUrl && !rawModel) return { enabled: false, ...common };
   if (!rawUrl || !rawModel) throw new Error('INFERENCE_BASE_URL and INFERENCE_MODEL must both be configured');
   let url: URL;
   try { url = new URL(rawUrl); } catch { throw new Error('INFERENCE_BASE_URL must be a valid HTTP URL'); }
@@ -45,7 +55,14 @@ export function parseInferenceConfig(env: NodeJS.ProcessEnv = process.env): Infe
     throw new Error('INFERENCE_BASE_URL must use http or https without credentials, query, or fragment');
   }
   if (rawModel.length > 128 || /[\r\n]/.test(rawModel)) throw new Error('INFERENCE_MODEL must be at most 128 characters');
-  return { enabled: true, baseUrl: url.toString().replace(/\/$/, ''), model: rawModel, ...common };
+  const apiKey = compatible ? env.INFERENCE_API_KEY?.trim() : undefined;
+  if (compatible && url.protocol !== 'https:' && !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) {
+    throw new Error('OpenAI-compatible inference requires HTTPS or a loopback URL');
+  }
+  return {
+    enabled: true, baseUrl: url.toString().replace(/\/$/, ''), model: rawModel, ...common,
+    ...(compatible ? { provider, ...(apiKey ? { apiKey } : {}) } : {}),
+  };
 }
 
 export interface InferenceProvider {
@@ -95,7 +112,7 @@ async function readBoundedJson(response: Response, signal: AbortSignal): Promise
   }
 }
 
-export function createOllamaInference(config: InferenceConfig, fetcher: typeof fetch = fetch): InferenceProvider {
+export function createInference(config: InferenceConfig, fetcher: typeof fetch = fetch): InferenceProvider {
   let busy = false;
   return {
     async generate(prompt: string): Promise<string> {
@@ -107,12 +124,19 @@ export function createOllamaInference(config: InferenceConfig, fetcher: typeof f
       try {
         let response: Response;
         try {
-          response = await fetcher(`${config.baseUrl}/api/generate`, {
-            method: 'POST', headers: { 'content-type': 'application/json' }, signal: controller.signal,
-            body: JSON.stringify({
+          const compatible = config.provider === 'openai-compatible';
+          const path = compatible ? '/chat/completions' : '/api/generate';
+          const headers = new Headers({ 'content-type': 'application/json' });
+          if (compatible && config.apiKey) headers.set('authorization', `Bearer ${config.apiKey}`);
+          const body = compatible ? {
+            model: config.model, messages: [{ role: 'user', content: prompt }],
+            stream: false, max_completion_tokens: config.maxOutputTokens,
+          } : {
               model: config.model, prompt, stream: false, think: false,
               options: { num_ctx: config.contextTokens, num_predict: config.maxOutputTokens },
-            }),
+          };
+          response = await fetcher(`${config.baseUrl}${path}`, {
+            method: 'POST', headers, signal: controller.signal, redirect: 'error', body: JSON.stringify(body),
           });
         } catch {
           if (controller.signal.aborted) throw new InferenceError('timeout');
@@ -123,10 +147,12 @@ export function createOllamaInference(config: InferenceConfig, fetcher: typeof f
           throw new InferenceError('upstream');
         }
         const data = await readBoundedJson(response, controller.signal);
-        if (!data || typeof data !== 'object' || !('response' in data) || typeof data.response !== 'string' || !data.response.trim()) {
-          throw new InferenceError('invalid_response');
-        }
-        return data.response.trim().slice(0, 8000);
+        const payload = data as { response?: unknown; choices?: { message?: { content?: unknown } }[] } | null;
+        const text = config.provider === 'openai-compatible'
+          ? payload?.choices?.[0]?.message?.content
+          : payload?.response;
+        if (typeof text !== 'string' || !text.trim()) throw new InferenceError('invalid_response');
+        return text.trim().slice(0, 8000);
       } finally {
         clearTimeout(timer);
         busy = false;

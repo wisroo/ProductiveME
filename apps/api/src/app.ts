@@ -4,7 +4,7 @@ import type { Writable } from 'node:stream';
 import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import { computeSignals, DOMAIN_IDS, parseRegistry } from '@productiveme/core';
-import { createOllamaInference, InferenceError, parseInferenceConfig, type InferenceProvider } from './inference.js';
+import { createInference, InferenceError, parseInferenceConfig, type InferenceProvider } from './inference.js';
 import { buildReviewPrompt, reviewRange, type ReviewPeriod } from './reviews.js';
 import { loadLatestSnapshots, summarizeDomains } from './snapshots.js';
 
@@ -72,7 +72,7 @@ export interface BuildAppOptions {
 
 export async function buildApp({ registryPath, snapshotDir = join(dirname(registryPath), 'snapshots'), now = () => new Date().toISOString(), loggerStream, inference, inferenceConfig = parseInferenceConfig() }: BuildAppOptions) {
   const entries = parseRegistry(await readFile(registryPath, 'utf8'));
-  const reviewInference = inference ?? createOllamaInference(inferenceConfig);
+  const reviewInference = inference ?? createInference(inferenceConfig);
   const app = Fastify({
     logger: {
       level: 'info',

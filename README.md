@@ -175,6 +175,14 @@ draft in this browser. Saved drafts reopen after refresh. **Finalize review**
 copies the displayed draft into browser-local history. Open any entry in
 **Review history** to read or export it as Markdown.
 
+For an OpenAI-compatible endpoint, set `INFERENCE_PROVIDER=openai-compatible`,
+`INFERENCE_BASE_URL` to the API prefix (for example `https://api.openai.com/v1`),
+and `INFERENCE_MODEL` to the provider's model ID. Set `INFERENCE_API_KEY`
+when the provider requires authentication. Set `INFERENCE_ALLOW_EXTERNAL=true`
+to permit sending the review prompt, which can contain snapshot titles, details,
+and signals. The endpoint must accept non-streaming Chat Completions requests
+with `max_completion_tokens`. HTTPS is required except for loopback addresses.
+
 ## Sync Notion pages and databases
 
 Create a read-only Notion integration and share the page with it. Set
