@@ -57,6 +57,76 @@ describe('source connectors', () => {
     ]);
   });
 
+  it('maps a shared Notion page to a snapshot without fetching its body', async () => {
+    const id = '0123456789abcdef0123456789abcdef';
+    const link = `https://www.notion.so/Study-${id}`;
+    const fetchImpl = async (input: string | URL | Request, init?: RequestInit) => {
+      expect(String(input)).toBe(`https://api.notion.com/v1/pages/${id}`);
+      expect(new Headers(init?.headers).get('authorization')).toBe('Bearer test-token');
+      expect(init?.redirect).toBe('error');
+      return Response.json({
+        object: 'page', url: link, last_edited_time: '2026-10-25T00:00:00.000Z',
+        properties: { title: { type: 'title', title: [{ plain_text: 'Study' }, { plain_text: ' notes' }] } },
+      });
+    };
+    const connector = createConnectors({ fetchImpl, notionToken: 'test-token' }).get('notion');
+    expect(await connector?.load(entry('notion', link))).toMatchObject({
+      status: 'ok', items: [{ title: 'Study notes', timestamp: '2026-10-25T00:00:00.000Z', link }],
+    });
+  });
+
+  it('reads paginated Notion database rows with a configured activity date', async () => {
+    const id = '0123456789abcdef0123456789abcdef';
+    const requests: unknown[] = [];
+    const fetchImpl = async (input: string | URL | Request, init?: RequestInit) => {
+      expect(String(input)).toBe(`https://api.notion.com/v1/data_sources/${id}/query`);
+      expect(init?.method).toBe('POST');
+      requests.push(JSON.parse(String(init?.body)));
+      return Response.json({
+        has_more: requests.length === 1,
+        next_cursor: requests.length === 1 ? 'cursor' : null,
+        results: [{
+          object: 'page', url: `https://www.notion.so/${id}`, last_edited_time: '2026-10-25T00:00:00.000Z',
+          properties: {
+            Name: { type: 'title', title: [{ plain_text: 'Run' }] },
+            Activity: { type: 'date', date: requests.length === 1 ? { start: '2026-10-21' } : null },
+          },
+        }],
+      });
+    };
+    const connector = createConnectors({ fetchImpl, notionToken: 'test-token' }).get('notion-data-source');
+    const snapshot = await connector?.load({ ...entry('notion-data-source', id), notionActivityDateProperty: 'Activity' });
+    expect(snapshot?.status).toBe('ok');
+    expect(snapshot?.items.map((item) => item.timestamp)).toEqual(['2026-10-21T00:00:00.000Z', '2026-10-25T00:00:00.000Z']);
+    expect(requests[1]).toMatchObject({ start_cursor: 'cursor' });
+  });
+
+  it('reports a capped Notion query as incomplete even when has_more is false', async () => {
+    const fetchImpl = async () => Response.json({
+      has_more: false,
+      next_cursor: null,
+      request_status: { type: 'incomplete', incomplete_reason: 'query_result_limit_reached' },
+      results: [],
+    });
+    const connector = createConnectors({ fetchImpl, notionToken: 'test-token' }).get('notion-data-source');
+    expect(await connector?.load(entry('notion-data-source', '0123456789abcdef0123456789abcdef'))).toMatchObject({
+      status: 'error', error: 'Notion data source query was incomplete', items: [],
+    });
+  });
+
+  it('retries the same Notion request after a rate limit response', async () => {
+    const id = '0123456789abcdef0123456789abcdef';
+    const requests: string[] = [];
+    const fetchImpl = async (input: string | URL | Request) => {
+      requests.push(String(input));
+      if (requests.length === 1) return new Response(null, { status: 429, headers: { 'retry-after': '0' } });
+      return Response.json({ has_more: false, next_cursor: null, results: [] });
+    };
+    const connector = createConnectors({ fetchImpl, notionToken: 'test-token' }).get('notion-data-source');
+    expect(await connector?.load(entry('notion-data-source', id))).toMatchObject({ status: 'ok', items: [] });
+    expect(requests).toEqual(Array(2).fill(`https://api.notion.com/v1/data_sources/${id}/query`));
+  });
+
   it('does not include GitHub credentials or response bodies in saved errors', async () => {
     const fetchImpl = async () => new Response('test-secret private-provider-error', { status: 500 });
     const snapshot = await createConnectors({ fetchImpl, githubToken: 'test-secret' }).get('github')?.load(entry('github', 'https://github.com/owner/repo'));

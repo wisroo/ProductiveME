@@ -168,8 +168,36 @@ passes the inference variables into the API container. `pnpm --filter
 is not automatically loaded into that native process. Leave both required
 values blank to keep generation disabled. When configured, restart the API and
 use **Generate review** in the Review view. Weekly and monthly requests are
-manual; errors do not trigger automatic retries. Drafts are displayed only and
-are not saved or exported yet.
+manual and errors do not trigger automatic retries.
+
+Use **Edit review** and **Save review** to keep one weekly and one monthly
+draft in this browser. Saved drafts reopen after refresh. **Finalize review**
+copies the displayed draft into browser-local history. Open any entry in
+**Review history** to read or export it as Markdown.
+
+For an OpenAI-compatible endpoint, set `INFERENCE_PROVIDER=openai-compatible`,
+`INFERENCE_BASE_URL` to the API prefix (for example `https://api.openai.com/v1`),
+and `INFERENCE_MODEL` to the provider's model ID. Set `INFERENCE_API_KEY`
+when the provider requires authentication. Set `INFERENCE_ALLOW_EXTERNAL=true`
+to permit sending the review prompt, which can contain snapshot titles, details,
+and signals. The endpoint must accept non-streaming Chat Completions requests
+with `max_completion_tokens`. HTTPS is required except for loopback addresses.
+
+## Sync Notion pages and databases
+
+Create a read-only Notion integration and share the page with it. Set
+`NOTION_TOKEN` in the shell for `pnpm sync run`, or in the Compose
+environment for `docker compose run --rm sync`. Keep the token out of
+version control. For the entry in `registry.yaml`, set `connector: notion`
+and use the page URL or page ID as `locator`. Sync saves the title, last
+edited time, and original URL using the existing snapshot format.
+
+For a database, use `connector: notion-data-source` and the Notion **data
+source ID** as `locator`. Share the parent database with the integration.
+Optionally set `notionActivityDateProperty` to a date property such as
+`Exercise date`. Sync uses that property's start date (date-only values use
+midnight UTC), falling back to the row's last edited time. It also includes
+the row's Notion status when present.
 
 ## Run the local containers
 

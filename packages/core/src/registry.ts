@@ -18,6 +18,7 @@ const entrySchema = z.object({
   locator: z.string().min(1),
   connector: z.string().min(1),
   cadence: z.enum(CADENCES).optional(),
+  notionActivityDateProperty: z.string().trim().min(1).optional(),
 }).strict();
 
 const registrySchema = z

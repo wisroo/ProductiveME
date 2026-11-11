@@ -26,6 +26,7 @@ export interface RegistryEntry {
   connector: string;
   /** How often this entry should receive the user's attention. */
   cadence?: Cadence;
+  notionActivityDateProperty?: string;
 }
 
 export interface SnapshotItem {
