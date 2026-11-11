@@ -168,8 +168,12 @@ passes the inference variables into the API container. `pnpm --filter
 is not automatically loaded into that native process. Leave both required
 values blank to keep generation disabled. When configured, restart the API and
 use **Generate review** in the Review view. Weekly and monthly requests are
-manual; errors do not trigger automatic retries. Drafts are displayed only and
-are not saved or exported yet.
+manual and errors do not trigger automatic retries.
+
+Use **Edit review** and **Save review** to keep one weekly and one monthly
+draft in this browser. Saved drafts reopen after refresh. **Finalize review**
+copies the displayed draft into browser-local history. Open any entry in
+**Review history** to read or export it as Markdown.
 
 ## Run the local containers
 
