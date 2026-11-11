@@ -2,6 +2,7 @@ import { lstat, readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { RegistryEntry, Snapshot, SnapshotItem } from '@productiveme/core';
+import { loadNotion } from './notion.js';
 import type { Connector } from './sync.js';
 
 type FetchImpl = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
@@ -9,6 +10,7 @@ type FetchImpl = (input: string | URL | Request, init?: RequestInit) => Promise<
 interface ConnectorOptions {
   fetchImpl?: FetchImpl;
   githubToken?: string;
+  notionToken?: string;
 }
 
 function errorSnapshot(entry: RegistryEntry, error: string): Snapshot {
@@ -107,6 +109,8 @@ export function createConnectors(options: ConnectorOptions = {}): Map<string, Co
   return new Map([
     ['static-file', { load: staticFile }],
     ['local-folder', { load: localFolder }],
+    ['notion-data-source', { load: (entry: RegistryEntry) => loadNotion(entry, fetchImpl, options.notionToken) }],
+    ['notion', { load: (entry: RegistryEntry) => loadNotion(entry, fetchImpl, options.notionToken) }],
     ['github', { load: (entry: RegistryEntry) => github(entry, fetchImpl, options.githubToken) }],
   ]);
 }

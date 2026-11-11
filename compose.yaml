@@ -33,6 +33,7 @@ services:
       dockerfile: Dockerfile.sync
     environment:
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      NOTION_TOKEN: ${NOTION_TOKEN:-}
     volumes:
       - ./registry.yaml:/app/registry.yaml:ro
       - snapshots:/app/snapshots:rw

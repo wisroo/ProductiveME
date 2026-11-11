@@ -21,6 +21,7 @@ export async function runSyncCommand(
 ): Promise<{ total: number; errors: number }> {
   const { root } = parseSyncArgs(args);
   const entries = parseRegistry(await readFile(join(root, 'registry.yaml'), 'utf8'));
-  const snapshots = await runSync(entries, createConnectors({ githubToken: process.env.GITHUB_TOKEN }), join(root, 'snapshots'), now);
+  const connectors = createConnectors({ githubToken: process.env.GITHUB_TOKEN, notionToken: process.env.NOTION_TOKEN });
+  const snapshots = await runSync(entries, connectors, join(root, 'snapshots'), now);
   return { total: snapshots.length, errors: snapshots.filter((snapshot) => snapshot.status === 'error').length };
 }
