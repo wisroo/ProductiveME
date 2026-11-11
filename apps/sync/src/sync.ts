@@ -38,6 +38,7 @@ function safeErrorMessage(message: string | undefined): string {
     'Notion page could not be read',
     'Notion locator must identify a data source',
     'Notion data source could not be read',
+    'Notion data source query was incomplete',
   ];
   if (message && (knownMessages.includes(message) || /^unknown connector "[A-Za-z0-9._-]+"$/.test(message))) return message;
   return 'connector failed';

@@ -1,3 +1,4 @@
+import { setTimeout as wait } from 'node:timers/promises';
 import type { RegistryEntry, Snapshot, SnapshotItem } from '@productiveme/core';
 import { z } from 'zod';
 
@@ -17,6 +18,7 @@ const querySchema = z.object({
   results: z.array(pageSchema),
   has_more: z.boolean(),
   next_cursor: z.string().nullable(),
+  request_status: z.object({ type: z.string() }).optional(),
 });
 
 function notionId(locator: string, dataSource: boolean): string | undefined {
@@ -58,10 +60,20 @@ export async function loadNotion(entry: RegistryEntry, fetcher: typeof fetch, to
   const headers = { authorization: `Bearer ${token.trim()}`, 'notion-version': '2026-03-11', 'content-type': 'application/json' };
   const signal = AbortSignal.timeout(30_000);
   const request = async (path: string, body?: object): Promise<unknown> => {
-    const response = await fetcher(`https://api.notion.com/v1/${path}`, {
+    const url = `https://api.notion.com/v1/${path}`;
+    const init: RequestInit = {
       headers, signal, redirect: 'error',
       ...(body ? { method: 'POST', body: JSON.stringify(body) } : {}),
-    });
+    };
+    let response = await fetcher(url, init);
+    for (let retries = 0; response.status === 429 && retries < 2; retries += 1) {
+      const retryAfter = response.headers.get('retry-after') ?? '';
+      const seconds = /^\d+$/.test(retryAfter) ? Number(retryAfter) : 1;
+      if (seconds > 30) break;
+      await response.body?.cancel().catch(() => undefined);
+      await wait(seconds * 1000, undefined, { signal });
+      response = await fetcher(url, init);
+    }
     if (!response.ok) {
       await response.body?.cancel().catch(() => undefined);
       throw new Error('Notion request failed');
@@ -78,6 +90,7 @@ export async function loadNotion(entry: RegistryEntry, fetcher: typeof fetch, to
       for (let page = 0; ; page += 1) {
         if (page >= 100) throw new Error('Notion pagination limit reached');
         const result = querySchema.parse(await request(`data_sources/${id}/query`, { page_size: 100, start_cursor: cursor, result_type: 'page' }));
+        if (result.request_status?.type === 'incomplete') return failed('Notion data source query was incomplete');
         items.push(...result.results.map((row) => pageItem(row, entry)));
         if (!result.has_more) break;
         if (!result.next_cursor || seen.has(result.next_cursor)) throw new Error('Invalid Notion cursor');

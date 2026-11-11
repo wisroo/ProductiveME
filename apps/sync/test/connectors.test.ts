@@ -101,6 +101,32 @@ describe('source connectors', () => {
     expect(requests[1]).toMatchObject({ start_cursor: 'cursor' });
   });
 
+  it('reports a capped Notion query as incomplete even when has_more is false', async () => {
+    const fetchImpl = async () => Response.json({
+      has_more: false,
+      next_cursor: null,
+      request_status: { type: 'incomplete', incomplete_reason: 'query_result_limit_reached' },
+      results: [],
+    });
+    const connector = createConnectors({ fetchImpl, notionToken: 'test-token' }).get('notion-data-source');
+    expect(await connector?.load(entry('notion-data-source', '0123456789abcdef0123456789abcdef'))).toMatchObject({
+      status: 'error', error: 'Notion data source query was incomplete', items: [],
+    });
+  });
+
+  it('retries the same Notion request after a rate limit response', async () => {
+    const id = '0123456789abcdef0123456789abcdef';
+    const requests: string[] = [];
+    const fetchImpl = async (input: string | URL | Request) => {
+      requests.push(String(input));
+      if (requests.length === 1) return new Response(null, { status: 429, headers: { 'retry-after': '0' } });
+      return Response.json({ has_more: false, next_cursor: null, results: [] });
+    };
+    const connector = createConnectors({ fetchImpl, notionToken: 'test-token' }).get('notion-data-source');
+    expect(await connector?.load(entry('notion-data-source', id))).toMatchObject({ status: 'ok', items: [] });
+    expect(requests).toEqual(Array(2).fill(`https://api.notion.com/v1/data_sources/${id}/query`));
+  });
+
   it('does not include GitHub credentials or response bodies in saved errors', async () => {
     const fetchImpl = async () => new Response('test-secret private-provider-error', { status: 500 });
     const snapshot = await createConnectors({ fetchImpl, githubToken: 'test-secret' }).get('github')?.load(entry('github', 'https://github.com/owner/repo'));
