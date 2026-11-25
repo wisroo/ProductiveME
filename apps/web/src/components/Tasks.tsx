@@ -19,7 +19,7 @@ export function QuickTaskDialog({ week, date, onClose }: { week: string; date?: 
   const create = useMutation({
     mutationFn: ({ input, force }: { input: TaskInput; force?: boolean }) => api.createTask(input, force),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      await Promise.all(['tasks', 'home-status', 'domain-status'].map((key) => queryClient.invalidateQueries({ queryKey: [key] })));
       onClose();
     },
   });
@@ -38,7 +38,11 @@ export function QuickTaskDialog({ week, date, onClose }: { week: string; date?: 
     const domain = domains.find(({ id }) => id === form.get('domain'));
     if (!text || !domain) return;
     const date = String(form.get('date') ?? '');
-    const input: TaskInput = { week, text, domain: toApiDomainId(domain.id), ...(date ? { date } : {}) };
+    const kind = form.get('kind');
+    const input: TaskInput = {
+      week, text, domain: toApiDomainId(domain.id), ...(date ? { date } : {}),
+      ...(kind === 'snapshot' || kind === 'publish' ? { kind } : {}),
+    };
     setPending(input);
     create.mutate({ input });
   };
@@ -49,6 +53,7 @@ export function QuickTaskDialog({ week, date, onClose }: { week: string; date?: 
         <h2 className="hf" id="quick-task-title">Add task</h2>
         <label>Task <input name="text" required maxLength={500} /></label>
         <label>Domain <select name="domain">{domains.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}</select></label>
+        <label>Task type <select name="kind"><option value="">General</option><option value="snapshot">Finance snapshot</option><option value="publish">Publish</option></select></label>
         <label>Date <input type="date" name="date" defaultValue={date} /></label>
         {create.isError && <p role="alert">{taskError(create.error)}</p>}
         <div className="task-actions">
@@ -87,6 +92,8 @@ export function WeeklyTasks({ week, onAdd, carry = false }: { week: string; onAd
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['tasks'] }),
         queryClient.invalidateQueries({ queryKey: ['life'] }),
+        queryClient.invalidateQueries({ queryKey: ['home-status'] }),
+        queryClient.invalidateQueries({ queryKey: ['domain-status'] }),
       ]);
     },
   });
@@ -94,7 +101,7 @@ export function WeeklyTasks({ week, onAdd, carry = false }: { week: string; onAd
     mutationFn: ({ id, force }: { id: string; force?: boolean }) => api.carryTask(id, week, force),
     onSuccess: async () => {
       setCarryId(null);
-      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      await Promise.all(['tasks', 'home-status', 'domain-status'].map((key) => queryClient.invalidateQueries({ queryKey: [key] })));
     },
   });
   useEffect(() => {

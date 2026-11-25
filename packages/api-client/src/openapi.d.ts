@@ -1554,6 +1554,148 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    week: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            domains: {
+                                /** @enum {string} */
+                                domain: "career" | "finance" | "personal-data" | "life";
+                                /** @enum {string} */
+                                status: "blocked" | "overloaded" | "neglected" | "attention" | "on-track";
+                                reason: string;
+                                total: number;
+                                cap: number;
+                                done: number;
+                                open: number;
+                                next: {
+                                    id: string;
+                                    text: string;
+                                    /** @enum {string} */
+                                    kind?: "snapshot" | "publish";
+                                } | null;
+                                sourceIds: string[];
+                            }[];
+                            sourceAlerts: {
+                                id: string;
+                                name: string;
+                                /** Format: date-time */
+                                lastGoodReadAt: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/domains/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    week: string;
+                };
+                header?: never;
+                path: {
+                    id: "career" | "finance" | "personal-data" | "life";
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            /** @enum {string} */
+                            status: "blocked" | "overloaded" | "neglected" | "attention" | "on-track";
+                            reason: string;
+                            total: number;
+                            cap: number;
+                            done: number;
+                            open: number;
+                            next: {
+                                id: string;
+                                text: string;
+                                /** @enum {string} */
+                                kind?: "snapshot" | "publish";
+                            } | null;
+                            sourceIds: string[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/review-drafts/{period}": {
         parameters: {
             query?: never;

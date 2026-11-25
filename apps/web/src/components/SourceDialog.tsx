@@ -33,7 +33,7 @@ export default function SourceDialog({ source, remove, sourceCount, onClose }: P
       else if (input) await api.registerSource(input);
     },
     onSuccess: async () => {
-      await Promise.all(['registry', 'source-health', 'snapshots', 'signals', 'domains'].map((key) => client.invalidateQueries({ queryKey: [key] })));
+      await Promise.all(['registry', 'source-health', 'snapshots', 'signals', 'domains', 'home-status', 'domain-status'].map((key) => client.invalidateQueries({ queryKey: [key] })));
       onClose();
     },
   });

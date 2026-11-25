@@ -24,10 +24,11 @@ import {
   panel,
   ProgressBar,
 } from './bits.js';
-import { toApiDomainId, useDomainSnapshots, useRegistry, useDomainSignals } from '../lib/api.js';
+import { toApiDomainId, useDomainSnapshots, useRegistry, useDomainSignals, useDomainStatus } from '../lib/api.js';
 import QuerySection from './QuerySection.js';
 
 type DomainsProps = {
+  week?: string;
   domainPanel?: import('react').ReactNode;
   activeDomain: DomainId;
   onDomainChange: (domain: DomainId) => void;
@@ -469,9 +470,10 @@ const panels: Readonly<Record<DomainId, () => JSX.Element>> = {
   life: Life,
 };
 
-export default function Domains({ activeDomain, onDomainChange, domainPanel }: DomainsProps) {
+export default function Domains({ activeDomain, onDomainChange, domainPanel, week }: DomainsProps) {
   const Panel = panels[activeDomain];
   const registry = useRegistry();
+  const weeklyStatus = useDomainStatus(activeDomain, week);
   const snapshots = useDomainSnapshots(activeDomain);
   const signals = useDomainSignals(activeDomain);
   const apiDomain = toApiDomainId(activeDomain);
@@ -511,6 +513,15 @@ export default function Domains({ activeDomain, onDomainChange, domainPanel }: D
         ))}
       </nav>
       <div className="mono" style={{ fontSize: '9px', letterSpacing: '.12em', color: 'var(--accent)' }}>LIVE API DATA · {apiDomain.toUpperCase()}</div>
+      {week && <QuerySection title="This week's status" isPending={weeklyStatus.isPending} isError={weeklyStatus.isError}
+        error={weeklyStatus.error} empty={!weeklyStatus.data} onRetry={() => void weeklyStatus.refetch()}>
+        {weeklyStatus.data && <>
+          <b>{weeklyStatus.data.status.replace('-', ' ').toUpperCase()}</b>
+          <p>{weeklyStatus.data.reason}</p>
+          {weeklyStatus.data.next && <p>Next action · {weeklyStatus.data.next.text}</p>}
+          <p className="mono">Source down → cap exceeded → none done → more tasks open than done.</p>
+        </>}
+      </QuerySection>}
       <QuerySection title="Registry sources" isPending={registry.isPending} isError={registry.isError} error={registry.error} empty={!entries.length} onRetry={() => void registry.refetch()}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {entries.map((entry) => <div key={entry.id} style={{ padding: '9px 11px', border: '1px solid var(--line)', borderRadius: 'var(--r)' }}><b>{entry.name}</b><div className="mono" style={{ color: 'var(--muted)', fontSize: '9px', marginTop: '4px' }}>{entry.kind} · {entry.connector}</div></div>)}

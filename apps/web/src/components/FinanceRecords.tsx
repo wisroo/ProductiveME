@@ -20,7 +20,7 @@ function FinanceDialog({ week, onClose }: { week: string; onClose: () => void })
   const save = useMutation({
     mutationFn: (input: FinanceInput) => api.recordFinance(input),
     onSuccess: async () => {
-      await Promise.all([client.invalidateQueries({ queryKey: ['finance-snapshots'] }), client.invalidateQueries({ queryKey: ['tasks'] })]);
+      await Promise.all(['finance-snapshots', 'tasks', 'home-status', 'domain-status'].map((key) => client.invalidateQueries({ queryKey: [key] })));
       onClose();
     },
   });

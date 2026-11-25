@@ -43,6 +43,8 @@ it('keeps sources visible through a status error, retries status alone, and filt
     carryTask: vi.fn(),
     getSnapshots: vi.fn(),
     getDomains: vi.fn(),
+    getHomeStatus: vi.fn(),
+    getDomainStatus: vi.fn(),
     getSignals: vi.fn(),
     createReview: vi.fn(),
     getReviewDraft: vi.fn(),

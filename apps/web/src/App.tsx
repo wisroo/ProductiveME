@@ -53,6 +53,7 @@ function AppContent() {
       <main id="main-content">
         {tab === 'home' ? (
           <Home
+            week={week}
             onDomainSelect={openDomain}
             onOpenDomains={() => setTab('domain')}
             onOpenRegistry={() => setTab('registry')}
@@ -75,7 +76,7 @@ function AppContent() {
             <div className="handoff-domain-back">
               <button type="button" className="shell-button" onClick={() => setTab('home')}>← Home</button>
             </div>
-            <Domains activeDomain={domain} onDomainChange={setDomain} domainPanel={domain === 'life' ? <LifeSchedule week={week} nextWeek={adjacentWeek(week, 1)} /> : domain === 'finance' ? <FinanceRecords week={week} /> : undefined} />
+            <Domains week={week} activeDomain={domain} onDomainChange={setDomain} domainPanel={domain === 'life' ? <LifeSchedule week={week} nextWeek={adjacentWeek(week, 1)} /> : domain === 'finance' ? <FinanceRecords week={week} /> : undefined} />
           </>
         ) : tab === 'registry' ? (
           <Registry />

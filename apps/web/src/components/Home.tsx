@@ -1,9 +1,10 @@
 import { domains, type DomainId } from '../types.js';
-import { useDomainRollups, useSignals, useSnapshots, toApiDomainId } from '../lib/api.js';
+import { useDomainRollups, useHomeStatus, useSignals, useSnapshots, toApiDomainId } from '../lib/api.js';
 import { eyebrow, fill, primaryButton, ProgressBar } from './bits.js';
 import QuerySection from './QuerySection.js';
 
 type HomeProps = {
+  week?: string;
   onDomainSelect: (domain: DomainId) => void;
   onOpenDomains: () => void;
   onOpenRegistry: () => void;
@@ -17,6 +18,7 @@ const healthLabel: Record<string, string> = {
 };
 
 export default function Home({
+  week,
   onDomainSelect,
   onOpenDomains,
   onOpenRegistry,
@@ -25,6 +27,8 @@ export default function Home({
   const rollups = useDomainRollups();
   const signals = useSignals();
   const snapshots = useSnapshots();
+  const weekly = useHomeStatus(week);
+  const sourceAlert = weekly.data?.sourceAlerts[0];
   const hasSourceError = snapshots.isSuccess && snapshots.data.some(
     (snapshot) => snapshot.status === 'error' && snapshot.error !== 'No snapshots found',
   );
@@ -48,11 +52,14 @@ export default function Home({
 
   return (
     <div className="handoff-page handoff-home">
-      {hasSourceError && (
+      {(sourceAlert || hasSourceError) && (
         <div className="home-source-banner" role="status">
           <div>
             <b className="mono">Source read unavailable</b>
-            <p>Some source data is unavailable or may be stale.</p>
+            <p>{sourceAlert ? `${sourceAlert.name} is unavailable.` : 'Some source data is unavailable.'}
+              {sourceAlert?.lastGoodReadAt && <> Last good read <time dateTime={sourceAlert.lastGoodReadAt}>{new Date(sourceAlert.lastGoodReadAt).toLocaleString()}</time>.</>}
+              {' Data may be stale.'}
+            </p>
           </div>
           <button type="button" className="shell-button" onClick={onOpenRegistry}>View sources</button>
         </div>
@@ -92,7 +99,10 @@ export default function Home({
               (item) => item.domain === toApiDomainId(domain.id),
             );
 
-            const tone = rollup?.health === 'healthy' ? 'done' : rollup?.health === 'degraded' ? 'due' : 'parked';
+            const status = weekly.data?.domains.find((item) => item.domain === toApiDomainId(domain.id));
+            const tone = status
+              ? status.status === 'on-track' ? 'done' : status.status === 'attention' ? 'due' : 'blocked'
+              : rollup?.health === 'healthy' ? 'done' : rollup?.health === 'degraded' ? 'due' : 'parked';
             const progress = rollup?.entryCount ? Math.round(100 * rollup.okCount / rollup.entryCount) : null;
             return (
               <button
@@ -115,14 +125,17 @@ export default function Home({
                 <div className="home-card-heading">
                   <b style={{ fontSize: '14px' }}>{domain.label}</b>
                   <span className="mono" style={{ fontSize: '9px', color: fill(tone) }}>
-                    {healthLabel[rollup?.health ?? 'unavailable']}
+                    {status ? status.status.replace('-', ' ').toUpperCase() : healthLabel[rollup?.health ?? 'unavailable']}
                   </span>
                 </div>
+                {status && <p className="mono" style={{ fontSize: '10px' }}>
+                  {status.done}/{status.total} tasks · {status.next?.text ?? 'No open tasks'}
+                </p>}
                 {progress === null ? (
                   <p className="mono" style={{ fontSize: '10px' }}>No sources configured.</p>
                 ) : (
                   <div style={{ marginTop: '12px' }}>
-                    <ProgressBar percent={progress} tone={tone} />
+                    <ProgressBar percent={status?.total ? Math.round(status.done * 100 / status.total) : progress} tone={tone} />
                     <p className="mono" style={{ fontSize: '10px' }}>
                       Source sync · {rollup?.okCount}/{rollup?.entryCount} ({progress}%)
                     </p>

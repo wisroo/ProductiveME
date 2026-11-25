@@ -2833,6 +2833,306 @@
         }
       }
     },
+    "/home": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "in": "query",
+            "name": "week",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "domains",
+                    "sourceAlerts"
+                  ],
+                  "properties": {
+                    "domains": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "domain",
+                          "status",
+                          "reason",
+                          "total",
+                          "cap",
+                          "done",
+                          "open",
+                          "next",
+                          "sourceIds"
+                        ],
+                        "properties": {
+                          "domain": {
+                            "type": "string",
+                            "enum": [
+                              "career",
+                              "finance",
+                              "personal-data",
+                              "life"
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "blocked",
+                              "overloaded",
+                              "neglected",
+                              "attention",
+                              "on-track"
+                            ]
+                          },
+                          "reason": {
+                            "type": "string"
+                          },
+                          "total": {
+                            "type": "integer"
+                          },
+                          "cap": {
+                            "type": "integer"
+                          },
+                          "done": {
+                            "type": "integer"
+                          },
+                          "open": {
+                            "type": "integer"
+                          },
+                          "next": {
+                            "type": "object",
+                            "required": [
+                              "id",
+                              "text"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "text": {
+                                "type": "string"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "snapshot",
+                                  "publish"
+                                ]
+                              }
+                            },
+                            "nullable": true
+                          },
+                          "sourceIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "sourceAlerts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name",
+                          "lastGoodReadAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "lastGoodReadAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/domains/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "in": "query",
+            "name": "week",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "career",
+                "finance",
+                "personal-data",
+                "life"
+              ]
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "domain",
+                    "status",
+                    "reason",
+                    "total",
+                    "cap",
+                    "done",
+                    "open",
+                    "next",
+                    "sourceIds"
+                  ],
+                  "properties": {
+                    "domain": {
+                      "type": "string",
+                      "enum": [
+                        "career",
+                        "finance",
+                        "personal-data",
+                        "life"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "blocked",
+                        "overloaded",
+                        "neglected",
+                        "attention",
+                        "on-track"
+                      ]
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "cap": {
+                      "type": "integer"
+                    },
+                    "done": {
+                      "type": "integer"
+                    },
+                    "open": {
+                      "type": "integer"
+                    },
+                    "next": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "text"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "text": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "snapshot",
+                            "publish"
+                          ]
+                        }
+                      },
+                      "nullable": true
+                    },
+                    "sourceIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/review-drafts/{period}": {
       "get": {
         "parameters": [

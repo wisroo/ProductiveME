@@ -15,6 +15,8 @@ function renderApp() {
     ],
     getSignals: async () => [],
     getRegistry: async () => [],
+    getHomeStatus: async () => ({ domains: [], sourceAlerts: [] }),
+    getDomainStatus: async () => null,
     getTasks: async () => [],
     getFinanceSnapshots: async () => [],
     getSettings: async () => ({ reviewDefault: 'weekly' }),

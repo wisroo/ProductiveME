@@ -15,7 +15,7 @@ export default function Registry() {
   const retry = useMutation({
     mutationFn: (id: string) => api.retrySource(id),
     onSuccess: async () => {
-      await Promise.all(['source-health', 'snapshots', 'domains', 'signals'].map((key) =>
+      await Promise.all(['source-health', 'snapshots', 'domains', 'signals', 'home-status', 'domain-status'].map((key) =>
         queryClient.invalidateQueries({ queryKey: [key] }),
       ));
     },

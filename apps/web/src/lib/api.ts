@@ -27,6 +27,16 @@ export function useDomainRollups() {
   return useQuery({ queryKey: ['domains'], queryFn: () => api.getDomains() });
 }
 
+export function useHomeStatus(week?: string) {
+  const api = useApi();
+  return useQuery({ queryKey: ['home-status', week], queryFn: () => api.getHomeStatus(week ?? ''), enabled: Boolean(week) });
+}
+
+export function useDomainStatus(domain: DomainId, week?: string) {
+  const api = useApi();
+  return useQuery({ queryKey: ['domain-status', domain, week], queryFn: () => api.getDomainStatus(domainApiIds[domain], week ?? ''), enabled: Boolean(week) });
+}
+
 export function useSignals() {
   const api = useApi();
   return useQuery({ queryKey: ['signals'], queryFn: () => api.getSignals() });

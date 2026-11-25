@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import { DOMAIN_IDS, type DomainId } from '@productiveme/core';
 import type { FastifyInstance } from 'fastify';
+import { WEEKLY_TASK_CAPS as caps } from './weekly-status.js';
 
-const caps: Record<DomainId, number> = { career: 3, finance: 2, 'personal-data': 2, life: 3 };
 const dateSchema = { type: 'string', format: 'date' } as const;
 const domainSchema = { type: 'string', enum: DOMAIN_IDS } as const;
 const textSchema = { type: 'string', minLength: 1, maxLength: 500 } as const;
@@ -172,4 +172,5 @@ export function registerTaskRoutes(app: FastifyInstance, db: DatabaseSync, assig
       ...(task.note ? { note: task.note } : {}),
     }));
   }));
+  return { list };
 }

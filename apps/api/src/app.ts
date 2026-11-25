@@ -13,6 +13,7 @@ import { registerFinanceRoutes } from './finance-routes.js';
 import { registerSettingsRoutes } from './settings-routes.js';
 import { registerPlanningRoutes } from './planning-routes.js';
 import { registerReviewRecords } from './review-records.js';
+import { registerWeeklyStatusRoutes } from './weekly-status.js';
 import { registerTaskRoutes } from './task-routes.js';
 import { loadLatestSnapshots, loadSourceHealth, summarizeDomains } from './snapshots.js';
 
@@ -227,7 +228,11 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
     }
   });
   const assignments = registerPlanningRoutes(app, db);
-  registerTaskRoutes(app, db, assignments);
+  const taskStore = registerTaskRoutes(app, db, assignments);
+  registerWeeklyStatusRoutes(app, async (week) => {
+    const entries = listEntries();
+    return { entries, health: await loadSourceHealth(snapshotDir, entries), tasks: taskStore.list(week) };
+  });
   registerReviewRecords(app, db, now);
   registerFinanceRoutes(app, db);
   registerSettingsRoutes(app, db);

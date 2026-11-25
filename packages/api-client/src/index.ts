@@ -36,6 +36,11 @@ export type FinanceInput = FinancePath['post']['requestBody']['content']['applic
 export type FinanceSnapshot = FinancePath['get']['responses'][200]['content']['application/json'][number];
 export type Settings = paths['/settings']['get']['responses'][200]['content']['application/json'];
 
+export type HomeStatus = paths['/home']['get']['responses'][200]['content']['application/json'];
+type DomainPath = paths['/domains/{id}']['get'];
+export type DomainWeekStatus = DomainPath['responses'][200]['content']['application/json'];
+type StatusDomainId = DomainPath['parameters']['path']['id'];
+
 type ReviewRequest = paths['/reviews']['post']['requestBody']['content']['application/json'];
 export type ReviewDraft = paths['/reviews']['post']['responses'][200]['content']['application/json'];
 
@@ -86,6 +91,8 @@ export interface ApiClient {
   getSnapshots(options?: SnapshotQuery): Promise<Snapshots>;
   getSignals(): Promise<Signals>;
   getDomains(): Promise<Domains>;
+  getHomeStatus(week: string): Promise<HomeStatus>;
+  getDomainStatus(id: StatusDomainId, week: string): Promise<DomainWeekStatus>;
   createReview(period: ReviewRequest['period'], periodStart?: string, timeZone?: string): Promise<ReviewDraft>;
   getReviewDraft(period: ReviewRequest['period']): Promise<SavedReviewDraft | null>;
   saveReviewDraft(input: SavedReviewDraft, ifAbsent?: boolean): Promise<SavedReviewDraft>;
@@ -189,6 +196,8 @@ export function createApiClient(baseUrl: string, fetcher: typeof fetch = fetch):
     getSnapshots: ({ domain } = {}) => get<Snapshots>(`/snapshots${domain ? `?domain=${encodeURIComponent(domain)}` : ''}`),
     getSignals: () => get<Signals>('/signals'),
     getDomains: () => get<Domains>('/domains'),
+    getHomeStatus: (week) => get<HomeStatus>(`/home?week=${encodeURIComponent(week)}`),
+    getDomainStatus: (id, week) => get<DomainWeekStatus>(`/domains/${id}?week=${encodeURIComponent(week)}`),
     createReview,
     getReviewDraft: async (period) => (await requestJson<{ draft: SavedReviewDraft | null }>(`/review-drafts/${period}`, 'GET')).draft,
     saveReviewDraft: (input, ifAbsent) => requestJson<SavedReviewDraft>(`/review-drafts/${input.period}${ifAbsent ? '?ifAbsent=1' : ''}`, 'PUT', input),
