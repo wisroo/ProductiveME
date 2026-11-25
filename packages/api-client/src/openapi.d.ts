@@ -468,6 +468,443 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    week: string;
+                    domain?: "career" | "finance" | "personal-data" | "life";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            week: string;
+                            /** Format: date */
+                            date?: string;
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            text: string;
+                            /** @enum {string} */
+                            kind?: "snapshot" | "publish";
+                            done: boolean;
+                            note?: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    force?: "1";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        week: string;
+                        /** Format: date */
+                        date?: string;
+                        /** @enum {string} */
+                        domain: "career" | "finance" | "personal-data" | "life";
+                        text: string;
+                        /** @enum {string} */
+                        kind?: "snapshot" | "publish";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            week: string;
+                            /** Format: date */
+                            date?: string;
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            text: string;
+                            /** @enum {string} */
+                            kind?: "snapshot" | "publish";
+                            done: boolean;
+                            note?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: {
+                    force?: "1";
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        week?: string;
+                        /** Format: date */
+                        date?: string | null;
+                        /** @enum {string} */
+                        domain?: "career" | "finance" | "personal-data" | "life";
+                        text?: string;
+                        /** @enum {string} */
+                        kind?: "snapshot" | "publish";
+                        done?: boolean;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            week: string;
+                            /** Format: date */
+                            date?: string;
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            text: string;
+                            /** @enum {string} */
+                            kind?: "snapshot" | "publish";
+                            done: boolean;
+                            note?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/tasks/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            week: string;
+                            /** Format: date */
+                            date?: string;
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            text: string;
+                            /** @enum {string} */
+                            kind?: "snapshot" | "publish";
+                            done: boolean;
+                            note?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tasks/{id}/carry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    force?: "1";
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        toWeek: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            week: string;
+                            /** Format: date */
+                            date?: string;
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            text: string;
+                            /** @enum {string} */
+                            kind?: "snapshot" | "publish";
+                            done: boolean;
+                            note?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            week: string;
+                            /** Format: date */
+                            date?: string;
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            text: string;
+                            /** @enum {string} */
+                            kind?: "snapshot" | "publish";
+                            done: boolean;
+                            note?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/openapi.json": {
         parameters: {
             query?: never;

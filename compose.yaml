@@ -6,6 +6,7 @@ services:
     environment:
       API_HOST: 0.0.0.0
       API_PORT: 3000
+      PRODUCTIVEME_STATE_PATH: /app/state/state.sqlite
       INFERENCE_PROVIDER: ${INFERENCE_PROVIDER:-ollama}
       INFERENCE_ALLOW_EXTERNAL: ${INFERENCE_ALLOW_EXTERNAL:-false}
       INFERENCE_API_KEY: ${INFERENCE_API_KEY:-}
@@ -19,6 +20,7 @@ services:
     volumes:
       - ./registry.yaml:/app/registry.yaml:ro
       - snapshots:/app/snapshots:ro
+      - app-state:/app/state:rw
     read_only: true
     tmpfs:
       - /tmp
@@ -47,3 +49,4 @@ services:
 
 volumes:
   snapshots:
+  app-state:

@@ -6,6 +6,7 @@ import swagger from '@fastify/swagger';
 import { computeSignals, DOMAIN_IDS, parseRegistry, type RegistryEntry, type Snapshot } from '@productiveme/core';
 import { createInference, InferenceError, parseInferenceConfig, type InferenceProvider } from './inference.js';
 import { buildReviewPrompt, reviewRange, type ReviewPeriod } from './reviews.js';
+import { registerTaskRoutes } from './task-routes.js';
 import { loadLatestSnapshots, loadSourceHealth, summarizeDomains } from './snapshots.js';
 
 const registryEntrySchema = {
@@ -82,6 +83,7 @@ const sourceRetryError = {
 export interface BuildAppOptions {
   registryPath: string;
   snapshotDir?: string;
+  statePath?: string;
   now?: () => string;
   loggerStream?: Writable;
   retrySource?: (entry: RegistryEntry) => Promise<Snapshot>;
@@ -89,7 +91,7 @@ export interface BuildAppOptions {
   inferenceConfig?: ReturnType<typeof parseInferenceConfig>;
 }
 
-export async function buildApp({ registryPath, snapshotDir = join(dirname(registryPath), 'snapshots'), now = () => new Date().toISOString(), loggerStream, retrySource, inference, inferenceConfig = parseInferenceConfig() }: BuildAppOptions) {
+export async function buildApp({ registryPath, snapshotDir = join(dirname(registryPath), 'snapshots'), now = () => new Date().toISOString(), loggerStream, retrySource, statePath = ':memory:', inference, inferenceConfig = parseInferenceConfig() }: BuildAppOptions) {
   const entries = parseRegistry(await readFile(registryPath, 'utf8'));
   const reviewInference = inference ?? createInference(inferenceConfig);
   const app = Fastify({
@@ -204,6 +206,7 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
       return reply.code(failure.status).send({ code: failure.code, message: failure.message });
     }
   });
+  registerTaskRoutes(app, statePath);
   app.get('/openapi.json', async () => app.swagger());
   app.setNotFoundHandler((request, reply) => {
     request.log.warn('Route not found');

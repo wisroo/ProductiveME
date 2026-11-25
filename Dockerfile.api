@@ -9,7 +9,7 @@ COPY apps/api ./apps/api
 COPY apps/sync ./apps/sync
 COPY packages/core ./packages/core
 RUN pnpm install --frozen-lockfile --prod --filter @productiveme/api...
-RUN mkdir -p /app/snapshots && chown node:node /app/snapshots
+RUN mkdir -p /app/snapshots /app/state && chown node:node /app/snapshots /app/state
 
 USER node
 EXPOSE 3000

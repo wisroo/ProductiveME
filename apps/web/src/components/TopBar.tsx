@@ -4,6 +4,7 @@ type TopBarProps = {
   activeTab: AppTab;
   theme: Theme;
   onTabChange: (tab: PrimaryTab) => void;
+  onAddTask: () => void;
   onOpenSettings: () => void;
   onThemeToggle: () => void;
 };
@@ -31,7 +32,7 @@ function currentWeekLabel(now: Date) {
   return `WK ${String(week).padStart(2, '0')} · ${format.format(monday).toUpperCase()}–${String(end).toUpperCase()}`;
 }
 
-export default function TopBar({ activeTab, theme, onTabChange, onOpenSettings, onThemeToggle }: TopBarProps) {
+export default function TopBar({ activeTab, theme, onTabChange, onAddTask, onOpenSettings, onThemeToggle }: TopBarProps) {
   const targetTheme = theme === 'dark' ? 'light' : 'dark';
 
   return (
@@ -50,7 +51,7 @@ export default function TopBar({ activeTab, theme, onTabChange, onOpenSettings, 
         ))}
       </nav>
       <div className="shell-actions mono">
-        <button type="button" className="shell-button shell-add" disabled>+ Task</button>
+        <button type="button" className="shell-button shell-add" onClick={onAddTask}>+ Task</button>
         <span className="shell-week" aria-label="Current week">{currentWeekLabel(new Date())}</span>
         <button type="button" className="shell-button" aria-current={activeTab === 'settings' ? 'page' : undefined} onClick={onOpenSettings}>Settings</button>
         <button type="button" className="shell-button" aria-label={`Switch to ${targetTheme} theme`} onClick={onThemeToggle}>

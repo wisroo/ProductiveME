@@ -5,12 +5,16 @@ import Home from './components/Home.js';
 import Registry from './components/Registry.js';
 import Review from './components/Review.js';
 import TopBar from './components/TopBar.js';
+import { QuickTaskDialog, WeeklyTasks } from './components/Tasks.js';
+import { weekStart } from './lib/week.js';
 import type { AppTab, DomainId, ReviewMode, Theme } from './types.js';
 
 function AppContent() {
   const [tab, setTab] = useState<AppTab>('home');
   const [domain, setDomain] = useState<DomainId>('finance');
   const [reviewMode, setReviewMode] = useState<ReviewMode>('weekly');
+  const [addingTask, setAddingTask] = useState(false);
+  const week = weekStart();
   const [theme, setTheme] = useState<Theme>('dark');
 
   const openDomain = (nextDomain: DomainId) => {
@@ -27,6 +31,7 @@ function AppContent() {
         activeTab={tab}
         theme={theme}
         onTabChange={setTab}
+        onAddTask={() => setAddingTask(true)}
         onOpenSettings={() => setTab('settings')}
         onThemeToggle={() =>
           setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
@@ -44,7 +49,10 @@ function AppContent() {
             }}
           />
         ) : tab === 'review' ? (
-          <Review mode={reviewMode} onModeChange={setReviewMode} />
+          <>
+            <Review mode={reviewMode} onModeChange={setReviewMode} />
+            {reviewMode === 'weekly' && <div className="handoff-page"><WeeklyTasks week={week} onAdd={() => setAddingTask(true)} /></div>}
+          </>
         ) : tab === 'domain' ? (
           <>
             <div className="handoff-domain-back">
@@ -68,10 +76,12 @@ function AppContent() {
         ) : (
           <section className="handoff-page">
             <h1 className="hf">Plan</h1>
-            <p>Weekly planning will be available when task storage is connected.</p>
+            <p className="handoff-eyebrow mono">Week of {week}</p>
+            <WeeklyTasks week={week} onAdd={() => setAddingTask(true)} carry />
           </section>
         )}
       </main>
+      {addingTask && <QuickTaskDialog week={week} onClose={() => setAddingTask(false)} />}
     </div>
   );
 }

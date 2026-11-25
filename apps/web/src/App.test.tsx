@@ -15,6 +15,7 @@ function renderApp() {
     ],
     getSignals: async () => [],
     getRegistry: async () => [],
+    getTasks: async () => [],
     getSourceHealth: async () => [],
     getSnapshots: async () => [],
   } as unknown as ApiClient;

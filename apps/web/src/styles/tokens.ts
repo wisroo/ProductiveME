@@ -211,13 +211,30 @@ a:focus-visible {
 .registry-retry { margin-left: 8px; }
 .registry-retry-result { display: block; margin-top: 4px; }
 
+.weekly-tasks, .task-dialog form { display: grid; gap: 12px; }
+.task-dialog { color: var(--ink); background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r2); width: min(420px, calc(100vw - 40px)); box-sizing: border-box; }
+.task-dialog::backdrop { background: #0009; }
+.task-dialog h2 { margin: 0; }
+.task-dialog label { display: grid; gap: 4px; }
+.task-dialog input, .task-dialog select { min-width: 0; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); padding: 7px; }
+.task-actions, .task-summary { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+.task-board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.task-board h3 { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+.task-board ul, .task-carry { list-style: none; padding: 0; margin: 0; }
+.task-board li, .task-carry li { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 6px 0; }
+.task-board li + li, .task-carry li + li { border-top: 1px solid var(--line); }
+@media (max-width: 639px) {
+  .task-board { grid-template-columns: 1fr; }
+  .task-dialog { width: 100%; max-width: none; margin: auto 0 0; border-radius: 10px 10px 0 0; }
+}
+
 @media (max-width: 850px) {
   .shell-header { flex-wrap: wrap; gap: 0 10px; padding: 8px 16px 0; }
   .shell-nav { order: 3; width: 100%; }
   .shell-nav button { padding: 10px 12px; }
 }
 @media (max-width: 639px) {
-  .shell-week, .shell-add { display: none; }
+  .shell-week { display: none; }
   .handoff-page { padding: 20px 16px; }
   .home-today, .home-timeline { grid-template-columns: minmax(0, 1fr); }
   .home-today > .query-section { border-left: 0; border-top: 1px solid var(--line); }
