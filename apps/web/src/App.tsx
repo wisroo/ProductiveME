@@ -25,7 +25,7 @@ function AppContent() {
   const [domain, setDomain] = useState<DomainId>('finance');
   const [chosenReviewMode, setReviewMode] = useState<ReviewMode | null>(null);
   const reviewMode = chosenReviewMode ?? settings.data?.reviewDefault ?? 'weekly';
-  const [addingTask, setAddingTask] = useState<{ date?: string } | null>(null);
+  const [addingTask, setAddingTask] = useState<{ date?: string; domain?: DomainId } | null>(null);
   const week = weekStart();
   const today = localDate();
   const [theme, setTheme] = useState<Theme>('dark');
@@ -76,7 +76,7 @@ function AppContent() {
             <div className="handoff-domain-back">
               <button type="button" className="shell-button" onClick={() => setTab('home')}>← Home</button>
             </div>
-            <Domains week={week} activeDomain={domain} onDomainChange={setDomain} domainPanel={domain === 'life' ? <LifeSchedule week={week} nextWeek={adjacentWeek(week, 1)} /> : domain === 'finance' ? <FinanceRecords week={week} /> : undefined} />
+            <Domains week={week} activeDomain={domain} onDomainChange={setDomain} taskPanel={<WeeklyTasks week={week} domain={domain} onAdd={() => setAddingTask({ domain })} />} domainPanel={domain === 'life' ? <LifeSchedule week={week} nextWeek={adjacentWeek(week, 1)} /> : domain === 'finance' ? <FinanceRecords week={week} /> : undefined} />
           </>
         ) : tab === 'registry' ? (
           <Registry />
@@ -106,7 +106,7 @@ function AppContent() {
           <Plan week={week} onAdd={() => setAddingTask({})} />
         )}
       </main>
-      {addingTask && <QuickTaskDialog week={addingTask.date ? weekOfDate(addingTask.date) : week} {...(addingTask.date ? { date: addingTask.date } : {})} onClose={() => setAddingTask(null)} />}
+      {addingTask && <QuickTaskDialog week={addingTask.date ? weekOfDate(addingTask.date) : week} {...(addingTask.date ? { date: addingTask.date } : {})} {...(addingTask.domain ? { domain: addingTask.domain } : {})} onClose={() => setAddingTask(null)} />}
     </div>
   );
 }

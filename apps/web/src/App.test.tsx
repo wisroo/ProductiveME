@@ -85,7 +85,7 @@ describe('App shell', () => {
     await user.click(await screen.findByRole('button', { name: 'Career' }));
 
     expect(screen.getByRole('heading', { name: 'Career' })).toBeInTheDocument();
-    expect(screen.getByText('STUDY · WRITING BY FIELD')).toBeInTheDocument();
+    expect(screen.getByText('Study · writing by field')).toBeInTheDocument();
   });
 
   it('opens Finance from its Home card', async () => {

@@ -214,12 +214,15 @@ a:focus-visible {
 
 .weekly-tasks, .task-dialog form { display: grid; gap: 12px; }
 .task-dialog { color: var(--ink); background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r2); width: min(420px, calc(100vw - 40px)); box-sizing: border-box; }
+.task-drawer { margin: 0 0 0 auto; min-height: 100dvh; }
 .task-dialog::backdrop { background: #0009; }
 .task-dialog h2 { margin: 0; }
 .task-dialog label { display: grid; gap: 4px; }
-.task-dialog input, .task-dialog select { min-width: 0; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); padding: 7px; }
+.task-dialog input, .task-dialog select, .task-dialog textarea { min-width: 0; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); padding: 7px; }
 .task-actions, .task-summary { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
 .task-board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.domain-folder-list { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.domain-folder-list details { border: 1px solid var(--line); padding: 9px; }
 .schedule-scroll { overflow-x: auto; }
 .schedule-grid { border-collapse: collapse; width: 100%; }
 .schedule-grid th { padding: 5px; font-size: 11px; color: var(--muted); }
@@ -234,10 +237,11 @@ a:focus-visible {
 .task-board h3 { color: var(--muted); font-size: 11px; text-transform: uppercase; }
 .task-board ul, .task-carry { list-style: none; padding: 0; margin: 0; }
 .task-board li, .task-carry li { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 6px 0; }
+.task-board li { justify-content: flex-start; }
 .task-board li + li, .task-carry li + li { border-top: 1px solid var(--line); }
 @media (max-width: 639px) {
   .task-board { grid-template-columns: 1fr; }
-  .task-dialog { width: 100%; max-width: none; margin: auto 0 0; border-radius: 10px 10px 0 0; }
+  .task-dialog { width: 100%; max-width: none; min-height: 0; margin: auto 0 0; border-radius: 10px 10px 0 0; }
 }
 
 @media (max-width: 850px) {

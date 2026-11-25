@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { LifeDay, LifeWeek, SlotActual, SlotPlan, Task, WeekPlan } from '@productiveme/api-client';
-import { useApi } from '../lib/api.js';
+import { toApiDomainId, useApi, useHomeStatus } from '../lib/api.js';
 import { WeeklyTasks } from './Tasks.js';
 import QuerySection from './QuerySection.js';
+import { ProgressBar } from './bits.js';
+import { domains } from '../types.js';
 
 const days: LifeDay[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const blocks = Array.from({ length: 12 }, (_, block) => block);
@@ -174,6 +176,7 @@ export function Plan({ week, onAdd }: { week: string; onAdd: () => void }) {
   const api = useApi();
   const client = useQueryClient();
   const [timetable, setTimetable] = useState(false);
+  const status = useHomeStatus(week);
   const plan = useQuery({ queryKey: ['week-plan', week], queryFn: () => api.getWeekPlan(week) });
   const update = useMutation({
     mutationFn: (patch: Parameters<typeof api.updateWeekPlan>[1]) => api.updateWeekPlan(week, patch),
@@ -189,6 +192,15 @@ export function Plan({ week, onAdd }: { week: string; onAdd: () => void }) {
       <QuerySection title="Weekly plan" isPending={plan.isPending} isError={plan.isError} error={plan.error} empty={false} onRetry={() => void plan.refetch()}>
         {plan.data && <PlanControls plan={plan.data} key={plan.data.focus} busy={update.isPending} onChange={(patch) => update.mutate(patch)} />}
         {update.isError && <p role="alert">{update.error.message}</p>}
+      </QuerySection>
+      <QuerySection title="Domain caps" isPending={status.isPending} isError={status.isError} error={status.error}
+        empty={!status.data?.domains.length} onRetry={() => void status.refetch()}>
+        <div className="domain-folder-list">{status.data?.domains.map((item) => (
+          <div key={item.domain}>
+            <div className="task-summary"><b>{domains.find(({ id }) => toApiDomainId(id) === item.domain)?.label ?? item.domain}</b><span>{item.total}/{item.cap}</span></div>
+            <ProgressBar percent={Math.min(100, item.total * 100 / item.cap)} tone={item.total > item.cap ? 'blocked' : 'done'} />
+          </div>
+        ))}</div>
       </QuerySection>
       <div className="registry-filters" role="group" aria-label="Plan view">
         <button type="button" aria-pressed={!timetable} onClick={() => setTimetable(false)}>List</button>
@@ -206,7 +218,6 @@ export function LifeSchedule({ week, nextWeek }: { week: string; nextWeek: strin
 
   return (
     <section aria-label="Life schedule" className="weekly-tasks">
-      <h1 className="hf">Life</h1>
       <div className="registry-filters" role="group" aria-label="Life week">
         {[week, nextWeek].map((value) => <button type="button" aria-pressed={value === selectedWeek} key={value} onClick={() => setSelectedWeek(value)}>{value}</button>)}
       </div>

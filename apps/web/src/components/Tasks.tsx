@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiRequestError, type Task, type TaskInput } from '@productiveme/api-client';
 import { toApiDomainId, useApi } from '../lib/api.js';
 import { adjacentWeek } from '../lib/week.js';
-import { domains } from '../types.js';
+import { domains, type DomainId } from '../types.js';
 import QuerySection from './QuerySection.js';
 import { primaryButton } from './bits.js';
 
@@ -11,7 +11,7 @@ function taskError(error: unknown): string {
   return error instanceof Error ? error.message : 'Task request failed.';
 }
 
-export function QuickTaskDialog({ week, date, onClose }: { week: string; date?: string; onClose: () => void }) {
+export function QuickTaskDialog({ week, date, domain, onClose }: { week: string; date?: string; domain?: DomainId; onClose: () => void }) {
   const api = useApi();
   const queryClient = useQueryClient();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -52,7 +52,7 @@ export function QuickTaskDialog({ week, date, onClose }: { week: string; date?: 
       <form onSubmit={submit}>
         <h2 className="hf" id="quick-task-title">Add task</h2>
         <label>Task <input name="text" required maxLength={500} /></label>
-        <label>Domain <select name="domain">{domains.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}</select></label>
+        <label>Domain <select name="domain" defaultValue={domain}>{domains.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}</select></label>
         <label>Task type <select name="kind"><option value="">General</option><option value="snapshot">Finance snapshot</option><option value="publish">Publish</option></select></label>
         <label>Date <input type="date" name="date" defaultValue={date} /></label>
         {create.isError && <p role="alert">{taskError(create.error)}</p>}
@@ -70,12 +70,66 @@ export function QuickTaskDialog({ week, date, onClose }: { week: string; date?: 
   );
 }
 
+function TaskDrawer({ task, onClose, onDelete }: { task: Task; onClose: () => void; onDelete: () => void }) {
+  const api = useApi();
+  const client = useQueryClient();
+  const dialog = useRef<HTMLDialogElement>(null);
+  const edit = useMutation({
+    mutationFn: ({ patch, force }: { patch: Parameters<typeof api.updateTask>[1]; force?: boolean }) =>
+      api.updateTask(task.id, patch, force),
+    onSuccess: async () => {
+      await Promise.all(['tasks', 'home-status', 'domain-status', 'life'].map((key) => client.invalidateQueries({ queryKey: [key] })));
+      onClose();
+    },
+  });
+  useEffect(() => {
+    const element = dialog.current;
+    const trigger = document.activeElement;
+    if (element && !element.open) element.showModal();
+    return () => { if (trigger instanceof HTMLElement) trigger.focus(); };
+  }, []);
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const text = String(data.get('text') ?? '').trim();
+    const note = String(data.get('note') ?? '').trim();
+    const date = String(data.get('date') ?? '') || null;
+    if (text) edit.mutate({ patch: { text, note, date, done: data.has('done') } });
+  };
+  const move = (force = false) => edit.mutate({ patch: { week: adjacentWeek(task.week, 1) }, force });
+  const canForce = edit.error instanceof ApiRequestError && edit.error.code === 'CAP_EXCEEDED';
+  return (
+    <dialog ref={dialog} className="task-dialog task-drawer" aria-labelledby="task-drawer-title"
+      onCancel={(event) => { event.preventDefault(); onClose(); }}>
+      <form onSubmit={submit}>
+        <h2 id="task-drawer-title" className="hf">Task details</h2>
+        <label>Task <input name="text" defaultValue={task.text} maxLength={500} required /></label>
+        <label>Notes <textarea name="note" defaultValue={task.note} maxLength={4000} rows={4} /></label>
+        <label>Date <input type="date" name="date" defaultValue={task.date} /></label>
+        <label className="task-summary">Done <input type="checkbox" name="done" defaultChecked={task.done} /></label>
+        {edit.isError && <p role="alert">{taskError(edit.error)}</p>}
+        <div className="task-actions">
+          <button type="button" className="shell-button" disabled={edit.isPending} onClick={() => move(canForce)}>
+            {canForce ? 'Move anyway' : 'Move to next week'}
+          </button>
+          <button type="button" className="shell-button" disabled={edit.isPending} onClick={onDelete}>Delete task</button>
+        </div>
+        <div className="task-actions">
+          <button type="button" className="shell-button" onClick={onClose}>Cancel</button>
+          <button type="submit" disabled={edit.isPending} style={primaryButton}>Save task</button>
+        </div>
+      </form>
+    </dialog>
+  );
+}
+
 type TaskAction = { kind: 'toggle'; task: Task } | { kind: 'delete' | 'restore'; id: string };
 
-export function WeeklyTasks({ week, onAdd, carry = false }: { week: string; onAdd: () => void; carry?: boolean }) {
+export function WeeklyTasks({ week, onAdd, carry = false, domain }: { week: string; onAdd: () => void; carry?: boolean; domain?: DomainId }) {
   const api = useApi();
   const queryClient = useQueryClient();
   const [undoId, setUndoId] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [carryId, setCarryId] = useState<string | null>(null);
   const tasks = useQuery({ queryKey: ['tasks', week], queryFn: () => api.getTasks({ week }) });
   const previousWeek = adjacentWeek(week, -1);
@@ -110,7 +164,7 @@ export function WeeklyTasks({ week, onAdd, carry = false }: { week: string; onAd
     return () => window.clearTimeout(timeout);
   }, [undoId]);
 
-  const data = tasks.data ?? [];
+  const data = tasks.data?.filter((task) => !domain || task.domain === toApiDomainId(domain)) ?? [];
   const complete = data.filter((task) => task.done).length;
   const previousTasks = previous.data?.filter((task) => !task.done) ?? [];
   const carried = (task: Task) => data.some(({ domain, text }) => task.domain === domain && task.text === text);
@@ -127,8 +181,9 @@ export function WeeklyTasks({ week, onAdd, carry = false }: { week: string; onAd
               <ul>
                 {data.filter((task) => task.done === done).map((task) => (
                   <li key={task.id}>
-                    <label><input type="checkbox" checked={task.done} disabled={change.isPending} onChange={() => change.mutate({ kind: 'toggle', task })} /> {task.text}</label>
-                    <button type="button" className="shell-button" aria-label={`Delete ${task.text}`} disabled={change.isPending} onClick={() => change.mutate({ kind: 'delete', id: task.id })}>Delete</button>
+                    <input type="checkbox" checked={task.done} disabled={change.isPending}
+                      aria-label={`Mark ${task.done ? 'open' : 'done'}: ${task.text}`} onChange={() => change.mutate({ kind: 'toggle', task })} />
+                    <button type="button" className="source-name" onClick={() => setSelectedTask(task)}>{task.text}</button>
                   </li>
                 ))}
               </ul>
@@ -138,6 +193,10 @@ export function WeeklyTasks({ week, onAdd, carry = false }: { week: string; onAd
         {change.isError && <p role="alert">{taskError(change.error)}</p>}
         {undoId && <p role="status">Task deleted. <button type="button" className="shell-button" disabled={change.isPending} onClick={() => change.mutate({ kind: 'restore', id: undoId })}>Undo</button></p>}
       </QuerySection>
+      {selectedTask && <TaskDrawer task={selectedTask} onClose={() => setSelectedTask(null)} onDelete={() => {
+        change.mutate({ kind: 'delete', id: selectedTask.id });
+        setSelectedTask(null);
+      }} />}
       {carry && (
         <QuerySection title="Carry over" isPending={previous.isPending} isError={previous.isError} error={previous.error} empty={!previousTasks.length} onRetry={() => void previous.refetch()}>
           <ul className="task-carry">

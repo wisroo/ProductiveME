@@ -7,7 +7,7 @@ type QuerySectionProps = {
   isError: boolean;
   error?: Error | null;
   empty: boolean;
-  onRetry: () => void;
+  onRetry?: () => void;
   children: ReactNode;
 };
 
@@ -41,9 +41,9 @@ export default function QuerySection({
       ) : isError ? (
         <div role="alert">
           <p>{error?.message || `Could not load ${title.toLowerCase()}.`}</p>
-          <button type="button" onClick={onRetry} style={ghostButton}>
+          {onRetry && <button type="button" onClick={onRetry} style={ghostButton}>
             Retry {title.toLowerCase()}
-          </button>
+          </button>}
         </div>
       ) : empty ? (
         <p>No {title.toLowerCase()} yet.</p>

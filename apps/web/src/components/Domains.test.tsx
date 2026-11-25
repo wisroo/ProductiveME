@@ -46,60 +46,23 @@ describe('Domains', () => {
     expect(screen.queryByRole('heading', { name: 'Career' })).not.toBeInTheDocument();
   });
 
-  it('renders the Career study fields and publishing funnel', () => {
-    renderDomains('career');
-
-    expect(screen.getByText('overloaded')).toBeInTheDocument();
-    expect(screen.getByText('STUDY · WRITING BY FIELD')).toBeInTheDocument();
-    expect(screen.getByText('Cloud arch')).toBeInTheDocument();
-    expect(screen.getByText('18 pg')).toBeInTheDocument();
-    expect(screen.getByText('DRAFTED')).toBeInTheDocument();
-    expect(screen.getByText('42')).toBeInTheDocument();
-    expect(screen.getByText('▸ VPC design notes')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Publish →' })).toBeInTheDocument();
+  it('uses collected writing data instead of prototype metrics', async () => {
+    renderDomains('career', {
+      getRegistry: vi.fn().mockResolvedValue([{ id: 'study', name: 'Architecture notes', domain: 'career', subdomain: 'study', connector: 'notion', kind: 'notion-page', locator: 'unused' }]),
+      getSnapshots: vi.fn().mockResolvedValue([{ entryId: 'study', status: 'ok', fetchedAt: '2026-11-23T11:00:00Z', items: [{ title: 'Queue tradeoffs' }] }]),
+    });
+    expect(screen.getByRole('region', { name: 'Study · writing by field' })).toBeInTheDocument();
+    expect(await screen.findByText('1 collected entry')).toBeInTheDocument();
+    expect(screen.queryByText('18 pg')).not.toBeInTheDocument();
   });
 
-  it('renders the Finance stats, spending, composition and overdue action', () => {
-    renderDomains('finance');
-
-    expect(screen.getByText('NET WORTH')).toBeInTheDocument();
-    expect(screen.getByText('₩ 84.2M')).toBeInTheDocument();
-    expect(screen.getByText('last Jun 30')).toBeInTheDocument();
-    expect(screen.getByText('₩820k')).toBeInTheDocument();
-    expect(screen.getByText('Investments 46%')).toBeInTheDocument();
-    expect(screen.getByText('Record July asset snapshot')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '▶ Record now' })).toBeInTheDocument();
-  });
-
-  it('renders every Personal Data asset group', () => {
-    renderDomains('pdata');
-
-    expect(screen.getByText('62% organized · 5 need attention')).toBeInTheDocument();
-    for (const label of [
-      '2025 Photos',
-      '2024 Photos',
-      '2024 Projects',
-      'Paper / PDF',
-      'Music',
-      'Videos',
-    ]) {
-      expect(screen.getByText(label)).toBeInTheDocument();
-    }
-    expect(screen.getByText('3,100 untagged', { exact: false })).toBeInTheDocument();
-  });
-
-  it('renders the Life timetable with its imbalance and protected block', () => {
-    renderDomains('life');
-
-    expect(screen.getByText('neglected')).toBeInTheDocument();
-
-    const timetable = screen.getByLabelText('Weekly timetable');
-    expect(timetable.querySelectorAll('[data-block]')).toHaveLength(21);
-    expect(timetable.querySelectorAll('[data-block="protected"]')).toHaveLength(2);
-
-    expect(screen.getByText('⚠ IMBALANCE')).toBeInTheDocument();
-    expect(screen.getByText('Sat afternoon → exercise')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '▶ Protect block' })).toBeInTheDocument();
+  it('derives Personal Data folders from live registry entries', async () => {
+    renderDomains('pdata', {
+      getRegistry: vi.fn().mockResolvedValue([{ id: 'photos', name: 'Photo archive', domain: 'personal-data', connector: 'local-folder', kind: 'folder', locator: 'unused' }]),
+      getSnapshots: vi.fn().mockResolvedValue([{ entryId: 'photos', status: 'ok', fetchedAt: '2026-11-23T11:00:00Z', items: [{ title: 'Weekend photos' }] }]),
+    });
+    expect(await screen.findByText('Photo archive · 1 entry')).toBeInTheDocument();
+    expect(screen.queryByText('62% organized · 5 need attention')).not.toBeInTheDocument();
   });
 
   it('loads the selected domain entries and snapshots using the API domain ID', async () => {
@@ -113,7 +76,6 @@ describe('Domains', () => {
     expect(await screen.findAllByText('Asset Ledger')).toHaveLength(2);
     expect(await screen.findByText('October balance · Updated today')).toBeInTheDocument();
     expect(await screen.findByText('Balance review due')).toBeInTheDocument();
-    expect(screen.getByText(/Prototype metrics below are illustrative/)).toBeInTheDocument();
   });
 
   it('keeps snapshots visible when registry fails and retries registry independently', async () => {

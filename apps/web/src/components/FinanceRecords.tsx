@@ -73,7 +73,7 @@ export default function FinanceRecords({ week }: { week: string }) {
   const thisMonth = latest?.date.startsWith(localDate().slice(0, 7));
   return (
     <section className="weekly-tasks" aria-label="Finance records">
-      <div className="task-summary"><h1 className="hf">Finance</h1><button type="button" style={primaryButton} onClick={() => setRecording(true)}>Record snapshot</button></div>
+      <div className="task-summary"><h2 className="hf">Assets</h2><button type="button" style={primaryButton} onClick={() => setRecording(true)}>Record snapshot</button></div>
       <QuerySection title="Asset snapshots" isPending={data.isPending} isError={data.isError} error={data.error} empty={false} onRetry={() => void data.refetch()}>
         <p>{thisMonth ? 'Recorded this month.' : latest ? `Missing this month · last ${latest.date}` : 'No asset snapshot recorded yet.'}</p>
         {latest && <>
@@ -87,7 +87,7 @@ export default function FinanceRecords({ week }: { week: string }) {
           </details>
         </>}
       </QuerySection>
-      <QuerySection title="Spending" isPending={false} isError={false} empty={false} onRetry={() => undefined}>
+      <QuerySection title="Spending" isPending={false} isError={false} empty={false}>
         <p>Connect a spending source to see a category breakdown.</p>
       </QuerySection>
       {recording && <FinanceDialog week={week} onClose={() => setRecording(false)} />}
