@@ -476,6 +476,44 @@ button.screen-pill, .screen-segment button { cursor: pointer; }
 @media (max-width: 639px) {
   .life-slot-layout { grid-template-columns: minmax(0, 1fr); }
 }
+
+.review-page { --review-text: 'Public Sans', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans CJK KR', sans-serif; }
+.review-readable-copy, .review-live-summary, .review-domain-summary, .review-decisions textarea, .review-draft textarea, .monthly-day-tasks {
+  font-family: var(--review-text);
+  line-height: 1.6;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.review-live-summary { font-size: 16px; margin-bottom: 7px; }
+.review-draft-hint { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.review-domain-summary li { align-items: baseline; }
+.review-domain-summary li > b { flex-shrink: 0; }
+.review-domain-summary li > span { text-align: right; }
+.monthly-calendar-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.monthly-calendar-heading time { font-size: 16px; }
+.monthly-legend { display: flex; gap: 8px; font: 10px 'JetBrains Mono', monospace; }
+.monthly-done { color: var(--done); }
+.monthly-open { color: var(--ink); }
+.monthly-review-panel .monthly-task-grid > button {
+  min-width: 0; padding: 3px 2px; align-content: start;
+  color: var(--ink); font-variant-numeric: tabular-nums;
+}
+.monthly-day { font-size: 11px; }
+.monthly-counts { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; column-gap: 2px; font-size: 9px; }
+.monthly-counts > span { white-space: nowrap; }
+.monthly-counts > .monthly-open { background: var(--track); border-radius: 3px; padding-inline: 2px; }
+.monthly-legend > span::before { content: ''; display: inline-block; width: 5px; height: 5px; margin-right: 4px; border: 1px solid currentColor; border-radius: 100%; }
+.monthly-legend > .monthly-done::before { background: currentColor; }
+.monthly-day-tasks li span { min-width: 0; }
+.monthly-day-tasks li small { flex-shrink: 0; color: var(--muted); }
+@media (max-width: 639px) {
+  .shell-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .shell-nav button { padding-inline: 3px; font-size: 13px; }
+  .monthly-review-panel { padding-inline: 10px; }
+  .review-domain-summary li { flex-wrap: wrap; gap: 0 8px; }
+  .review-domain-summary li > span { text-align: left; }
+}
 `;
 
 export default tokens;

@@ -145,6 +145,10 @@ export default function Review({ mode, onModeChange, periodStart, taskPanel }: R
     },
     onError: () => setSaveStatus('error'),
   });
+  const weeklyTotals = status.data?.domains.reduce((totals, domain) => ({
+    done: totals.done + domain.done,
+    total: totals.total + domain.total,
+  }), { done: 0, total: 0 });
   const visibleDraft = drafts[mode] ?? saved.data;
   const editing = editedText !== null;
   const busy = mutation.isPending || persist.isPending || importReviews.isPending;
@@ -201,9 +205,15 @@ export default function Review({ mode, onModeChange, periodStart, taskPanel }: R
       {!isWeekly && taskPanel}
       <section aria-labelledby="draft-heading" className="review-draft">
         <div id="draft-heading" className="mono" style={eyebrow('accent')}>{isWeekly ? 'THIS WEEK, IN A SENTENCE' : 'MONTHLY DRAFT'}</div>
-        <p className="mono" style={{ color: 'var(--muted)', fontSize: '12px', lineHeight: 1.6 }}>
-          Create a draft from recent snapshots and computed signals for this period.
-        </p>
+        {isWeekly && periodStart && (
+          <p className="review-live-summary">
+            {status.isError ? 'Could not load this week’s task summary.'
+              : !weeklyTotals ? 'Loading this week’s task summary…'
+                : weeklyTotals.total === 0 ? 'No tasks are planned for this week.'
+                  : `${weeklyTotals.done} of ${weeklyTotals.total} tasks completed this week · ${weeklyTotals.total - weeklyTotals.done} open.`}
+          </p>
+        )}
+        {!visibleDraft && <p className="review-draft-hint">Generate an optional AI draft from recent source snapshots and signals.</p>}
         {visibleDraft ? (
           <>
             <div className="mono" style={{ color: 'var(--muted)', fontSize: '11px', margin: '14px 0' }}>
@@ -218,7 +228,7 @@ export default function Review({ mode, onModeChange, periodStart, taskPanel }: R
                 style={{ width: '100%', font: 'inherit', color: 'inherit', background: 'var(--panel)', border: '1px solid var(--line-2)' }}
               />
             ) : (
-              <div className="hf" style={{ fontSize: '16px', lineHeight: 1.65, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+              <div className="review-readable-copy" dir="auto" style={{ whiteSpace: 'pre-wrap' }}>
                 {visibleDraft.draft}
               </div>
             )}
@@ -234,9 +244,9 @@ export default function Review({ mode, onModeChange, periodStart, taskPanel }: R
       {isWeekly && status.data && (
         <section aria-label="Domain summary" className="query-section">
           <h2 className="query-section-title mono">Domain summary</h2>
-          <ul className="task-carry">
+          <ul className="task-carry review-domain-summary">
             {status.data.domains.map((item) => (
-              <li key={item.domain}><b>{domains.find(({ id }) => toApiDomainId(id) === item.domain)?.label ?? item.domain}</b><span>{item.reason}</span></li>
+              <li key={item.domain}><b>{domains.find(({ id }) => toApiDomainId(id) === item.domain)?.label ?? item.domain}</b><span>{item.total === 0 && item.status === 'on-track' ? 'No tasks planned.' : item.reason}</span></li>
             ))}
           </ul>
         </section>
@@ -294,8 +304,8 @@ export default function Review({ mode, onModeChange, periodStart, taskPanel }: R
               <article className="review-draft review-archive-detail">
                 <p className="handoff-eyebrow mono">{archived.period}</p>
                 <h2 className="hf">{formatRange(archived.rangeStart, archived.rangeEnd, timeZone)}</h2>
-                <p className="review-archive-copy">{archived.draft}</p>
-                {archived.decisions && <><h3 className="query-section-title mono">Decisions made</h3><p className="review-archive-copy">{archived.decisions}</p></>}
+                <p className="review-archive-copy review-readable-copy" dir="auto">{archived.draft}</p>
+                {archived.decisions && <><h3 className="query-section-title mono">Decisions made</h3><p className="review-archive-copy review-readable-copy" dir="auto">{archived.decisions}</p></>}
                 <button type="button" style={ghostButton} onClick={() => exportReview(archived)}>Export Markdown</button>
               </article>
             </div>

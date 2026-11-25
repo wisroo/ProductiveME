@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { ApiClient } from '@productiveme/api-client';
@@ -117,10 +117,14 @@ describe('App shell', () => {
       screen.getByRole('heading', { name: 'Weekly review' }),
     ).toBeInTheDocument();
 
+    expect(await screen.findByText('No tasks are planned for this week.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Monthly' }));
     expect(
       screen.getByRole('heading', { name: 'Monthly review' }),
     ).toBeInTheDocument();
+    const calendar = within(await screen.findByRole('region', { name: 'Monthly tasks' }));
+    expect(await calendar.findByText('No tasks for this day.')).toBeInTheDocument();
+    expect(calendar.queryByText('0%')).not.toBeInTheDocument();
   });
 
   it('keeps the current week visible in the top bar', () => {
