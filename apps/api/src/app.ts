@@ -7,6 +7,8 @@ import swagger from '@fastify/swagger';
 import { computeSignals, DOMAIN_IDS, parseRegistry, type RegistryEntry, type Snapshot } from '@productiveme/core';
 import { createInference, InferenceError, parseInferenceConfig, type InferenceProvider } from './inference.js';
 import { buildReviewPrompt, calendarReviewRange, reviewRange, type ReviewPeriod } from './reviews.js';
+import { registerFinanceRoutes } from './finance-routes.js';
+import { registerSettingsRoutes } from './settings-routes.js';
 import { registerPlanningRoutes } from './planning-routes.js';
 import { registerReviewRecords } from './review-records.js';
 import { registerTaskRoutes } from './task-routes.js';
@@ -217,6 +219,8 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
   const assignments = registerPlanningRoutes(app, db);
   registerTaskRoutes(app, db, assignments);
   registerReviewRecords(app, db, now);
+  registerFinanceRoutes(app, db);
+  registerSettingsRoutes(app, db);
   app.get('/openapi.json', async () => app.swagger());
   app.setNotFoundHandler((request, reply) => {
     request.log.warn('Route not found');

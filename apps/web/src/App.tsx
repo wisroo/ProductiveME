@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Domains from './components/Domains.js';
+import FinanceRecords from './components/FinanceRecords.js';
+import { useApi } from './lib/api.js';
 import Home from './components/Home.js';
 import MonthlyTasks from './components/MonthlyTasks.js';
 import Registry from './components/Registry.js';
@@ -12,9 +14,17 @@ import { adjacentWeek, localDate, weekOfDate, weekStart } from './lib/week.js';
 import type { AppTab, DomainId, ReviewMode, Theme } from './types.js';
 
 function AppContent() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  const settings = useQuery({ queryKey: ['settings'], queryFn: () => api.getSettings() });
+  const saveSettings = useMutation({
+    mutationFn: (reviewDefault: ReviewMode) => api.updateSettings({ reviewDefault }),
+    onSuccess: (value) => queryClient.setQueryData(['settings'], value),
+  });
   const [tab, setTab] = useState<AppTab>('home');
   const [domain, setDomain] = useState<DomainId>('finance');
-  const [reviewMode, setReviewMode] = useState<ReviewMode>('weekly');
+  const [chosenReviewMode, setReviewMode] = useState<ReviewMode | null>(null);
+  const reviewMode = chosenReviewMode ?? settings.data?.reviewDefault ?? 'weekly';
   const [addingTask, setAddingTask] = useState<{ date?: string } | null>(null);
   const week = weekStart();
   const today = localDate();
@@ -33,7 +43,7 @@ function AppContent() {
       <TopBar
         activeTab={tab}
         theme={theme}
-        onTabChange={setTab}
+        onTabChange={(next) => { if (next === 'review' && tab !== 'review') setReviewMode(null); setTab(next); }}
         onAddTask={() => setAddingTask({})}
         onOpenSettings={() => setTab('settings')}
         onThemeToggle={() =>
@@ -65,7 +75,7 @@ function AppContent() {
             <div className="handoff-domain-back">
               <button type="button" className="shell-button" onClick={() => setTab('home')}>← Home</button>
             </div>
-            <Domains activeDomain={domain} onDomainChange={setDomain} domainPanel={domain === 'life' ? <LifeSchedule week={week} nextWeek={adjacentWeek(week, 1)} /> : undefined} />
+            <Domains activeDomain={domain} onDomainChange={setDomain} domainPanel={domain === 'life' ? <LifeSchedule week={week} nextWeek={adjacentWeek(week, 1)} /> : domain === 'finance' ? <FinanceRecords week={week} /> : undefined} />
           </>
         ) : tab === 'registry' ? (
           <Registry />
@@ -79,6 +89,17 @@ function AppContent() {
                 <option value="light">Light</option>
               </select>
             </label>
+            <p>
+              <label>Review opens on{' '}
+                <select value={settings.data?.reviewDefault ?? 'weekly'} disabled={!settings.isSuccess || saveSettings.isPending}
+                  onChange={(event) => saveSettings.mutate(event.target.value === 'monthly' ? 'monthly' : 'weekly')}>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </label>
+            </p>
+            {settings.isError && <p role="alert">Could not load settings. <button type="button" className="shell-button" onClick={() => void settings.refetch()}>Retry</button></p>}
+            {saveSettings.isError && <p role="alert">Could not save the review preference.</p>}
           </section>
         ) : (
           <Plan week={week} onAdd={() => setAddingTask({})} />

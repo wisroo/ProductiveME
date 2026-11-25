@@ -16,6 +16,8 @@ function renderApp() {
     getSignals: async () => [],
     getRegistry: async () => [],
     getTasks: async () => [],
+    getFinanceSnapshots: async () => [],
+    getSettings: async () => ({ reviewDefault: 'weekly' }),
     getLifeWeek: async () => ({}),
     getReviewDraft: async () => null,
     getSourceHealth: async () => [],

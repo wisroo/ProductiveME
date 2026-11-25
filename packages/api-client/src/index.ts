@@ -28,6 +28,11 @@ export type LifeDay = SlotPlanPath['put']['parameters']['path']['day'];
 export type SlotPlan = NonNullable<SlotPlanPath['put']['requestBody']['content']['application/json']['value']>;
 export type SlotActual = NonNullable<SlotActualPath['put']['requestBody']['content']['application/json']['value']>;
 
+type FinancePath = paths['/finance/snapshots'];
+export type FinanceInput = FinancePath['post']['requestBody']['content']['application/json'];
+export type FinanceSnapshot = FinancePath['get']['responses'][200]['content']['application/json'][number];
+export type Settings = paths['/settings']['get']['responses'][200]['content']['application/json'];
+
 type ReviewRequest = paths['/reviews']['post']['requestBody']['content']['application/json'];
 export type ReviewDraft = paths['/reviews']['post']['responses'][200]['content']['application/json'];
 
@@ -56,6 +61,10 @@ export interface ApiClient {
   getRegistry(): Promise<Registry>;
   getSourceHealth(): Promise<SourceHealth>;
   retrySource(id: string): Promise<SourceHealth[number]>;
+  getFinanceSnapshots(): Promise<FinanceSnapshot[]>;
+  recordFinance(input: FinanceInput): Promise<FinanceSnapshot>;
+  getSettings(): Promise<Settings>;
+  updateSettings(input: Settings): Promise<Settings>;
   getWeekPlan(week: string): Promise<WeekPlan>;
   updateWeekPlan(week: string, patch: PlanPatch): Promise<WeekPlan>;
   getLifeWeek(week: string): Promise<LifeWeek>;
@@ -151,6 +160,10 @@ export function createApiClient(baseUrl: string, fetcher: typeof fetch = fetch):
     getRegistry: () => get<Registry>('/registry'),
     getSourceHealth: () => get<SourceHealth>('/sources'),
     retrySource,
+    getFinanceSnapshots: () => get<FinanceSnapshot[]>('/finance/snapshots'),
+    recordFinance: (input) => requestJson<FinanceSnapshot>('/finance/snapshots', 'POST', input),
+    getSettings: () => get<Settings>('/settings'),
+    updateSettings: (input) => requestJson<Settings>('/settings', 'PUT', input),
     getWeekPlan: (week) => requestJson<WeekPlan>(`/weeks/${encodeURIComponent(week)}/plan`, 'GET'),
     updateWeekPlan: (week, patch) => requestJson<WeekPlan>(`/weeks/${encodeURIComponent(week)}/plan`, 'PUT', patch),
     getLifeWeek: (week) => requestJson<LifeWeek>(`/weeks/${encodeURIComponent(week)}/life`, 'GET'),
