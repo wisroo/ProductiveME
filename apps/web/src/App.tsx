@@ -36,7 +36,10 @@ function AppContent() {
           <Home
             onDomainSelect={openDomain}
             onOpenDomains={() => setTab('domain')}
-            onStartReview={() => setTab('review')}
+            onStartReview={() => {
+              setReviewMode('weekly');
+              setTab('review');
+            }}
           />
         ) : tab === 'review' ? (
           <Review mode={reviewMode} onModeChange={setReviewMode} />

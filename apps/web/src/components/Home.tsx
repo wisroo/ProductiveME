@@ -1,6 +1,7 @@
+import { useQuery } from '@tanstack/react-query';
 import { domains, type DomainId } from '../types.js';
-import { useDomainRollups, useSignals, toApiDomainId } from '../lib/api.js';
-import { ghostButton, primaryButton } from './bits.js';
+import { useApi, useDomainRollups, useSignals, toApiDomainId } from '../lib/api.js';
+import { eyebrow, fill, ghostButton, primaryButton, ProgressBar } from './bits.js';
 import QuerySection from './QuerySection.js';
 
 type HomeProps = {
@@ -22,6 +23,19 @@ export default function Home({
 }: HomeProps) {
   const rollups = useDomainRollups();
   const signals = useSignals();
+  const api = useApi();
+  const snapshots = useQuery({ queryKey: ['snapshots'], queryFn: () => api.getSnapshots() });
+  const activity = (snapshots.data ?? [])
+    .filter((snapshot) => snapshot.status === 'ok')
+    .flatMap((snapshot) => snapshot.items)
+    .flatMap((item) => {
+      const timestamp = item.timestamp;
+      return timestamp && Number.isFinite(Date.parse(timestamp)) ? [{ ...item, timestamp }] : [];
+    })
+    .sort((left, right) => Date.parse(right.timestamp) - Date.parse(left.timestamp))
+    .slice(0, 6);
+  const actions = (signals.data ?? []).filter((signal) => signal.suggestedAction?.trim());
+  const issues = signals.data ?? [];
 
   return (
     <div
@@ -39,7 +53,7 @@ export default function Home({
           className="mono"
           style={{ fontSize: '10px', letterSpacing: '.16em', color: 'var(--accent)' }}
         >
-          PRODUCTIVEME · LIVE READ MODEL
+          WHERE AM I · WHAT CHANGED · WHAT’S NEXT
         </div>
         <h1
           className="hf"
@@ -50,19 +64,21 @@ export default function Home({
       </div>
 
       <QuerySection
-        title="Domain health"
+        title="Domain progress"
         isPending={rollups.isPending}
         isError={rollups.isError}
         error={rollups.error}
-        empty={!rollups.data?.length}
+        empty={false}
         onRetry={() => void rollups.refetch()}
       >
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: '10px' }}>
           {domains.map((domain) => {
             const rollup = rollups.data?.find(
               (item) => item.domain === toApiDomainId(domain.id),
             );
 
+            const tone = rollup?.health === 'healthy' ? 'done' : rollup?.health === 'degraded' ? 'due' : 'parked';
+            const progress = rollup?.entryCount ? Math.round(100 * rollup.okCount / rollup.entryCount) : null;
             return (
               <button
                 key={domain.id}
@@ -76,6 +92,7 @@ export default function Home({
                   textAlign: 'left',
                   color: 'var(--ink)',
                   border: '1px solid var(--line)',
+                  borderTop: `2px solid ${fill(tone)}`,
                   borderRadius: 'var(--r)',
                   cursor: 'pointer',
                 }}
@@ -87,57 +104,104 @@ export default function Home({
                 >
                   {healthLabel[rollup?.health ?? 'unavailable']}
                 </div>
-                <div className="mono" style={{ fontSize: '10px', marginTop: '5px' }}>
-                  {rollup?.okCount ?? 0}/{rollup?.entryCount ?? 0} sources ·{' '}
-                  {rollup?.itemCount ?? 0} items
-                </div>
+                {progress === null ? (
+                  <p className="mono" style={{ fontSize: '10px' }}>No sources configured.</p>
+                ) : (
+                  <div style={{ marginTop: '12px' }}>
+                    <ProgressBar percent={progress} tone={tone} />
+                    <p className="mono" style={{ fontSize: '10px' }}>
+                      Source sync · {rollup?.okCount}/{rollup?.entryCount} ({progress}%)
+                    </p>
+                  </div>
+                )}
               </button>
             );
           })}
         </div>
       </QuerySection>
 
-      <QuerySection
-        title="Signals"
-        isPending={signals.isPending}
-        isError={signals.isError}
-        error={signals.error}
-        empty={!signals.data?.length}
-        onRetry={() => void signals.refetch()}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {signals.data?.map((signal, index) => (
-            <div
-              key={`${signal.domain}-${signal.entryId ?? index}-${signal.message}`}
-              style={{
-                padding: '10px 12px',
-                border: '1px solid var(--line)',
-                borderRadius: 'var(--r)',
-              }}
-            >
-              <b style={{ fontSize: '12px' }}>{signal.message}</b>
-              <div
-                className="mono"
-                style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '4px' }}
-              >
-                {domains.find(
-                  (domain) => toApiDomainId(domain.id) === signal.domain,
-                )?.label ?? signal.domain}{' '}
-                · {signal.severity.toUpperCase()}
-              </div>
-            </div>
-          ))}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(245px, 1fr))',
+        borderLeft: '3px solid var(--accent)',
+        background: 'var(--panel)',
+      }}>
+        <div style={{ padding: '20px 22px' }}>
+          <div className="mono" style={eyebrow('accent')}>TODAY</div>
+          <p className="hf">{issues[0]?.message ?? 'Where should your attention go?'}</p>
+          <button type="button" onClick={onOpenDomains} style={primaryButton}>Open domains</button>
         </div>
-      </QuerySection>
-
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button type="button" onClick={onOpenDomains} style={primaryButton}>
-          Open domains
-        </button>
-        <button type="button" onClick={onStartReview} style={ghostButton}>
-          Start weekly review →
-        </button>
+        <QuerySection
+          title="Next actions"
+          isPending={signals.isPending}
+          isError={signals.isError}
+          error={signals.error}
+          empty={!actions.length}
+          onRetry={() => void signals.refetch()}
+        >
+          <ol style={{ margin: 0, paddingLeft: '20px' }}>
+            {actions.map((signal, index) => (
+              <li key={index} style={{ padding: '8px 0' }}>
+                <b style={{ fontSize: '12px' }}>{signal.suggestedAction}</b>
+                <div className="mono" style={{ fontSize: '10px', color: 'var(--muted)' }}>
+                  {signal.message}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </QuerySection>
       </div>
+
+      <section aria-labelledby="activity-heading">
+        <h2 id="activity-heading" className="mono" style={eyebrow('muted')}>Activity timeline</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(185px, 1fr))', gap: '12px' }}>
+          <QuerySection
+            title="Past · Recent activity"
+            isPending={snapshots.isPending}
+            isError={snapshots.isError}
+            error={snapshots.error}
+            empty={false}
+            onRetry={() => void snapshots.refetch()}
+          >
+            {activity.length ? activity.map((item, index) => (
+              <div key={index} style={{ marginBottom: '8px' }}>
+                <time dateTime={item.timestamp} className="mono" style={{ fontSize: '10px', color: 'var(--muted)' }}>
+                  {new Date(item.timestamp).toLocaleDateString()}
+                </time>
+                <div>{item.title}</div>
+              </div>
+            )) : <p>No recent activity yet.</p>}
+          </QuerySection>
+          <QuerySection
+            title="Now · Signals"
+            isPending={signals.isPending}
+            isError={signals.isError}
+            error={signals.error}
+            empty={false}
+            onRetry={() => void signals.refetch()}
+          >
+            {issues.length ? issues.slice(0, 3).map((signal, index) => (
+              <p key={index}>{signal.message}</p>
+            )) : <p>No current signals.</p>}
+          </QuerySection>
+          <QuerySection
+            title="Next · Moves"
+            isPending={signals.isPending}
+            isError={signals.isError}
+            error={signals.error}
+            empty={false}
+            onRetry={() => void signals.refetch()}
+          >
+            {actions.length ? actions.slice(0, 3).map((signal, index) => (
+              <p key={index}>{signal.suggestedAction}</p>
+            )) : <p>No upcoming moves yet.</p>}
+          </QuerySection>
+        </div>
+      </section>
+
+      <button type="button" onClick={onStartReview} style={{ ...ghostButton, alignSelf: 'flex-end' }}>
+        Start weekly review →
+      </button>
     </div>
   );
 }
