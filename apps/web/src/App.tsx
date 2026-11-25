@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Domains from './components/Domains.js';
-import FinanceRecords from './components/FinanceRecords.js';
+import FinanceRecords, { FinanceDialog } from './components/FinanceRecords.js';
 import { useApi } from './lib/api.js';
 import Home from './components/Home.js';
 import MonthlyTasks from './components/MonthlyTasks.js';
@@ -25,6 +25,7 @@ function AppContent() {
   const [domain, setDomain] = useState<DomainId>('finance');
   const [chosenReviewMode, setReviewMode] = useState<ReviewMode | null>(null);
   const reviewMode = chosenReviewMode ?? settings.data?.reviewDefault ?? 'weekly';
+  const [recordingAssets, setRecordingAssets] = useState(false);
   const [addingTask, setAddingTask] = useState<{ date?: string; domain?: DomainId } | null>(null);
   const week = weekStart();
   const today = localDate();
@@ -56,6 +57,7 @@ function AppContent() {
             week={week}
             onDomainSelect={openDomain}
             onOpenDomains={() => setTab('domain')}
+            onRecordAssets={() => setRecordingAssets(true)}
             onOpenRegistry={() => setTab('registry')}
             onStartReview={() => {
               setReviewMode('weekly');
@@ -106,6 +108,7 @@ function AppContent() {
           <Plan week={week} onAdd={() => setAddingTask({})} />
         )}
       </main>
+      {recordingAssets && <FinanceDialog week={week} onClose={() => setRecordingAssets(false)} />}
       {addingTask && <QuickTaskDialog week={addingTask.date ? weekOfDate(addingTask.date) : week} {...(addingTask.date ? { date: addingTask.date } : {})} {...(addingTask.domain ? { domain: addingTask.domain } : {})} onClose={() => setAddingTask(null)} />}
     </div>
   );

@@ -11,7 +11,7 @@ const fields = [
 ] as const;
 const currency = new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' });
 
-function FinanceDialog({ week, onClose }: { week: string; onClose: () => void }) {
+export function FinanceDialog({ week, onClose }: { week: string; onClose: () => void }) {
   const api = useApi();
   const client = useQueryClient();
   const dialog = useRef<HTMLDialogElement>(null);

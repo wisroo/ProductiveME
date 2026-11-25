@@ -7,6 +7,7 @@ type HomeProps = {
   week?: string;
   onDomainSelect: (domain: DomainId) => void;
   onOpenDomains: () => void;
+  onRecordAssets?: () => void;
   onOpenRegistry: () => void;
   onStartReview: () => void;
 };
@@ -21,6 +22,7 @@ export default function Home({
   week,
   onDomainSelect,
   onOpenDomains,
+  onRecordAssets,
   onOpenRegistry,
   onStartReview,
 }: HomeProps) {
@@ -49,19 +51,22 @@ export default function Home({
     signal.severity !== 'blocked' || !signal.entryId || !pendingSources.has(signal.entryId),
   );
   const actions = issues.filter((signal) => signal.suggestedAction?.trim());
+  const financeTask = weekly.data?.domains.find((status) => status.domain === 'finance')?.next;
+  const financeAction = onRecordAssets && (financeTask?.kind === 'snapshot' || actions[0]?.domain === 'finance');
+  const cardTones = { career: 'done', finance: 'due', pdata: 'parked', life: 'blocked' } as const;
 
   return (
     <div className="handoff-page handoff-home">
       {(sourceAlert || hasSourceError) && (
         <div className="home-source-banner" role="status">
           <div>
-            <b className="mono">Source read unavailable</b>
+            <b className="mono">Source down{sourceAlert ? ` · ${sourceAlert.name}` : ''}</b>
             <p>{sourceAlert ? `${sourceAlert.name} is unavailable.` : 'Some source data is unavailable.'}
               {sourceAlert?.lastGoodReadAt && <> Last good read <time dateTime={sourceAlert.lastGoodReadAt}>{new Date(sourceAlert.lastGoodReadAt).toLocaleString()}</time>.</>}
               {' Data may be stale.'}
             </p>
           </div>
-          <button type="button" className="shell-button" onClick={onOpenRegistry}>View sources</button>
+          <button type="button" className="home-banner-action" onClick={onOpenRegistry}>View sources</button>
         </div>
       )}
       <div>
@@ -71,12 +76,7 @@ export default function Home({
         >
           WHERE AM I · WHAT CHANGED · WHAT’S NEXT
         </div>
-        <h1
-          className="handoff-title hf"
-          style={{ fontSize: '30px', lineHeight: 1.16, fontWeight: 600, marginTop: '9px' }}
-        >
-          Where should your attention go?
-        </h1>
+        <h1 className="handoff-title hf">{financeTask?.kind === 'snapshot' ? `This week, start with ${financeTask.text}.` : 'Where should your attention go?'}</h1>
       </div>
 
       {noSources && (
@@ -87,13 +87,15 @@ export default function Home({
       )}
       <QuerySection
         title="Domain progress"
+        className="home-domain-section"
+        hideTitle
         isPending={rollups.isPending}
         isError={rollups.isError}
         error={rollups.error}
         empty={false}
         onRetry={() => void rollups.refetch()}
       >
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: '10px' }}>
+        <div className="home-domain-grid">
           {domains.map((domain) => {
             const rollup = rollups.data?.find(
               (item) => item.domain === toApiDomainId(domain.id),
@@ -109,18 +111,9 @@ export default function Home({
                 key={domain.id}
                 type="button"
                 className="domain-card home-domain-card"
-                data-tone={tone}
+                data-tone={cardTones[domain.id]}
                 aria-label={domain.label}
                 onClick={() => onDomainSelect(domain.id)}
-                style={{
-                  background: 'var(--panel)',
-                  padding: '15px 16px',
-                  textAlign: 'left',
-                  color: 'var(--ink)',
-                  border: '1px solid var(--line)',
-                  borderRadius: 'var(--r)',
-                  cursor: 'pointer',
-                }}
               >
                 <div className="home-card-heading">
                   <b style={{ fontSize: '14px' }}>{domain.label}</b>
@@ -128,18 +121,17 @@ export default function Home({
                     {status ? status.status.replace('-', ' ').toUpperCase() : healthLabel[rollup?.health ?? 'unavailable']}
                   </span>
                 </div>
-                {status && <p className="mono" style={{ fontSize: '10px' }}>
-                  {status.done}/{status.total} tasks · {status.next?.text ?? 'No open tasks'}
-                </p>}
-                {progress === null ? (
-                  <p className="mono" style={{ fontSize: '10px' }}>No sources configured.</p>
+                <div className="home-card-progress">
+                  <ProgressBar percent={status?.total ? Math.round(status.done * 100 / status.total) : (progress ?? 0)} tone={cardTones[domain.id]} height={4} />
+                </div>
+                {status?.total ? (
+                  <p className="home-card-note mono">
+                    {status.next?.text ?? 'No open tasks'} · {status.done}/{status.total} done
+                  </p>
+                ) : progress === null ? (
+                  <p className="home-card-note mono">No sources configured.</p>
                 ) : (
-                  <div style={{ marginTop: '12px' }}>
-                    <ProgressBar percent={status?.total ? Math.round(status.done * 100 / status.total) : progress} tone={tone} />
-                    <p className="mono" style={{ fontSize: '10px' }}>
-                      Source sync · {rollup?.okCount}/{rollup?.entryCount} ({progress}%)
-                    </p>
-                  </div>
+                  <p className="home-card-note mono">Source sync · {rollup?.okCount}/{rollup?.entryCount} ({progress}%)</p>
                 )}
               </button>
             );
@@ -153,7 +145,9 @@ export default function Home({
             TODAY · {new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date()).toUpperCase()}
           </div>
           <p className="hf">{issues[0]?.message ?? (pendingSources.size ? 'Waiting for the first source sync.' : 'Where should your attention go?')}</p>
-          <button type="button" onClick={onOpenDomains} style={primaryButton}>Open domains</button>
+          <button type="button" className="home-today-action" onClick={financeAction ? onRecordAssets : onOpenDomains} style={primaryButton}>
+            {financeAction ? '▶ Record asset snapshot' : 'Open domains'}
+          </button>
         </div>
         <QuerySection
           title="Next actions"
@@ -165,9 +159,9 @@ export default function Home({
         >
           <ol className="home-actions">
             {actions.slice(0, 3).map((signal, index) => (
-              <li key={index} style={{ padding: '8px 0' }}>
-                <b style={{ fontSize: '12px' }}>{signal.suggestedAction}</b>
-                <div className="mono" style={{ fontSize: '10px', color: 'var(--muted)' }}>
+              <li key={index} data-priority={index === 0}>
+                <b>{index + 1} · {signal.suggestedAction}</b>
+                <div className="home-action-detail mono">
                   {signal.message}
                 </div>
               </li>
@@ -176,11 +170,9 @@ export default function Home({
         </QuerySection>
       </div>
 
-      <section aria-labelledby="activity-heading">
-        <h2 id="activity-heading" className="mono" style={eyebrow('muted')}>Activity timeline</h2>
-        <div className="home-timeline">
+      <section aria-label="Activity timeline" className="home-timeline">
           <QuerySection
-            title="Past · Recent activity"
+            title="◂ Past · What changed"
             isPending={snapshots.isPending}
             isError={snapshots.isError}
             error={snapshots.error}
@@ -189,7 +181,7 @@ export default function Home({
           >
             {activity.length ? activity.map((item, index) => (
               <div key={index} style={{ marginBottom: '8px' }}>
-                <time dateTime={item.timestamp} className="mono" style={{ fontSize: '10px', color: 'var(--muted)' }}>
+                <time dateTime={item.timestamp} className="home-action-detail mono">
                   {new Date(item.timestamp).toLocaleDateString()}
                 </time>
                 <div>{item.title}</div>
@@ -197,7 +189,7 @@ export default function Home({
             )) : <p>No recent activity yet.</p>}
           </QuerySection>
           <QuerySection
-            title="Now · Signals"
+            title="● Now · Today’s issue"
             isPending={signals.isPending}
             isError={signals.isError}
             error={signals.error}
@@ -209,7 +201,7 @@ export default function Home({
             )) : <p>No current signals.</p>}
           </QuerySection>
           <QuerySection
-            title="Next · Moves"
+            title="▸ Next · Moves"
             isPending={signals.isPending}
             isError={signals.isError}
             error={signals.error}
@@ -220,7 +212,6 @@ export default function Home({
               <p key={index}>{signal.suggestedAction}</p>
             )) : <p>No upcoming moves yet.</p>}
           </QuerySection>
-        </div>
       </section>
 
       <div className="home-source-gates mono">

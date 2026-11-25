@@ -53,7 +53,7 @@ export default function TopBar({ activeTab, theme, onTabChange, onAddTask, onOpe
       <div className="shell-actions mono">
         <button type="button" className="shell-button shell-add" onClick={onAddTask}>+ Task</button>
         <span className="shell-week" aria-label="Current week">{currentWeekLabel(new Date())}</span>
-        <button type="button" className="shell-button" aria-current={activeTab === 'settings' ? 'page' : undefined} onClick={onOpenSettings}>Settings</button>
+        <button type="button" className="shell-button" aria-current={activeTab === 'settings' ? 'page' : undefined} onClick={onOpenSettings}>⚙ Settings</button>
         <button type="button" className="shell-button" aria-label={`Switch to ${targetTheme} theme`} onClick={onThemeToggle}>
           {theme === 'dark' ? '◐ Light' : '◑ Dark'}
         </button>

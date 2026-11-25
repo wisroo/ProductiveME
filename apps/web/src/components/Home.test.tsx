@@ -40,7 +40,7 @@ describe('Home live API sections', () => {
 
     expect(await screen.findByText('Source sync · 1/2 (50%)')).toBeInTheDocument();
     const actions = within(screen.getByRole('region', { name: 'Next actions' }));
-    expect(actions.getByText('Create a snapshot')).toBeInTheDocument();
+    expect(actions.getByText('1 · Create a snapshot')).toBeInTheDocument();
     expect(await screen.findByText('Recent work')).toBeInTheDocument();
     expect(screen.queryByText('Undated work')).not.toBeInTheDocument();
     expect(screen.queryByText('Failed activity')).not.toBeInTheDocument();
@@ -79,7 +79,7 @@ describe('Home live API sections', () => {
     const actions = within(screen.getByRole('region', { name: 'Next actions' }));
     expect(await actions.findByText('Signals offline')).toBeInTheDocument();
     await user.click(actions.getByRole('button', { name: 'Retry next actions' }));
-    expect(await actions.findByText('Create a snapshot')).toBeInTheDocument();
+    expect(await actions.findByText('1 · Create a snapshot')).toBeInTheDocument();
     expect(api.getDomains).toHaveBeenCalledTimes(1);
     expect(api.getSignals).toHaveBeenCalledTimes(2);
   });
