@@ -26,6 +26,9 @@ importers:
       '@productiveme/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@productiveme/sync':
+        specifier: workspace:*
+        version: link:../sync
       fastify:
         specifier: ^5.0.0
         version: 5.12.7

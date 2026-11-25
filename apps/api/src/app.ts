@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import type { Writable } from 'node:stream';
 import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
-import { computeSignals, DOMAIN_IDS, parseRegistry } from '@productiveme/core';
+import { computeSignals, DOMAIN_IDS, parseRegistry, type RegistryEntry, type Snapshot } from '@productiveme/core';
 import { createInference, InferenceError, parseInferenceConfig, type InferenceProvider } from './inference.js';
 import { buildReviewPrompt, reviewRange, type ReviewPeriod } from './reviews.js';
 import { loadLatestSnapshots, loadSourceHealth, summarizeDomains } from './snapshots.js';
@@ -61,16 +61,35 @@ const domainRollupSchema = {
   },
 } as const;
 
+const sourceHealthSchema = {
+  type: 'object',
+  required: ['id', 'status', 'lastAttemptAt', 'lastGoodReadAt', 'canRetry'],
+  properties: {
+    id: { type: 'string' },
+    status: { type: 'string', enum: ['idle', 'live', 'down'] },
+    lastAttemptAt: { type: ['string', 'null'], format: 'date-time' },
+    lastGoodReadAt: { type: ['string', 'null'], format: 'date-time' },
+    canRetry: { type: 'boolean' },
+  },
+} as const;
+
+const sourceRetryError = {
+  type: 'object',
+  required: ['code', 'message'],
+  properties: { code: { type: 'string' }, message: { type: 'string' } },
+} as const;
+
 export interface BuildAppOptions {
   registryPath: string;
   snapshotDir?: string;
   now?: () => string;
   loggerStream?: Writable;
+  retrySource?: (entry: RegistryEntry) => Promise<Snapshot>;
   inference?: InferenceProvider;
   inferenceConfig?: ReturnType<typeof parseInferenceConfig>;
 }
 
-export async function buildApp({ registryPath, snapshotDir = join(dirname(registryPath), 'snapshots'), now = () => new Date().toISOString(), loggerStream, inference, inferenceConfig = parseInferenceConfig() }: BuildAppOptions) {
+export async function buildApp({ registryPath, snapshotDir = join(dirname(registryPath), 'snapshots'), now = () => new Date().toISOString(), loggerStream, retrySource, inference, inferenceConfig = parseInferenceConfig() }: BuildAppOptions) {
   const entries = parseRegistry(await readFile(registryPath, 'utf8'));
   const reviewInference = inference ?? createInference(inferenceConfig);
   const app = Fastify({
@@ -88,18 +107,36 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
   });
 
   app.get('/registry', { schema: { response: { 200: { type: 'array', items: registryEntrySchema } } } }, async () => entries);
+  let retryInProgress = false;
   app.get('/sources', {
-    schema: { response: { 200: { type: 'array', items: {
-      type: 'object',
-      required: ['id', 'status', 'lastAttemptAt', 'lastGoodReadAt'],
-      properties: {
-        id: { type: 'string' },
-        status: { type: 'string', enum: ['idle', 'live', 'down'] },
-        lastAttemptAt: { type: ['string', 'null'], format: 'date-time' },
-        lastGoodReadAt: { type: ['string', 'null'], format: 'date-time' },
-      },
-    } } } },
-  }, async () => loadSourceHealth(snapshotDir, entries));
+    schema: { response: { 200: { type: 'array', items: sourceHealthSchema } } },
+  }, async () => (await loadSourceHealth(snapshotDir, entries)).map((state) => ({
+    ...state, canRetry: retrySource !== undefined,
+  })));
+  app.post<{ Params: { id: string } }>('/sources/:id/retry', {
+    schema: {
+      params: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } },
+      response: { 200: sourceHealthSchema, 404: sourceRetryError, 409: sourceRetryError, 503: sourceRetryError },
+    },
+  }, async (request, reply) => {
+    const entry = entries.find(({ id }) => id === request.params.id);
+    if (!entry) return reply.code(404).send({ code: 'source_not_found', message: 'Source was not found.' });
+    if (!retrySource) return reply.code(503).send({ code: 'retry_disabled', message: 'Source retry is disabled.' });
+    if (retryInProgress) return reply.code(409).send({ code: 'retry_busy', message: 'Another source retry is running.' });
+    retryInProgress = true;
+    try {
+      const run = await retrySource(entry);
+      const [state] = await loadSourceHealth(snapshotDir, [entry]);
+      if (state?.lastAttemptAt && Date.parse(state.lastAttemptAt) >= Date.parse(run.fetchedAt)) {
+        return { ...state, canRetry: true };
+      }
+    } catch {
+      // A failed write or unexpected connector failure must not appear as a completed retry.
+    } finally {
+      retryInProgress = false;
+    }
+    return reply.code(503).send({ code: 'retry_unavailable', message: 'The sync attempt could not be recorded.' });
+  });
   app.get('/healthz', {
     schema: { response: { 200: { type: 'object', required: ['status'], properties: { status: { type: 'string', enum: ['ok'] } } } } },
   }, async () => ({ status: 'ok' }));

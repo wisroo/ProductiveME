@@ -1,11 +1,22 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { toApiDomainId, useRegistry, useSourceHealth } from '../lib/api.js';
+import { toApiDomainId, useApi, useRegistry, useSourceHealth } from '../lib/api.js';
 import { domains, type DomainId } from '../types.js';
 import QuerySection from './QuerySection.js';
 
 const syncedDate = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' });
 
 export default function Registry() {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  const retry = useMutation({
+    mutationFn: (id: string) => api.retrySource(id),
+    onSuccess: async () => {
+      await Promise.all(['source-health', 'snapshots', 'domains', 'signals'].map((key) =>
+        queryClient.invalidateQueries({ queryKey: [key] }),
+      ));
+    },
+  });
   const registry = useRegistry();
   const health = useSourceHealth();
   const [filter, setFilter] = useState<DomainId | 'all'>('all');
@@ -61,6 +72,17 @@ export default function Registry() {
                       {' · '}{state?.status === 'down' ? 'Last good read ' : ''}
                       <time dateTime={lastGood}>{syncedDate.format(new Date(lastGood))}</time>
                     </>}
+                    {state?.canRetry && state.status !== 'live' && (
+                      <button type="button" className="shell-button registry-retry"
+                        aria-label={`Retry ${source.name}`} disabled={retry.isPending} onClick={() => retry.mutate(source.id)}>
+                        {retry.isPending && retry.variables === source.id ? 'Retrying…' : 'Retry'}
+                      </button>
+                    )}
+                    {retry.variables === source.id && (retry.isError || retry.data?.status === 'down') && (
+                      <span role="status" className="registry-retry-result">
+                        {retry.isError ? 'Could not run source retry.' : 'Source is still unavailable.'}
+                      </span>
+                    )}
                   </span>
                 </li>
               );

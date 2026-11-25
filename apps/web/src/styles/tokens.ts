@@ -208,6 +208,8 @@ a:focus-visible {
 .registry-sync[data-state='synced'] { color: var(--done); }
 .registry-sync[data-state='unavailable'] { color: var(--blocked); }
 .registry-status-error { margin-bottom: 8px; }
+.registry-retry { margin-left: 8px; }
+.registry-retry-result { display: block; margin-top: 4px; }
 
 @media (max-width: 850px) {
   .shell-header { flex-wrap: wrap; gap: 0 10px; padding: 8px 16px 0; }

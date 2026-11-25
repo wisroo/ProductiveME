@@ -2,8 +2,8 @@ import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { afterEach, describe, expect, it } from 'vitest';
-import { buildApp } from '../src/app.js';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { buildApp, type BuildAppOptions } from '../src/app.js';
 
 const fixtureRoot = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 const directories: string[] = [];
@@ -12,7 +12,7 @@ afterEach(async () => {
   await Promise.all(directories.splice(0).map((path) => rm(path, { recursive: true })));
 });
 
-async function fixtureApp(extraRegistry = '') {
+async function fixtureApp(extraRegistry = '', retrySource?: BuildAppOptions['retrySource']) {
   const directory = await mkdtemp(join(tmpdir(), 'productiveme-read-api-'));
   directories.push(directory);
   const registryPath = join(directory, 'registry.yaml');
@@ -23,7 +23,7 @@ async function fixtureApp(extraRegistry = '') {
   }
   await cp(join(fixtureRoot, 'snapshots'), snapshotDir, { recursive: true });
   return {
-    app: await buildApp({ registryPath, snapshotDir, now: () => '2026-10-26T12:00:00.000Z' }),
+    app: await buildApp({ registryPath, snapshotDir, now: () => '2026-10-26T12:00:00.000Z', ...(retrySource ? { retrySource } : {}) }),
     snapshotDir,
     directory,
   };
@@ -64,9 +64,30 @@ describe('snapshot read API', () => {
       const response = await app.inject({ method: 'GET', url: '/sources' });
       expect(response.statusCode).toBe(200);
       expect(response.json()).toEqual(expect.arrayContaining([
-        { id: 'career-notes', status: 'down', lastAttemptAt: '2026-10-26T00:00:00.000Z', lastGoodReadAt: '2026-10-25T09:00:00.000Z' },
-        { id: 'personal-photos', status: 'idle', lastAttemptAt: null, lastGoodReadAt: null },
+        { id: 'career-notes', status: 'down', lastAttemptAt: '2026-10-26T00:00:00.000Z', lastGoodReadAt: '2026-10-25T09:00:00.000Z', canRetry: false },
+        { id: 'personal-photos', status: 'idle', lastAttemptAt: null, lastGoodReadAt: null, canRetry: false },
       ]));
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('runs a retry only for a registered source and reports the persisted result', async () => {
+    let snapshotPath = '';
+    const retry = vi.fn<NonNullable<BuildAppOptions['retrySource']>>().mockImplementation(async (entry) => {
+      const snapshot = { entryId: entry.id, status: 'ok' as const, fetchedAt: '2026-10-26T11:00:00.000Z', items: [] };
+      await writeFile(join(snapshotPath, entry.id, 'retried.json'), JSON.stringify(snapshot));
+      return snapshot;
+    });
+    const { app, snapshotDir } = await fixtureApp('', retry);
+    snapshotPath = snapshotDir;
+    try {
+      const missing = await app.inject({ method: 'POST', url: '/sources/unknown/retry' });
+      expect(missing.statusCode).toBe(404);
+      const response = await app.inject({ method: 'POST', url: '/sources/career-notes/retry' });
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toMatchObject({ id: 'career-notes', status: 'live', lastGoodReadAt: '2026-10-26T11:00:00.000Z' });
+      expect(retry).toHaveBeenCalledTimes(1);
     } finally {
       await app.close();
     }

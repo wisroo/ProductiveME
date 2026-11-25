@@ -50,6 +50,15 @@ The `static-file` connector reads a Snapshot JSON fixture from a local path or
 using modification times as activity timestamps. `github` reads repository
 metadata and recent repository events using GitHub's REST API.
 
+### Retry a registered source
+
+Registry shows the latest attempt and the last successful source read. To
+enable single-source Retry in a local native API, start the API with
+`SOURCE_RETRY_ENABLED=1` and give it the same connector credentials and
+writable snapshot directory used by the Sync worker. Retry uses the source's
+existing registry entry and writes a new snapshot. The standard Compose API
+has a read-only snapshot mount and runs with Retry disabled.
+
 ## Local inference and review drafts
 
 The API can optionally generate a short weekly or monthly draft using an

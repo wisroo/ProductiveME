@@ -15,12 +15,13 @@ it('keeps sources visible through a status error, retries status alone, and filt
   const getSourceHealth = vi.fn<ApiClient['getSourceHealth']>()
     .mockRejectedValueOnce(new Error('Offline'))
     .mockResolvedValue([
-      { id: 'portfolio', status: 'down', lastAttemptAt: '2026-11-25T11:00:00Z', lastGoodReadAt: fetchedAt },
-      { id: 'archive', status: 'idle', lastAttemptAt: null, lastGoodReadAt: null },
+      { id: 'portfolio', status: 'down', lastAttemptAt: '2026-11-25T11:00:00Z', lastGoodReadAt: fetchedAt, canRetry: false },
+      { id: 'archive', status: 'idle', lastAttemptAt: null, lastGoodReadAt: null, canRetry: false },
     ]);
   const api: ApiClient = {
     getRegistry,
     getSourceHealth,
+    retrySource: vi.fn(),
     getSnapshots: vi.fn(),
     getDomains: vi.fn(),
     getSignals: vi.fn(),

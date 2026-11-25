@@ -28,6 +28,7 @@ export class ReviewApiError extends Error {
 export interface ApiClient {
   getRegistry(): Promise<Registry>;
   getSourceHealth(): Promise<SourceHealth>;
+  retrySource(id: string): Promise<SourceHealth[number]>;
   getSnapshots(options?: SnapshotQuery): Promise<Snapshots>;
   getSignals(): Promise<Signals>;
   getDomains(): Promise<Domains>;
@@ -86,9 +87,16 @@ export function createApiClient(baseUrl: string, fetcher: typeof fetch = fetch):
     }
   }
 
+  async function retrySource(id: string): Promise<SourceHealth[number]> {
+    const response = await fetcher(new URL(`${baseUrl.replace(/\/$/, '')}/sources/${encodeURIComponent(id)}/retry`), { method: 'POST' });
+    if (!response.ok) throw new Error('Could not retry the source.');
+    return response.json() as Promise<SourceHealth[number]>;
+  }
+
   return {
     getRegistry: () => get<Registry>('/registry'),
     getSourceHealth: () => get<SourceHealth>('/sources'),
+    retrySource,
     getSnapshots: ({ domain } = {}) => get<Snapshots>(`/snapshots${domain ? `?domain=${encodeURIComponent(domain)}` : ''}`),
     getSignals: () => get<Signals>('/signals'),
     getDomains: () => get<Domains>('/domains'),
