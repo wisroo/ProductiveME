@@ -95,7 +95,7 @@ describe('Review', () => {
     const editor = screen.getByRole('textbox', { name: 'Review text' });
     await user.clear(editor);
     await user.type(editor, 'Edited review');
-    await user.click(screen.getByRole('button', { name: 'Save review' }));
+    await user.click(screen.getByRole('button', { name: 'Save draft' }));
     expect(await screen.findByText('Draft saved')).toHaveAttribute('role', 'status');
     unmount();
 
@@ -109,11 +109,11 @@ describe('Review', () => {
   it('keeps finalized text in history after regeneration and reopening', async () => {
     const { user, unmount } = renderReview('weekly');
     await user.click(screen.getByRole('button', { name: 'Generate review' }));
-    await user.click(await screen.findByRole('button', { name: 'Finalize review' }));
+    await user.click(await screen.findByRole('button', { name: 'Save review' }));
     expect(await screen.findByText('Review finalized and saved')).toHaveAttribute('role', 'status');
     await user.click(screen.getByRole('button', { name: 'Edit review' }));
     await user.type(screen.getByRole('textbox', { name: 'Review text' }), ' changed');
-    await user.click(screen.getByRole('button', { name: 'Save review' }));
+    await user.click(screen.getByRole('button', { name: 'Save draft' }));
     await screen.findByText('Draft saved');
     await user.click(screen.getByRole('button', { name: 'Regenerate review' }));
     await screen.findByRole('button', { name: 'Regenerate review' });

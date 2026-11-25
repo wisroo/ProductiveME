@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, it } from 'vitest';
@@ -20,10 +20,15 @@ it('shares source registration with Sync, refreshes without restart, and keeps s
     const { id } = added.json() as { id: string };
     expect((await app.inject('/registry')).json()).toEqual([expect.objectContaining({ id, name: 'Portfolio' })]);
     expect(readConfiguredSources([], statePath)).toEqual([expect.objectContaining({ id, connector: 'github' })]);
+    const snapshotDir = join(dir, 'snapshots', id);
+    await mkdir(snapshotDir, { recursive: true });
+    const savedSnapshot = join(snapshotDir, 'previous.json');
+    await writeFile(savedSnapshot, '{}');
     const removed = await app.inject({ method: 'DELETE', url: `/sources/${id}` });
     expect(removed.statusCode).toBe(204);
     expect((await app.inject('/registry')).json()).toEqual([]);
     expect(readConfiguredSources([], statePath)).toEqual([]);
+    expect(await readFile(savedSnapshot, 'utf8')).toBe('{}');
     const link = await app.inject({ method: 'POST', url: '/sources', payload: {
       name: 'Workspace', connector: 'link', domain: 'tools', locator: 'https://example.test/workspace',
     } });

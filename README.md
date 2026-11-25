@@ -236,8 +236,11 @@ The API is available at `http://127.0.0.1:3000`; set `API_PUBLISHED_PORT` to
 choose a different host port. The API process listens on all interfaces inside
 its container, while Compose publishes it only on host loopback. The API sees
 the repository registry and shared snapshots read-only. Sync can write the
-same named snapshot volume. To stop the API and remove the local volume, run
-`docker compose down --volumes`.
+same named snapshot volume. Stop local containers with `docker compose down`. The `snapshots` and
+`app-state` volumes persist across restarts. The latter contains SQLite
+records for tasks, plans, reviews, finance, settings, and source changes.
+`docker compose down --volumes` deletes both volumes and is only for
+an intentional reset after backup.
 
 `API_HOST` and `API_PORT` configure the process listener (defaults:
 `127.0.0.1` and `3000`; Compose sets the container host to `0.0.0.0`). API

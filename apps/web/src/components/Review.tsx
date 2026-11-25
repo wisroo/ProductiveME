@@ -1,8 +1,8 @@
 import { useState, type CSSProperties } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ReviewApiError, type ReviewDraft, type ReviewEntry, type SavedReviewDraft } from '@productiveme/api-client';
-import { useApi } from '../lib/api.js';
-import type { ReviewMode } from '../types.js';
+import { toApiDomainId, useApi, useHomeStatus } from '../lib/api.js';
+import { domains, type ReviewMode } from '../types.js';
 import {
   eyebrow,
   ghostButton,
@@ -96,6 +96,7 @@ export default function Review({ mode, onModeChange, periodStart }: ReviewProps)
   const timeZone = periodStart ? Intl.DateTimeFormat().resolvedOptions().timeZone : undefined;
   const api = useApi();
   const client = useQueryClient();
+  const status = useHomeStatus(isWeekly ? periodStart : undefined);
   const [drafts, setDrafts] = useState<Partial<Record<ReviewMode, SavedReviewDraft>>>({});
   const [decisions, setDecisions] = useState<Partial<Record<ReviewMode, string>>>({});
   const [editedText, setEditedText] = useState<string | null>(null);
@@ -231,6 +232,15 @@ export default function Review({ mode, onModeChange, periodStart }: ReviewProps)
         </div>
       </div>
 
+      {status.data?.sourceAlerts.length ? (
+        <div className="home-source-banner" role="status">
+          <div><b className="mono">Source data may be stale</b>
+            <p>{status.data.sourceAlerts.map(({ name, lastGoodReadAt }) =>
+              `${name}${lastGoodReadAt ? ` · last good read ${new Date(lastGoodReadAt).toLocaleString()}` : ''}`,
+            ).join(' · ')}</p>
+          </div>
+        </div>
+      ) : null}
       <section aria-labelledby="draft-heading" style={{ borderLeft: '3px solid var(--accent)', background: 'var(--panel)', padding: '18px 22px' }}>
         <div id="draft-heading" className="mono" style={eyebrow('accent')}>GENERATED DRAFT</div>
         <p className="mono" style={{ color: 'var(--muted)', fontSize: '12px', lineHeight: 1.6 }}>
@@ -263,6 +273,16 @@ export default function Review({ mode, onModeChange, periodStart }: ReviewProps)
         {mutation.isPending ? <p role="status" className="mono" style={{ color: 'var(--muted)', fontSize: '11px' }}>Waiting for the review service…</p> : null}
       </section>
 
+      {isWeekly && status.data && (
+        <section aria-label="Domain summary" className="query-section">
+          <h2 className="hf">Domain summary</h2>
+          <ul className="task-carry">
+            {status.data.domains.map((item) => (
+              <li key={item.domain}><b>{domains.find(({ id }) => toApiDomainId(id) === item.domain)?.label ?? item.domain}</b><span>{item.reason}</span></li>
+            ))}
+          </ul>
+        </section>
+      )}
       {visibleDraft && (
         <label>
           Decisions for next {isWeekly ? 'week' : 'month'}
@@ -280,8 +300,8 @@ export default function Review({ mode, onModeChange, periodStart }: ReviewProps)
             }}>
               {editing ? 'Cancel edit' : 'Edit review'}
             </button>
-            <button type="button" style={ghostButton} disabled={busy || editing || !visibleDraft.draft.trim()} onClick={() => saveReview(true)}>Finalize review</button>
-            <button type="button" style={primaryButton} disabled={busy || (editing && !editedText.trim())} onClick={() => saveReview(false)}>Save review</button>
+            <button type="button" style={ghostButton} disabled={busy || editing || !visibleDraft.draft.trim()} onClick={() => saveReview(true)}>Save review</button>
+            <button type="button" style={primaryButton} disabled={busy || (editing && !editedText.trim())} onClick={() => saveReview(false)}>Save draft</button>
           </>
         )}
       </div>

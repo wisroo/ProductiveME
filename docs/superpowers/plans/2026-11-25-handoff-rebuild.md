@@ -22,3 +22,11 @@
 6. **Settings와 통합 검증**. Settings는 리뷰 기본 모드를 API 저장에 연결한다. 외부 소스 장애 중에도 ProductiveME API가 살아 있으면 Task를 서버에 저장한다. ProductiveME API 자체가 끊길 때의 오프라인 큐·재동기화는 충돌 정책을 정한 뒤 도입한다. 각 화면의 로딩·빈 상태·오류·키보드 조작을 검증한다. 단계마다 관련 API/컴포넌트 테스트와 브라우저 화면 비교를 수행하고, 통합 전에 `pnpm test`, `pnpm typecheck`, `pnpm lint`, `git diff --check`를 실행한다.
 
 첫 구현 단위는 1단계의 새 상단바와 Home/읽기 전용 Registry 연결이다. 새 화면 계약이 확정되면 동일한 셸 위에 쓰기 기능을 붙인다.
+
+
+## 이번 구현 상태와 남은 연결
+
+- `develop`에서 `codex/productiveme-handoff-rebuild`를 시작했다. Home, Registry, Review, Plan/Life, Finance 기록, Settings에 로컬 API를 연결했다. API와 Sync는 Registry 오버라이드를 공유하고, 외부 소스 스냅샷은 JSON으로 유지한다. Task·리뷰·자산 기록·설정과 시간표는 SQLite에 저장한다.
+- 서버는 주간 상태와 cap, 보호 시간 충돌, 슬롯 중복 배정, Task 삭제 후 배정 복원, 자산 기록과 연결된 Task 완료 처리를 검증한다. 웹은 실제 데이터와 빈 상태를 표시한다.
+- Notion 내보내기와 Career 게시의 실제 대상 및 권한, Finance 지출 분류와 Personal Data 정리율/용량의 데이터 계약, 서버 연결 끊김 시 동기화 충돌 정책은 별도 결정이 필요하다. 현재 리뷰는 Markdown으로 내보낼 수 있고, 실제 데이터 없이 지표나 성공 상태를 표시하지 않는다.
+- Docker 운영 상태는 `app-state` 볼륨에 보존된다. 기존 Compose 종료 절차에서 볼륨 삭제 옵션은 이 데이터도 지우므로 정리나 재기동의 기본 명령으로 사용하지 않는다.
