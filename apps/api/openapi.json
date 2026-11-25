@@ -529,6 +529,14 @@
                       "weekly",
                       "monthly"
                     ]
+                  },
+                  "periodStart": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "timeZone": {
+                    "type": "string",
+                    "maxLength": 100
                   }
                 }
               }
@@ -1465,6 +1473,463 @@
             }
           },
           "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/review-drafts/{period}": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "weekly",
+                "monthly"
+              ]
+            },
+            "in": "path",
+            "name": "period",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "draft"
+                  ],
+                  "properties": {
+                    "draft": {
+                      "type": "object",
+                      "required": [
+                        "period",
+                        "rangeStart",
+                        "rangeEnd",
+                        "draft"
+                      ],
+                      "properties": {
+                        "period": {
+                          "type": "string",
+                          "enum": [
+                            "weekly",
+                            "monthly"
+                          ]
+                        },
+                        "rangeStart": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "rangeEnd": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "draft": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 20000
+                        },
+                        "decisions": {
+                          "type": "string",
+                          "maxLength": 6000
+                        }
+                      },
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "period",
+                  "rangeStart",
+                  "rangeEnd",
+                  "draft"
+                ],
+                "properties": {
+                  "period": {
+                    "type": "string",
+                    "enum": [
+                      "weekly",
+                      "monthly"
+                    ]
+                  },
+                  "rangeStart": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "rangeEnd": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "draft": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20000
+                  },
+                  "decisions": {
+                    "type": "string",
+                    "maxLength": 6000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "in": "query",
+            "name": "ifAbsent",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "weekly",
+                "monthly"
+              ]
+            },
+            "in": "path",
+            "name": "period",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "period",
+                    "rangeStart",
+                    "rangeEnd",
+                    "draft"
+                  ],
+                  "properties": {
+                    "period": {
+                      "type": "string",
+                      "enum": [
+                        "weekly",
+                        "monthly"
+                      ]
+                    },
+                    "rangeStart": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "rangeEnd": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "draft": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 20000
+                    },
+                    "decisions": {
+                      "type": "string",
+                      "maxLength": 6000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/review-entries": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "weekly",
+                "monthly"
+              ]
+            },
+            "in": "query",
+            "name": "period",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "period",
+                      "rangeStart",
+                      "rangeEnd",
+                      "draft",
+                      "id",
+                      "finalizedAt"
+                    ],
+                    "properties": {
+                      "period": {
+                        "type": "string",
+                        "enum": [
+                          "weekly",
+                          "monthly"
+                        ]
+                      },
+                      "rangeStart": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "rangeEnd": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "draft": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 20000
+                      },
+                      "decisions": {
+                        "type": "string",
+                        "maxLength": 6000
+                      },
+                      "finalizedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "period",
+                  "rangeStart",
+                  "rangeEnd",
+                  "draft"
+                ],
+                "properties": {
+                  "period": {
+                    "type": "string",
+                    "enum": [
+                      "weekly",
+                      "monthly"
+                    ]
+                  },
+                  "rangeStart": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "rangeEnd": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "draft": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20000
+                  },
+                  "decisions": {
+                    "type": "string",
+                    "maxLength": 6000
+                  },
+                  "finalizedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "period",
+                    "rangeStart",
+                    "rangeEnd",
+                    "draft",
+                    "id",
+                    "finalizedAt"
+                  ],
+                  "properties": {
+                    "period": {
+                      "type": "string",
+                      "enum": [
+                        "weekly",
+                        "monthly"
+                      ]
+                    },
+                    "rangeStart": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "rangeEnd": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "draft": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 20000
+                    },
+                    "decisions": {
+                      "type": "string",
+                      "maxLength": 6000
+                    },
+                    "finalizedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "period",
+                    "rangeStart",
+                    "rangeEnd",
+                    "draft",
+                    "id",
+                    "finalizedAt"
+                  ],
+                  "properties": {
+                    "period": {
+                      "type": "string",
+                      "enum": [
+                        "weekly",
+                        "monthly"
+                      ]
+                    },
+                    "rangeStart": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "rangeEnd": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "draft": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 20000
+                    },
+                    "decisions": {
+                      "type": "string",
+                      "maxLength": 6000
+                    },
+                    "finalizedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
             "description": "Default Response",
             "content": {
               "application/json": {

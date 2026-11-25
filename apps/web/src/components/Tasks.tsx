@@ -11,7 +11,7 @@ function taskError(error: unknown): string {
   return error instanceof Error ? error.message : 'Task request failed.';
 }
 
-export function QuickTaskDialog({ week, onClose }: { week: string; onClose: () => void }) {
+export function QuickTaskDialog({ week, date, onClose }: { week: string; date?: string; onClose: () => void }) {
   const api = useApi();
   const queryClient = useQueryClient();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -49,7 +49,7 @@ export function QuickTaskDialog({ week, onClose }: { week: string; onClose: () =
         <h2 className="hf" id="quick-task-title">Add task</h2>
         <label>Task <input name="text" required maxLength={500} /></label>
         <label>Domain <select name="domain">{domains.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}</select></label>
-        <label>Date <input type="date" name="date" /></label>
+        <label>Date <input type="date" name="date" defaultValue={date} /></label>
         {create.isError && <p role="alert">{taskError(create.error)}</p>}
         <div className="task-actions">
           {exceedsCap && pending && (

@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { ReviewApiError, type ReviewDraft } from '@productiveme/api-client';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ReviewApiError, type ReviewDraft, type ReviewEntry, type SavedReviewDraft } from '@productiveme/api-client';
 import { useApi } from '../lib/api.js';
 import type { ReviewMode } from '../types.js';
 import {
@@ -12,6 +12,7 @@ import {
 type ReviewProps = {
   mode: ReviewMode;
   onModeChange: (mode: ReviewMode) => void;
+  periodStart?: string;
 };
 
 const modePill = (active: boolean): CSSProperties => ({
@@ -38,9 +39,9 @@ const errorMessage = (error: unknown): string => {
   }
 };
 
-const formatRange = (start: string, end: string) => {
+const formatRange = (start: string, end: string, timeZone = 'UTC') => {
   const date = (value: string) => new Intl.DateTimeFormat('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+    month: 'short', day: 'numeric', year: 'numeric', timeZone,
   }).format(new Date(value));
   return `${date(start)} – ${date(end)}`;
 };
@@ -79,9 +80,9 @@ function readHistory(mode: ReviewMode): FinalReview[] {
     isReview(item, mode) && 'finalizedAt' in item && validDate(item.finalizedAt));
 }
 
-function exportReview(review: FinalReview) {
+function exportReview(review: ReviewEntry) {
   const title = review.period === 'weekly' ? 'Weekly review' : 'Monthly review';
-  const file = new Blob([`# ${title}\n\n${formatRange(review.rangeStart, review.rangeEnd)}\n\n${review.draft}\n`], { type: 'text/markdown;charset=utf-8' });
+  const file = new Blob([`# ${title}\n\n${formatRange(review.rangeStart, review.rangeEnd)}\n\n${review.draft}\n${review.decisions ? `\n## Decisions\n\n${review.decisions}\n` : ''}`], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(file);
   const link = document.createElement('a');
   link.href = url;
@@ -90,23 +91,64 @@ function exportReview(review: FinalReview) {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-export default function Review({ mode, onModeChange }: ReviewProps) {
+export default function Review({ mode, onModeChange, periodStart }: ReviewProps) {
   const isWeekly = mode === 'weekly';
+  const timeZone = periodStart ? Intl.DateTimeFormat().resolvedOptions().timeZone : undefined;
   const api = useApi();
-  const [drafts, setDrafts] = useState(() => ({
-    weekly: readSavedReview('weekly'),
-    monthly: readSavedReview('monthly'),
-  }));
-  const [history, setHistory] = useState(() => ({ weekly: readHistory('weekly'), monthly: readHistory('monthly') }));
+  const client = useQueryClient();
+  const [drafts, setDrafts] = useState<Partial<Record<ReviewMode, SavedReviewDraft>>>({});
+  const [decisions, setDecisions] = useState<Partial<Record<ReviewMode, string>>>({});
   const [editedText, setEditedText] = useState<string | null>(null);
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'finalized' | 'error' | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'finalized' | 'imported' | 'error' | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [imported, setImported] = useState(false);
+  const [legacy] = useState(() => (['weekly', 'monthly'] as const).map((period) => ({
+    draft: readSavedReview(period), entries: readHistory(period),
+  })));
+  const saved = useQuery({ queryKey: ['review-draft', mode], queryFn: () => api.getReviewDraft(mode) });
+  const history = useQuery({ queryKey: ['review-entries', mode], queryFn: () => api.getReviewEntries(mode), enabled: historyOpen });
+
   const mutation = useMutation({
-    mutationFn: (period: ReviewMode) => api.createReview(period),
+    mutationFn: (period: ReviewMode) => api.createReview(period, periodStart, timeZone),
     onSuccess: (draft) => setDrafts((current) => ({ ...current, [draft.period]: draft })),
   });
-  const visibleDraft = drafts[mode];
+  const persist = useMutation({
+    mutationFn: async ({ draft, archive }: { draft: SavedReviewDraft; archive: boolean }) => {
+      if (archive) await api.archiveReview(draft);
+      else await api.saveReviewDraft(draft);
+      return draft;
+    },
+    onSuccess: (draft, { archive }) => {
+      setDrafts((current) => ({ ...current, [draft.period]: draft }));
+      setEditedText(null);
+      setSaveStatus(archive ? 'finalized' : 'saved');
+      if (archive) {
+        setHistoryOpen(true);
+        void client.invalidateQueries({ queryKey: ['review-entries', draft.period] });
+      } else client.setQueryData(['review-draft', draft.period], draft);
+    },
+    onError: () => setSaveStatus('error'),
+  });
+  const importReviews = useMutation({
+    mutationFn: async () => {
+      for (const { draft, entries } of legacy) {
+        if (draft) await api.saveReviewDraft(draft, true);
+        for (const entry of entries) await api.archiveReview(entry);
+      }
+    },
+    onSuccess: async () => {
+      setImported(true);
+      setSaveStatus('imported');
+      await Promise.all([
+        client.invalidateQueries({ queryKey: ['review-draft'] }),
+        client.invalidateQueries({ queryKey: ['review-entries'] }),
+      ]);
+    },
+    onError: () => setSaveStatus('error'),
+  });
+  const visibleDraft = drafts[mode] ?? saved.data;
   const editing = editedText !== null;
-  const busy = mutation.isPending;
+  const busy = mutation.isPending || persist.isPending || importReviews.isPending;
 
   const changeMode = (nextMode: ReviewMode) => {
     if (busy || editing) return;
@@ -121,36 +163,12 @@ export default function Review({ mode, onModeChange }: ReviewProps) {
     mutation.mutate(mode);
   };
 
-  const save = () => {
-    if (!visibleDraft || busy || (editedText !== null && !editedText.trim())) return;
-    const nextDraft = { ...visibleDraft, draft: editedText ?? visibleDraft.draft };
-    try {
-      localStorage.setItem(reviewKey(mode), JSON.stringify(nextDraft));
-      setDrafts((current) => ({ ...current, [mode]: nextDraft }));
-      setEditedText(null);
-      setSaveStatus('saved');
-    } catch {
-      setSaveStatus('error');
-    }
-  };
-
-  const finalize = () => {
-    if (!visibleDraft || busy || editing || !visibleDraft.draft.trim()) return;
-    const stored = readHistory(mode);
-    const { rangeStart, rangeEnd, draft } = visibleDraft;
-    if (stored.some((review) => review.rangeStart === rangeStart && review.rangeEnd === rangeEnd && review.draft === draft)) {
-      setHistory((current) => ({ ...current, [mode]: stored }));
-      setSaveStatus('finalized');
-      return;
-    }
-    const next = [{ ...visibleDraft, finalizedAt: new Date().toISOString() }, ...stored];
-    try {
-      localStorage.setItem(historyKey(mode), JSON.stringify(next));
-      setHistory((current) => ({ ...current, [mode]: next }));
-      setSaveStatus('finalized');
-    } catch {
-      setSaveStatus('error');
-    }
+  const saveReview = (archive: boolean) => {
+    if (!visibleDraft || busy) return;
+    const draft = editedText ?? visibleDraft.draft;
+    if (!draft.trim()) return;
+    setSaveStatus(null);
+    persist.mutate({ draft: { ...visibleDraft, draft, decisions: decisions[mode] ?? visibleDraft.decisions ?? '' }, archive });
   };
 
   return (
@@ -221,7 +239,7 @@ export default function Review({ mode, onModeChange }: ReviewProps) {
         {visibleDraft ? (
           <>
             <div className="mono" style={{ color: 'var(--muted)', fontSize: '11px', margin: '14px 0' }}>
-              {formatRange(visibleDraft.rangeStart, visibleDraft.rangeEnd)}
+              {formatRange(visibleDraft.rangeStart, visibleDraft.rangeEnd, timeZone)}
             </div>
             {editing ? (
               <textarea
@@ -240,11 +258,19 @@ export default function Review({ mode, onModeChange }: ReviewProps) {
         ) : null}
         {mutation.isError ? <p role="alert" className="mono" style={{ color: 'var(--blocked-fill)', fontSize: '12px' }}>{errorMessage(mutation.error)}</p> : null}
         <button type="button" className="mono" style={{ ...ghostButton, marginTop: '14px' }} onClick={generate} disabled={busy || editing}>
-          {busy ? 'Generating review' : visibleDraft ? 'Regenerate review' : 'Generate review'}
+          {mutation.isPending ? 'Generating review' : visibleDraft ? 'Regenerate review' : 'Generate review'}
         </button>
-        {busy ? <p role="status" className="mono" style={{ color: 'var(--muted)', fontSize: '11px' }}>Waiting for the review service…</p> : null}
+        {mutation.isPending ? <p role="status" className="mono" style={{ color: 'var(--muted)', fontSize: '11px' }}>Waiting for the review service…</p> : null}
       </section>
 
+      {visibleDraft && (
+        <label>
+          Decisions for next {isWeekly ? 'week' : 'month'}
+          <textarea value={decisions[mode] ?? visibleDraft.decisions ?? ''} maxLength={6000}
+            onChange={(event) => setDecisions((current) => ({ ...current, [mode]: event.target.value }))}
+            rows={3} style={{ display: 'block', width: '100%', font: 'inherit', color: 'inherit', background: 'var(--panel)', border: '1px solid var(--line-2)' }} />
+        </label>
+      )}
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
         {visibleDraft && (
           <>
@@ -254,26 +280,39 @@ export default function Review({ mode, onModeChange }: ReviewProps) {
             }}>
               {editing ? 'Cancel edit' : 'Edit review'}
             </button>
-            <button type="button" style={ghostButton} disabled={busy || editing || !visibleDraft.draft.trim()} onClick={finalize}>Finalize review</button>
-            <button type="button" style={primaryButton} disabled={busy || (editing && !editedText.trim())} onClick={save}>Save review</button>
+            <button type="button" style={ghostButton} disabled={busy || editing || !visibleDraft.draft.trim()} onClick={() => saveReview(true)}>Finalize review</button>
+            <button type="button" style={primaryButton} disabled={busy || (editing && !editedText.trim())} onClick={() => saveReview(false)}>Save review</button>
           </>
         )}
       </div>
-      {history[mode].length > 0 && (
+      <div className="task-actions">
+        <button type="button" style={ghostButton} aria-expanded={historyOpen} onClick={() => setHistoryOpen((open) => !open)}>Past reviews</button>
+        {!imported && legacy.some(({ draft, entries }) => draft || entries.length > 0) && (
+          <button type="button" style={ghostButton} disabled={busy} onClick={() => importReviews.mutate()}>Import saved reviews</button>
+        )}
+      </div>
+      {historyOpen && (
         <section aria-label="Review history">
-          <h2>Review history</h2>
-          {history[mode].map((review, index) => (
-            <details key={`${review.finalizedAt}-${index}`}>
-              <summary>{formatRange(review.rangeStart, review.rangeEnd)} · {new Date(review.finalizedAt).toLocaleString()}</summary>
+          <h2 className="hf">Review history</h2>
+          {history.isPending && <p>Loading past reviews…</p>}
+          {history.isError && <p role="alert">Could not load past reviews. <button type="button" style={ghostButton} onClick={() => void history.refetch()}>Retry history</button></p>}
+          {history.isSuccess && history.data.length === 0 && <p>No past reviews yet.</p>}
+          {history.data?.map((review) => (
+            <details key={review.id}>
+              <summary>{formatRange(review.rangeStart, review.rangeEnd, timeZone)} · {new Date(review.finalizedAt).toLocaleString()}</summary>
               <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{review.draft}</p>
+              {review.decisions && <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{review.decisions}</p>}
               <button type="button" style={ghostButton} onClick={() => exportReview(review)}>Export Markdown</button>
             </details>
           ))}
         </section>
       )}
-      {saveStatus === 'finalized' ? <p role="status">Review finalized and saved in this browser</p> : null}
-      {saveStatus === 'saved' ? <p role="status">Saved in this browser</p> : null}
-      {saveStatus === 'error' ? <p role="alert">Could not save in this browser. Check browser storage and try again.</p> : null}
+      {saved.isError && <p role="alert">Could not load the saved draft. <button type="button" style={ghostButton} onClick={() => void saved.refetch()}>Retry draft</button></p>}
+      {saveStatus === 'finalized' && <p role="status">Review finalized and saved</p>}
+      {saveStatus === 'saved' && <p role="status">Draft saved</p>}
+      {saveStatus === 'imported' && <p role="status">Saved reviews imported</p>}
+      {saveStatus === 'error' && <p role="alert">Could not save reviews. Check the API connection and try again.</p>}
+
     </div>
   );
 }

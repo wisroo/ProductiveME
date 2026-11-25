@@ -2,19 +2,21 @@ import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Domains from './components/Domains.js';
 import Home from './components/Home.js';
+import MonthlyTasks from './components/MonthlyTasks.js';
 import Registry from './components/Registry.js';
 import Review from './components/Review.js';
 import TopBar from './components/TopBar.js';
 import { QuickTaskDialog, WeeklyTasks } from './components/Tasks.js';
-import { weekStart } from './lib/week.js';
+import { localDate, weekOfDate, weekStart } from './lib/week.js';
 import type { AppTab, DomainId, ReviewMode, Theme } from './types.js';
 
 function AppContent() {
   const [tab, setTab] = useState<AppTab>('home');
   const [domain, setDomain] = useState<DomainId>('finance');
   const [reviewMode, setReviewMode] = useState<ReviewMode>('weekly');
-  const [addingTask, setAddingTask] = useState(false);
+  const [addingTask, setAddingTask] = useState<{ date?: string } | null>(null);
   const week = weekStart();
+  const today = localDate();
   const [theme, setTheme] = useState<Theme>('dark');
 
   const openDomain = (nextDomain: DomainId) => {
@@ -31,7 +33,7 @@ function AppContent() {
         activeTab={tab}
         theme={theme}
         onTabChange={setTab}
-        onAddTask={() => setAddingTask(true)}
+        onAddTask={() => setAddingTask({})}
         onOpenSettings={() => setTab('settings')}
         onThemeToggle={() =>
           setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
@@ -50,8 +52,12 @@ function AppContent() {
           />
         ) : tab === 'review' ? (
           <>
-            <Review mode={reviewMode} onModeChange={setReviewMode} />
-            {reviewMode === 'weekly' && <div className="handoff-page"><WeeklyTasks week={week} onAdd={() => setAddingTask(true)} /></div>}
+            <Review mode={reviewMode} onModeChange={setReviewMode} periodStart={reviewMode === 'weekly' ? week : `${today.slice(0, 7)}-01`} />
+            <div className="handoff-page">
+              {reviewMode === 'weekly'
+                ? <WeeklyTasks week={week} onAdd={() => setAddingTask({})} />
+                : <MonthlyTasks today={today} onAdd={(date) => setAddingTask({ date })} />}
+            </div>
           </>
         ) : tab === 'domain' ? (
           <>
@@ -77,11 +83,11 @@ function AppContent() {
           <section className="handoff-page">
             <h1 className="hf">Plan</h1>
             <p className="handoff-eyebrow mono">Week of {week}</p>
-            <WeeklyTasks week={week} onAdd={() => setAddingTask(true)} carry />
+            <WeeklyTasks week={week} onAdd={() => setAddingTask({})} carry />
           </section>
         )}
       </main>
-      {addingTask && <QuickTaskDialog week={week} onClose={() => setAddingTask(false)} />}
+      {addingTask && <QuickTaskDialog week={addingTask.date ? weekOfDate(addingTask.date) : week} {...(addingTask.date ? { date: addingTask.date } : {})} onClose={() => setAddingTask(null)} />}
     </div>
   );
 }

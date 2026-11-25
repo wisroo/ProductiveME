@@ -219,6 +219,10 @@ a:focus-visible {
 .task-dialog input, .task-dialog select { min-width: 0; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); padding: 7px; }
 .task-actions, .task-summary { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
 .task-board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.monthly-task-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; }
+.monthly-task-grid > span { font-size: 10px; color: var(--muted); }
+.monthly-task-grid button { display: grid; gap: 3px; min-height: 40px; padding: 3px; }
+.monthly-task-grid button[aria-pressed='true'] { border-color: var(--accent); color: var(--ink); background: var(--panel-2); }
 .task-board h3 { color: var(--muted); font-size: 11px; text-transform: uppercase; }
 .task-board ul, .task-carry { list-style: none; padding: 0; margin: 0; }
 .task-board li, .task-carry li { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 6px 0; }

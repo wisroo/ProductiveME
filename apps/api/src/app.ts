@@ -1,3 +1,4 @@
+import { DatabaseSync } from 'node:sqlite';
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import type { Writable } from 'node:stream';
@@ -5,7 +6,8 @@ import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import { computeSignals, DOMAIN_IDS, parseRegistry, type RegistryEntry, type Snapshot } from '@productiveme/core';
 import { createInference, InferenceError, parseInferenceConfig, type InferenceProvider } from './inference.js';
-import { buildReviewPrompt, reviewRange, type ReviewPeriod } from './reviews.js';
+import { buildReviewPrompt, calendarReviewRange, reviewRange, type ReviewPeriod } from './reviews.js';
+import { registerReviewRecords } from './review-records.js';
 import { registerTaskRoutes } from './task-routes.js';
 import { loadLatestSnapshots, loadSourceHealth, summarizeDomains } from './snapshots.js';
 
@@ -167,7 +169,7 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
     schema: {
       body: {
         type: 'object', required: ['period'], additionalProperties: false,
-        properties: { period: { type: 'string', enum: ['weekly', 'monthly'] } },
+        properties: { period: { type: 'string', enum: ['weekly', 'monthly'] }, periodStart: { type: 'string', format: 'date' }, timeZone: { type: 'string', maxLength: 100 } },
       },
       response: {
         200: { type: 'object', required: ['period', 'rangeStart', 'rangeEnd', 'draft'], properties: {
@@ -181,8 +183,10 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
       },
     },
   }, async (request, reply) => {
-    const period = (request.body as { period: ReviewPeriod }).period;
-    const range = reviewRange(period, now());
+    const { period, periodStart, timeZone } = request.body as { period: ReviewPeriod; periodStart?: string; timeZone?: string };
+    const currentTime = now();
+    const range = periodStart ? calendarReviewRange(period, periodStart, currentTime, timeZone) : reviewRange(period, currentTime);
+    if (!range) return reply.code(400).send({ statusCode: 400, error: 'Bad Request', message: 'Review period must start on a valid calendar boundary.' });
     const snapshots = await loadLatestSnapshots(snapshotDir, entries, undefined, range.end);
     const signals = computeSignals(entries, snapshots, range.end);
     const availableContextTokens = inferenceConfig.contextTokens - inferenceConfig.maxOutputTokens;
@@ -206,7 +210,11 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
       return reply.code(failure.status).send({ code: failure.code, message: failure.message });
     }
   });
-  registerTaskRoutes(app, statePath);
+  const db = new DatabaseSync(statePath);
+  db.exec('PRAGMA busy_timeout = 5000');
+  app.addHook('onClose', async () => db.close());
+  registerTaskRoutes(app, db);
+  registerReviewRecords(app, db, now);
   app.get('/openapi.json', async () => app.swagger());
   app.setNotFoundHandler((request, reply) => {
     request.log.warn('Route not found');

@@ -21,6 +21,11 @@ export class TaskApiError extends Error {
 type ReviewRequest = paths['/reviews']['post']['requestBody']['content']['application/json'];
 export type ReviewDraft = paths['/reviews']['post']['responses'][200]['content']['application/json'];
 
+type ReviewDraftPath = paths['/review-drafts/{period}'];
+export type SavedReviewDraft = ReviewDraftPath['put']['requestBody']['content']['application/json'];
+export type ReviewArchiveInput = paths['/review-entries']['post']['requestBody']['content']['application/json'];
+export type ReviewEntry = paths['/review-entries']['get']['responses'][200]['content']['application/json'][number];
+
 export type ReviewErrorCode =
   | 'inference_disabled'
   | 'generation_busy'
@@ -50,7 +55,11 @@ export interface ApiClient {
   getSnapshots(options?: SnapshotQuery): Promise<Snapshots>;
   getSignals(): Promise<Signals>;
   getDomains(): Promise<Domains>;
-  createReview(period: ReviewRequest['period']): Promise<ReviewDraft>;
+  createReview(period: ReviewRequest['period'], periodStart?: string, timeZone?: string): Promise<ReviewDraft>;
+  getReviewDraft(period: ReviewRequest['period']): Promise<SavedReviewDraft | null>;
+  saveReviewDraft(input: SavedReviewDraft, ifAbsent?: boolean): Promise<SavedReviewDraft>;
+  getReviewEntries(period: ReviewRequest['period']): Promise<ReviewEntry[]>;
+  archiveReview(input: ReviewArchiveInput): Promise<ReviewEntry>;
 }
 
 export function createApiClient(baseUrl: string, fetcher: typeof fetch = fetch): ApiClient {
@@ -60,13 +69,13 @@ export function createApiClient(baseUrl: string, fetcher: typeof fetch = fetch):
     return response.json() as Promise<T>;
   }
 
-  async function createReview(period: ReviewRequest['period']): Promise<ReviewDraft> {
+  async function createReview(period: ReviewRequest['period'], periodStart?: string, timeZone?: string): Promise<ReviewDraft> {
     let response: Response;
     try {
       response = await fetcher(new URL(`${baseUrl.replace(/\/$/, '')}/reviews`), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ period }),
+        body: JSON.stringify({ period, ...(periodStart ? { periodStart } : {}), ...(timeZone ? { timeZone } : {}) }),
       });
     } catch {
       throw new ReviewApiError('unknown');
@@ -111,14 +120,14 @@ export function createApiClient(baseUrl: string, fetcher: typeof fetch = fetch):
     return response.json() as Promise<SourceHealth[number]>;
   }
 
-  async function taskRequest<T>(path: string, method: string, body?: unknown): Promise<T> {
+  async function requestJson<T>(path: string, method: string, body?: unknown): Promise<T> {
     const response = await fetcher(new URL(`${baseUrl.replace(/\/$/, '')}${path}`), {
       method,
       ...(body === undefined ? {} : { headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }),
     });
     if (!response.ok) {
       const error = await response.json().catch(() => null) as { code?: string; message?: string } | null;
-      throw new TaskApiError(error?.code ?? 'TASK_REQUEST_FAILED', error?.message ?? 'Task request failed.');
+      throw new TaskApiError(error?.code ?? 'REQUEST_FAILED', error?.message ?? 'API request failed.');
     }
     return response.status === 204 ? undefined as T : response.json() as Promise<T>;
   }
@@ -127,15 +136,19 @@ export function createApiClient(baseUrl: string, fetcher: typeof fetch = fetch):
     getRegistry: () => get<Registry>('/registry'),
     getSourceHealth: () => get<SourceHealth>('/sources'),
     retrySource,
-    getTasks: ({ week, domain }) => taskRequest<Task[]>(`/tasks?${new URLSearchParams({ week, ...(domain ? { domain } : {}) })}`, 'GET'),
-    createTask: (input, force) => taskRequest<Task>(`/tasks${force ? '?force=1' : ''}`, 'POST', input),
-    updateTask: (id, patch, force) => taskRequest<Task>(`/tasks/${encodeURIComponent(id)}${force ? '?force=1' : ''}`, 'PATCH', patch),
-    deleteTask: (id) => taskRequest<void>(`/tasks/${encodeURIComponent(id)}`, 'DELETE'),
-    restoreTask: (id) => taskRequest<Task>(`/tasks/${encodeURIComponent(id)}/restore`, 'POST'),
-    carryTask: (id, toWeek, force) => taskRequest<Task>(`/tasks/${encodeURIComponent(id)}/carry${force ? '?force=1' : ''}`, 'POST', { toWeek }),
+    getTasks: ({ week, domain }) => requestJson<Task[]>(`/tasks?${new URLSearchParams({ week, ...(domain ? { domain } : {}) })}`, 'GET'),
+    createTask: (input, force) => requestJson<Task>(`/tasks${force ? '?force=1' : ''}`, 'POST', input),
+    updateTask: (id, patch, force) => requestJson<Task>(`/tasks/${encodeURIComponent(id)}${force ? '?force=1' : ''}`, 'PATCH', patch),
+    deleteTask: (id) => requestJson<void>(`/tasks/${encodeURIComponent(id)}`, 'DELETE'),
+    restoreTask: (id) => requestJson<Task>(`/tasks/${encodeURIComponent(id)}/restore`, 'POST'),
+    carryTask: (id, toWeek, force) => requestJson<Task>(`/tasks/${encodeURIComponent(id)}/carry${force ? '?force=1' : ''}`, 'POST', { toWeek }),
     getSnapshots: ({ domain } = {}) => get<Snapshots>(`/snapshots${domain ? `?domain=${encodeURIComponent(domain)}` : ''}`),
     getSignals: () => get<Signals>('/signals'),
     getDomains: () => get<Domains>('/domains'),
     createReview,
+    getReviewDraft: async (period) => (await requestJson<{ draft: SavedReviewDraft | null }>(`/review-drafts/${period}`, 'GET')).draft,
+    saveReviewDraft: (input, ifAbsent) => requestJson<SavedReviewDraft>(`/review-drafts/${input.period}${ifAbsent ? '?ifAbsent=1' : ''}`, 'PUT', input),
+    getReviewEntries: (period) => requestJson<ReviewEntry[]>(`/review-entries?period=${period}`, 'GET'),
+    archiveReview: (input) => requestJson<ReviewEntry>('/review-entries', 'POST', input),
   };
 }

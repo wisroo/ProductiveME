@@ -2,10 +2,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ReviewApiError, type ApiClient } from '@productiveme/api-client';
+import { ReviewApiError, type ApiClient, type ReviewEntry, type SavedReviewDraft } from '@productiveme/api-client';
 import { ApiContext } from '../lib/api.js';
 import type { ReviewMode } from '../types.js';
 import Review from './Review.js';
+
+const drafts = new Map<ReviewMode, SavedReviewDraft>();
+const entries: ReviewEntry[] = [];
 
 const renderReview = (mode: ReviewMode, apiOverrides: Partial<ApiClient> = {}) => {
   const onModeChange = vi.fn();
@@ -16,6 +19,17 @@ const renderReview = (mode: ReviewMode, apiOverrides: Partial<ApiClient> = {}) =
       rangeEnd: '2026-10-26T12:00:00.000Z',
       draft: 'Progress made\nNext steps',
     })),
+    getReviewDraft: vi.fn(async (period: ReviewMode) => drafts.get(period) ?? null),
+    saveReviewDraft: vi.fn(async (draft: SavedReviewDraft) => {
+      drafts.set(draft.period, draft);
+      return draft;
+    }),
+    getReviewEntries: vi.fn(async (period: ReviewMode) => entries.filter((entry) => entry.period === period)),
+    archiveReview: vi.fn(async (draft: SavedReviewDraft) => {
+      const entry = { ...draft, id: 'archive-1', finalizedAt: '2026-10-26T12:00:00.000Z' };
+      entries.push(entry);
+      return entry;
+    }),
     ...apiOverrides,
   } as unknown as ApiClient;
   const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
@@ -31,6 +45,8 @@ const renderReview = (mode: ReviewMode, apiOverrides: Partial<ApiClient> = {}) =
 
 describe('Review', () => {
   afterEach(() => {
+    drafts.clear();
+    entries.length = 0;
     localStorage.removeItem('productiveme:review:weekly');
     localStorage.removeItem('productiveme:review-history:weekly');
   });
@@ -80,30 +96,32 @@ describe('Review', () => {
     await user.clear(editor);
     await user.type(editor, 'Edited review');
     await user.click(screen.getByRole('button', { name: 'Save review' }));
-    expect(screen.getByRole('status')).toHaveTextContent('Saved in this browser');
+    expect(await screen.findByText('Draft saved')).toHaveAttribute('role', 'status');
     unmount();
 
     const monthly = renderReview('monthly');
     expect(screen.queryByText('Edited review')).not.toBeInTheDocument();
     monthly.unmount();
     renderReview('weekly');
-    expect(screen.getByText('Edited review')).toBeInTheDocument();
+    expect(await screen.findByText('Edited review')).toBeInTheDocument();
   });
 
   it('keeps finalized text in history after regeneration and reopening', async () => {
     const { user, unmount } = renderReview('weekly');
     await user.click(screen.getByRole('button', { name: 'Generate review' }));
     await user.click(await screen.findByRole('button', { name: 'Finalize review' }));
-    expect(screen.getByRole('status')).toHaveTextContent('Review finalized');
+    expect(await screen.findByText('Review finalized and saved')).toHaveAttribute('role', 'status');
     await user.click(screen.getByRole('button', { name: 'Edit review' }));
     await user.type(screen.getByRole('textbox', { name: 'Review text' }), ' changed');
     await user.click(screen.getByRole('button', { name: 'Save review' }));
+    await screen.findByText('Draft saved');
     await user.click(screen.getByRole('button', { name: 'Regenerate review' }));
     await screen.findByRole('button', { name: 'Regenerate review' });
     unmount();
     renderReview('weekly');
-    const history = screen.getByRole('region', { name: 'Review history' });
-    expect(history).toHaveTextContent('Progress made');
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Past reviews' }));
+    const history = await screen.findByRole('region', { name: 'Review history' });
+    await waitFor(() => expect(history).toHaveTextContent('Progress made'));
     const createUrl = vi.fn(() => 'blob:review');
     const revokeUrl = vi.fn();
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});

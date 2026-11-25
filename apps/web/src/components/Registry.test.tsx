@@ -32,6 +32,10 @@ it('keeps sources visible through a status error, retries status alone, and filt
     getDomains: vi.fn(),
     getSignals: vi.fn(),
     createReview: vi.fn(),
+    getReviewDraft: vi.fn(),
+    saveReviewDraft: vi.fn(),
+    getReviewEntries: vi.fn(),
+    archiveReview: vi.fn(),
   };
 
   render(

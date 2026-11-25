@@ -390,6 +390,9 @@ export interface paths {
                     "application/json": {
                         /** @enum {string} */
                         period: "weekly" | "monthly";
+                        /** Format: date */
+                        periodStart?: string;
+                        timeZone?: string;
                     };
                 };
             };
@@ -887,6 +890,242 @@ export interface paths {
                 };
                 /** @description Default Response */
                 409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/review-drafts/{period}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    period: "weekly" | "monthly";
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            draft: {
+                                /** @enum {string} */
+                                period: "weekly" | "monthly";
+                                /** Format: date-time */
+                                rangeStart: string;
+                                /** Format: date-time */
+                                rangeEnd: string;
+                                draft: string;
+                                decisions?: string;
+                            } | null;
+                        };
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: {
+                    ifAbsent?: "1";
+                };
+                header?: never;
+                path: {
+                    period: "weekly" | "monthly";
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        period: "weekly" | "monthly";
+                        /** Format: date-time */
+                        rangeStart: string;
+                        /** Format: date-time */
+                        rangeEnd: string;
+                        draft: string;
+                        decisions?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            period: "weekly" | "monthly";
+                            /** Format: date-time */
+                            rangeStart: string;
+                            /** Format: date-time */
+                            rangeEnd: string;
+                            draft: string;
+                            decisions?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/review-entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    period: "weekly" | "monthly";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            period: "weekly" | "monthly";
+                            /** Format: date-time */
+                            rangeStart: string;
+                            /** Format: date-time */
+                            rangeEnd: string;
+                            draft: string;
+                            decisions?: string;
+                            /** Format: date-time */
+                            finalizedAt: string;
+                            /** Format: uuid */
+                            id: string;
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        period: "weekly" | "monthly";
+                        /** Format: date-time */
+                        rangeStart: string;
+                        /** Format: date-time */
+                        rangeEnd: string;
+                        draft: string;
+                        decisions?: string;
+                        /** Format: date-time */
+                        finalizedAt?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            period: "weekly" | "monthly";
+                            /** Format: date-time */
+                            rangeStart: string;
+                            /** Format: date-time */
+                            rangeEnd: string;
+                            draft: string;
+                            decisions?: string;
+                            /** Format: date-time */
+                            finalizedAt: string;
+                            /** Format: uuid */
+                            id: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            period: "weekly" | "monthly";
+                            /** Format: date-time */
+                            rangeStart: string;
+                            /** Format: date-time */
+                            rangeEnd: string;
+                            draft: string;
+                            decisions?: string;
+                            /** Format: date-time */
+                            finalizedAt: string;
+                            /** Format: uuid */
+                            id: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
                     headers: {
                         [name: string]: unknown;
                     };

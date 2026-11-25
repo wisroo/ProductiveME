@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { DatabaseSync } from 'node:sqlite';
+import type { DatabaseSync } from 'node:sqlite';
 import { DOMAIN_IDS, type DomainId } from '@productiveme/core';
 import type { FastifyInstance } from 'fastify';
 
@@ -40,11 +40,8 @@ function fail(code: string, message: string) {
   return { code, message };
 }
 
-export function registerTaskRoutes(app: FastifyInstance, statePath: string) {
-  const db = new DatabaseSync(statePath);
-  app.addHook('onClose', async () => db.close());
+export function registerTaskRoutes(app: FastifyInstance, db: DatabaseSync) {
   db.exec(`
-    PRAGMA busy_timeout = 5000;
     CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY, week TEXT NOT NULL, domain TEXT NOT NULL,
       payload TEXT NOT NULL, deleted INTEGER NOT NULL DEFAULT 0
