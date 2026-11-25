@@ -41,8 +41,8 @@ which are labeled separately from live API data.
 Run the sync worker manually with `pnpm sync run` from the repository root.
 It reads `registry.yaml` and writes validated snapshot history under
 `snapshots/<registry-entry-id>/`. Pass `--root <path>` to use a different
-checkout or a temporary registry. Configure a GitHub personal access token in
-`GITHUB_TOKEN` only when private repository access is needed; it is not saved.
+checkout or a temporary registry. Set `GITHUB_TOKEN` in the process environment
+for private repositories or when the unauthenticated API quota is exhausted.
 For scheduled runs, add an OS cron entry such as `0 * * * * cd /path/to/ProductiveME && pnpm sync run`.
 
 The `static-file` connector reads a Snapshot JSON fixture from a local path or
@@ -69,6 +69,25 @@ enable single-source Retry in a local native API, start the API with
 writable snapshot directory used by the Sync worker. Retry uses the source's
 existing registry entry and writes a new snapshot. The standard Compose API
 has a read-only snapshot mount and runs with Retry disabled.
+
+### Run a persistent local workspace
+
+To keep personal state separate from the sample registry, use a directory
+under the ignored `.productiveme/` path with its own `registry.yaml` containing
+`entries: []` on first setup. For example, run the API and web in separate
+terminals:
+
+```sh
+PRODUCTIVEME_REGISTRY_PATH="$PWD/.productiveme/local/registry.yaml" API_PORT=3018 SOURCE_RETRY_ENABLED=1 pnpm --filter @productiveme/api dev
+PRODUCTIVEME_DEV_API_URL=http://127.0.0.1:3018 pnpm --filter @productiveme/web dev --host 127.0.0.1 --port 5188 --strictPort
+```
+
+The API stores SQLite state and JSON snapshots next to that registry. Register
+sources in the web app. To run a full pass over that workspace, use
+`pnpm sync run --root "$PWD/.productiveme/local"`. Supply `GITHUB_TOKEN` to
+both the API and Sync process if GitHub authentication is needed. Synced data
+and edits stay on this Mac, and the app is available while the local processes
+are running.
 
 ## Local inference and review drafts
 

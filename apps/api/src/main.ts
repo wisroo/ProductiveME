@@ -1,12 +1,14 @@
 import { mkdir } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve } from 'node:path';
 import { createConnectors } from '@productiveme/sync/connectors';
 import { runSync } from '@productiveme/sync/run';
 import { fileURLToPath } from 'node:url';
 import { buildApp } from './app.js';
 import { parseApiRuntimeConfig, registerGracefulShutdown } from './runtime.js';
 
-const registryPath = fileURLToPath(new URL('../../../registry.yaml', import.meta.url));
+const registryPath = process.env.PRODUCTIVEME_REGISTRY_PATH
+  ? resolve(process.env.PRODUCTIVEME_REGISTRY_PATH)
+  : fileURLToPath(new URL('../../../registry.yaml', import.meta.url));
 const snapshotDir = join(dirname(registryPath), 'snapshots');
 const statePath = process.env.PRODUCTIVEME_STATE_PATH ?? join(dirname(registryPath), '.productiveme', 'state.sqlite');
 await mkdir(dirname(statePath), { recursive: true });

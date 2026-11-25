@@ -359,7 +359,11 @@ button.screen-pill, .screen-segment button { cursor: pointer; }
   color: var(--ink); background: var(--bg); border: 1px solid var(--line-2);
   padding: 7px 9px; border-radius: var(--r); font: inherit; min-width: 0;
 }
-.plan-focus input { flex: 1; }
+.plan-focus input {
+  flex: 1;
+  font: 500 15px/1.45 'Space Grotesk', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans CJK KR', sans-serif;
+}
+.plan-focus input::placeholder { color: var(--muted); opacity: 1; }
 .plan-page .plan-caps, .plan-page .plan-timetable, .life-blocks { padding: 0; border: 0; }
 .plan-cap-cards { grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); }
 .plan-cap-cards > div { padding: 11px; background: var(--panel); border: 1px solid var(--line); border-top: 2px solid var(--cap-color, var(--done)); border-radius: var(--r); font-size: 12px; }
