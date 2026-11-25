@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Domains from './components/Domains.js';
 import Home from './components/Home.js';
-import Mcp from './components/Mcp.js';
+import Registry from './components/Registry.js';
 import Review from './components/Review.js';
 import TopBar from './components/TopBar.js';
 import type { AppTab, DomainId, ReviewMode, Theme } from './types.js';
@@ -27,6 +27,7 @@ function AppContent() {
         activeTab={tab}
         theme={theme}
         onTabChange={setTab}
+        onOpenSettings={() => setTab('settings')}
         onThemeToggle={() =>
           setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
         }
@@ -36,6 +37,7 @@ function AppContent() {
           <Home
             onDomainSelect={openDomain}
             onOpenDomains={() => setTab('domain')}
+            onOpenRegistry={() => setTab('registry')}
             onStartReview={() => {
               setReviewMode('weekly');
               setTab('review');
@@ -44,9 +46,30 @@ function AppContent() {
         ) : tab === 'review' ? (
           <Review mode={reviewMode} onModeChange={setReviewMode} />
         ) : tab === 'domain' ? (
-          <Domains activeDomain={domain} onDomainChange={setDomain} />
+          <>
+            <div className="handoff-domain-back">
+              <button type="button" className="shell-button" onClick={() => setTab('home')}>← Home</button>
+            </div>
+            <Domains activeDomain={domain} onDomainChange={setDomain} />
+          </>
+        ) : tab === 'registry' ? (
+          <Registry />
+        ) : tab === 'settings' ? (
+          <section className="handoff-page">
+            <h1 className="hf">Settings</h1>
+            <label>
+              Theme{' '}
+              <select value={theme} onChange={(event) => setTheme(event.target.value === 'light' ? 'light' : 'dark')}>
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+              </select>
+            </label>
+          </section>
         ) : (
-          <Mcp />
+          <section className="handoff-page">
+            <h1 className="hf">Plan</h1>
+            <p>Weekly planning will be available when task storage is connected.</p>
+          </section>
         )}
       </main>
     </div>

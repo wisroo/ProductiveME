@@ -1,12 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
 import { domains, type DomainId } from '../types.js';
-import { useApi, useDomainRollups, useSignals, toApiDomainId } from '../lib/api.js';
-import { eyebrow, fill, ghostButton, primaryButton, ProgressBar } from './bits.js';
+import { useDomainRollups, useSignals, useSnapshots, toApiDomainId } from '../lib/api.js';
+import { eyebrow, fill, primaryButton, ProgressBar } from './bits.js';
 import QuerySection from './QuerySection.js';
 
 type HomeProps = {
   onDomainSelect: (domain: DomainId) => void;
   onOpenDomains: () => void;
+  onOpenRegistry: () => void;
   onStartReview: () => void;
 };
 
@@ -19,12 +19,16 @@ const healthLabel: Record<string, string> = {
 export default function Home({
   onDomainSelect,
   onOpenDomains,
+  onOpenRegistry,
   onStartReview,
 }: HomeProps) {
   const rollups = useDomainRollups();
   const signals = useSignals();
-  const api = useApi();
-  const snapshots = useQuery({ queryKey: ['snapshots'], queryFn: () => api.getSnapshots() });
+  const snapshots = useSnapshots();
+  const hasSourceError = snapshots.isSuccess && snapshots.data.some(
+    (snapshot) => snapshot.status === 'error' && snapshot.error !== 'No snapshots found',
+  );
+  const noSources = rollups.isSuccess && rollups.data.every((rollup) => rollup.entryCount === 0);
   const activity = (snapshots.data ?? [])
     .filter((snapshot) => snapshot.status === 'ok')
     .flatMap((snapshot) => snapshot.items)
@@ -34,20 +38,25 @@ export default function Home({
     })
     .sort((left, right) => Date.parse(right.timestamp) - Date.parse(left.timestamp))
     .slice(0, 6);
-  const actions = (signals.data ?? []).filter((signal) => signal.suggestedAction?.trim());
-  const issues = signals.data ?? [];
+  const pendingSources = new Set(snapshots.data?.filter(
+    (snapshot) => snapshot.status === 'error' && snapshot.error === 'No snapshots found',
+  ).map((snapshot) => snapshot.entryId));
+  const issues = (signals.data ?? []).filter((signal) =>
+    signal.severity !== 'blocked' || !signal.entryId || !pendingSources.has(signal.entryId),
+  );
+  const actions = issues.filter((signal) => signal.suggestedAction?.trim());
 
   return (
-    <div
-      style={{
-        padding: '28px 30px',
-        maxWidth: '980px',
-        margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-      }}
-    >
+    <div className="handoff-page handoff-home">
+      {hasSourceError && (
+        <div className="home-source-banner" role="status">
+          <div>
+            <b className="mono">Source read unavailable</b>
+            <p>Some source data is unavailable or may be stale.</p>
+          </div>
+          <button type="button" className="shell-button" onClick={onOpenRegistry}>View sources</button>
+        </div>
+      )}
       <div>
         <div
           className="mono"
@@ -56,13 +65,19 @@ export default function Home({
           WHERE AM I · WHAT CHANGED · WHAT’S NEXT
         </div>
         <h1
-          className="hf"
+          className="handoff-title hf"
           style={{ fontSize: '30px', lineHeight: 1.16, fontWeight: 600, marginTop: '9px' }}
         >
           Where should your attention go?
         </h1>
       </div>
 
+      {noSources && (
+        <section className="home-empty">
+          <p>No sources are configured.</p>
+          <button type="button" className="shell-button" onClick={onOpenRegistry}>View Registry →</button>
+        </section>
+      )}
       <QuerySection
         title="Domain progress"
         isPending={rollups.isPending}
@@ -83,7 +98,8 @@ export default function Home({
               <button
                 key={domain.id}
                 type="button"
-                className="domain-card"
+                className="domain-card home-domain-card"
+                data-tone={tone}
                 aria-label={domain.label}
                 onClick={() => onDomainSelect(domain.id)}
                 style={{
@@ -92,17 +108,15 @@ export default function Home({
                   textAlign: 'left',
                   color: 'var(--ink)',
                   border: '1px solid var(--line)',
-                  borderTop: `2px solid ${fill(tone)}`,
                   borderRadius: 'var(--r)',
                   cursor: 'pointer',
                 }}
               >
-                <b style={{ fontSize: '14px' }}>{domain.label}</b>
-                <div
-                  className="mono"
-                  style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '12px' }}
-                >
-                  {healthLabel[rollup?.health ?? 'unavailable']}
+                <div className="home-card-heading">
+                  <b style={{ fontSize: '14px' }}>{domain.label}</b>
+                  <span className="mono" style={{ fontSize: '9px', color: fill(tone) }}>
+                    {healthLabel[rollup?.health ?? 'unavailable']}
+                  </span>
                 </div>
                 {progress === null ? (
                   <p className="mono" style={{ fontSize: '10px' }}>No sources configured.</p>
@@ -120,15 +134,12 @@ export default function Home({
         </div>
       </QuerySection>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(245px, 1fr))',
-        borderLeft: '3px solid var(--accent)',
-        background: 'var(--panel)',
-      }}>
+      <div className="home-today">
         <div style={{ padding: '20px 22px' }}>
-          <div className="mono" style={eyebrow('accent')}>TODAY</div>
-          <p className="hf">{issues[0]?.message ?? 'Where should your attention go?'}</p>
+          <div className="mono" style={eyebrow('accent')}>
+            TODAY · {new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date()).toUpperCase()}
+          </div>
+          <p className="hf">{issues[0]?.message ?? (pendingSources.size ? 'Waiting for the first source sync.' : 'Where should your attention go?')}</p>
           <button type="button" onClick={onOpenDomains} style={primaryButton}>Open domains</button>
         </div>
         <QuerySection
@@ -139,8 +150,8 @@ export default function Home({
           empty={!actions.length}
           onRetry={() => void signals.refetch()}
         >
-          <ol style={{ margin: 0, paddingLeft: '20px' }}>
-            {actions.map((signal, index) => (
+          <ol className="home-actions">
+            {actions.slice(0, 3).map((signal, index) => (
               <li key={index} style={{ padding: '8px 0' }}>
                 <b style={{ fontSize: '12px' }}>{signal.suggestedAction}</b>
                 <div className="mono" style={{ fontSize: '10px', color: 'var(--muted)' }}>
@@ -154,7 +165,7 @@ export default function Home({
 
       <section aria-labelledby="activity-heading">
         <h2 id="activity-heading" className="mono" style={eyebrow('muted')}>Activity timeline</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(185px, 1fr))', gap: '12px' }}>
+        <div className="home-timeline">
           <QuerySection
             title="Past · Recent activity"
             isPending={snapshots.isPending}
@@ -199,9 +210,10 @@ export default function Home({
         </div>
       </section>
 
-      <button type="button" onClick={onStartReview} style={{ ...ghostButton, alignSelf: 'flex-end' }}>
-        Start weekly review →
-      </button>
+      <div className="home-source-gates mono">
+        <button type="button" onClick={onOpenRegistry}>Source gates · View Registry →</button>
+        <button type="button" onClick={onStartReview}>Start weekly review →</button>
+      </div>
     </div>
   );
 }

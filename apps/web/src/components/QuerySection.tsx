@@ -23,11 +23,7 @@ export default function QuerySection({
   return (
     <section
       aria-label={title}
-      style={{
-        border: '1px solid var(--line)',
-        borderRadius: 'var(--r2)',
-        padding: '16px 18px',
-      }}
+      className="query-section"
     >
       <h2
         className="mono"

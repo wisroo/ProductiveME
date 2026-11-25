@@ -29,13 +29,15 @@ describe('App shell', () => {
       screen.getByRole('heading', { name: 'Where should your attention go?' }),
     ).toBeInTheDocument();
 
+    expect(screen.getByRole('button', { name: 'Plan' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Review' }));
     expect(
       screen.getByRole('heading', { name: 'Weekly review' }),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'MCP' }));
-    expect(screen.getByRole('heading', { name: 'MCP' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Registry' }));
+    expect(screen.getByRole('heading', { name: 'Connected sources' })).toBeInTheDocument();
+    expect(await screen.findByText('No connected sources yet.')).toBeInTheDocument();
   });
 
   it('marks only the active primary tab', async () => {
@@ -116,6 +118,6 @@ describe('App shell', () => {
   it('keeps the current week visible in the top bar', () => {
     renderApp();
 
-    expect(screen.getByText('WK 29 · JUL 13–19')).toBeInTheDocument();
+    expect(screen.getByLabelText('Current week')).toHaveTextContent(/WK \d{2}/);
   });
 });

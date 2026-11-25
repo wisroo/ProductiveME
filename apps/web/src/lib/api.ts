@@ -46,6 +46,11 @@ export function useRegistry() {
   return useQuery({ queryKey: ['registry'], queryFn: () => api.getRegistry() });
 }
 
+export function useSnapshots() {
+  const api = useApi();
+  return useQuery({ queryKey: ['snapshots'], queryFn: () => api.getSnapshots() });
+}
+
 export function useDomainSnapshots(domain: DomainId) {
   const api = useApi();
   return useQuery({

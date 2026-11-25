@@ -1,118 +1,59 @@
-import type { CSSProperties } from 'react';
-import { week } from '../data/mock.js';
 import type { AppTab, PrimaryTab, Theme } from '../types.js';
 
 type TopBarProps = {
   activeTab: AppTab;
   theme: Theme;
   onTabChange: (tab: PrimaryTab) => void;
+  onOpenSettings: () => void;
   onThemeToggle: () => void;
 };
 
 const tabs: ReadonlyArray<{ id: PrimaryTab; label: string }> = [
   { id: 'home', label: 'Home' },
+  { id: 'plan', label: 'Plan' },
   { id: 'review', label: 'Review' },
-  { id: 'mcp', label: 'MCP' },
+  { id: 'registry', label: 'Registry' },
 ];
 
-const tabStyle = (active: boolean): CSSProperties => ({
-  padding: '15px 18px',
-  cursor: 'pointer',
-  fontSize: '14px',
-  fontWeight: active ? 700 : 500,
-  fontFamily: '"Public Sans",sans-serif',
-  background: 'transparent',
-  border: 'none',
-  borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
-  color: active ? 'var(--ink)' : 'var(--muted)',
-  marginBottom: '-1px',
-});
+function currentWeekLabel(now: Date) {
+  // Use local calendar dates, with UTC arithmetic to avoid daylight-saving shifts.
+  const monday = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  monday.setUTCDate(monday.getUTCDate() - (monday.getUTCDay() + 6) % 7);
+  const sunday = new Date(monday);
+  sunday.setUTCDate(sunday.getUTCDate() + 6);
+  const thursday = new Date(monday);
+  thursday.setUTCDate(thursday.getUTCDate() + 3);
+  const yearStart = Date.UTC(thursday.getUTCFullYear(), 0, 1);
+  const week = Math.floor((thursday.getTime() - yearStart) / 604_800_000) + 1;
+  const sameMonth = monday.getUTCMonth() === sunday.getUTCMonth();
+  const format = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  const end = sameMonth ? sunday.getUTCDate() : format.format(sunday);
+  return `WK ${String(week).padStart(2, '0')} · ${format.format(monday).toUpperCase()}–${String(end).toUpperCase()}`;
+}
 
-export default function TopBar({
-  activeTab,
-  theme,
-  onTabChange,
-  onThemeToggle,
-}: TopBarProps) {
+export default function TopBar({ activeTab, theme, onTabChange, onOpenSettings, onThemeToggle }: TopBarProps) {
   const targetTheme = theme === 'dark' ? 'light' : 'dark';
 
   return (
-    <header
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '2px',
-        padding: '0 22px',
-        borderBottom: '1px solid var(--line-2)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 5,
-        background: 'var(--bg)',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '9px',
-          padding: '15px 18px 15px 0',
-          marginRight: '8px',
-        }}
-      >
-        <div
-          style={{
-            width: '20px',
-            height: '20px',
-            borderRadius: '4px',
-            background: 'var(--accent)',
-          }}
-        />
-        <b
-          className="hf"
-          style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-.01em' }}
-        >
-          ProductiveME
-        </b>
-      </div>
-      <nav aria-label="Primary" style={{ display: 'flex', gap: '2px' }}>
-        {tabs.map((tab) => (
+    <header className="shell-header">
+      <div className="shell-brand hf"><span aria-hidden="true" />ProductiveME</div>
+      <nav aria-label="Primary" className="shell-nav">
+        {tabs.map(({ id, label }) => (
           <button
-            key={tab.id}
+            key={id}
             type="button"
-            aria-pressed={activeTab === tab.id}
-            onClick={() => onTabChange(tab.id)}
-            style={tabStyle(activeTab === tab.id)}
+            aria-pressed={activeTab === id || (id === 'home' && activeTab === 'domain')}
+            onClick={() => onTabChange(id)}
           >
-            {tab.label}
+            {label}
           </button>
         ))}
       </nav>
-      <div
-        style={{
-          marginLeft: 'auto',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px',
-        }}
-      >
-        <span className="mono" style={{ fontSize: '11px', color: 'var(--faint)' }}>
-          {week}
-        </span>
-        <button
-          type="button"
-          className="mono"
-          aria-label={`Switch to ${targetTheme} theme`}
-          onClick={onThemeToggle}
-          style={{
-            fontSize: '11px',
-            padding: '6px 12px',
-            border: '1px solid var(--line-2)',
-            borderRadius: 'var(--r)',
-            background: 'transparent',
-            color: 'var(--muted)',
-            cursor: 'pointer',
-          }}
-        >
+      <div className="shell-actions mono">
+        <button type="button" className="shell-button shell-add" disabled>+ Task</button>
+        <span className="shell-week" aria-label="Current week">{currentWeekLabel(new Date())}</span>
+        <button type="button" className="shell-button" aria-current={activeTab === 'settings' ? 'page' : undefined} onClick={onOpenSettings}>Settings</button>
+        <button type="button" className="shell-button" aria-label={`Switch to ${targetTheme} theme`} onClick={onThemeToggle}>
           {theme === 'dark' ? '◐ Light' : '◑ Dark'}
         </button>
       </div>

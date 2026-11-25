@@ -17,7 +17,7 @@ const signal = { severity: 'due', domain: 'finance', message: 'Snapshot overdue'
 
 function renderHome(api: ApiClient) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const props = { onDomainSelect: vi.fn(), onOpenDomains: vi.fn(), onStartReview: vi.fn() };
+  const props = { onDomainSelect: vi.fn(), onOpenDomains: vi.fn(), onOpenRegistry: vi.fn(), onStartReview: vi.fn() };
   render(
     <QueryClientProvider client={queryClient}>
       <ApiContext.Provider value={api}><Home {...props} /></ApiContext.Provider>
