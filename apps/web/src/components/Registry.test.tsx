@@ -20,6 +20,10 @@ it('keeps sources visible through a status error, retries status alone, and filt
     ]);
   const api: ApiClient = {
     getRegistry,
+    registerSource: vi.fn(),
+    updateSource: vi.fn(),
+    removeSource: vi.fn(),
+    testSource: vi.fn(),
     getSourceHealth,
     retrySource: vi.fn(),
     getFinanceSnapshots: vi.fn(),

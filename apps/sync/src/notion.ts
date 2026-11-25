@@ -21,7 +21,7 @@ const querySchema = z.object({
   request_status: z.object({ type: z.string() }).optional(),
 });
 
-function notionId(locator: string, dataSource: boolean): string | undefined {
+export function notionId(locator: string, dataSource: boolean): string | undefined {
   const bareId = locator.match(idPattern)?.[1];
   if (bareId === locator) return bareId?.replaceAll('-', '');
   if (dataSource) return;

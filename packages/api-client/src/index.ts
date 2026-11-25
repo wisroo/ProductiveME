@@ -1,7 +1,10 @@
 import type { paths } from './openapi.js';
 
 type SourceHealth = paths['/sources']['get']['responses'][200]['content']['application/json'];
+export type SourceInput = paths['/sources']['post']['requestBody']['content']['application/json'];
+type SourcePatch = paths['/sources/{id}']['patch']['requestBody']['content']['application/json'];
 type Registry = paths['/registry']['get']['responses'][200]['content']['application/json'];
+export type RegistrySource = Registry[number];
 type Snapshots = paths['/snapshots']['get']['responses'][200]['content']['application/json'];
 type Signals = paths['/signals']['get']['responses'][200]['content']['application/json'];
 type Domains = paths['/domains']['get']['responses'][200]['content']['application/json'];
@@ -12,7 +15,7 @@ export type TaskInput = TaskRoute['post']['requestBody']['content']['application
 type TaskQuery = TaskRoute['get']['parameters']['query'];
 type TaskPatch = paths['/tasks/{id}']['patch']['requestBody']['content']['application/json'];
 
-export class TaskApiError extends Error {
+export class ApiRequestError extends Error {
   constructor(readonly code: string, message: string) {
     super(message);
   }
@@ -59,6 +62,10 @@ export class ReviewApiError extends Error {
 
 export interface ApiClient {
   getRegistry(): Promise<Registry>;
+  registerSource(input: SourceInput): Promise<RegistrySource>;
+  updateSource(id: string, patch: SourcePatch): Promise<RegistrySource>;
+  removeSource(id: string): Promise<void>;
+  testSource(input: SourceInput): Promise<{ reachable: boolean }>;
   getSourceHealth(): Promise<SourceHealth>;
   retrySource(id: string): Promise<SourceHealth[number]>;
   getFinanceSnapshots(): Promise<FinanceSnapshot[]>;
@@ -151,13 +158,17 @@ export function createApiClient(baseUrl: string, fetcher: typeof fetch = fetch):
     });
     if (!response.ok) {
       const error = await response.json().catch(() => null) as { code?: string; message?: string } | null;
-      throw new TaskApiError(error?.code ?? 'REQUEST_FAILED', error?.message ?? 'API request failed.');
+      throw new ApiRequestError(error?.code ?? 'REQUEST_FAILED', error?.message ?? 'API request failed.');
     }
     return response.status === 204 ? undefined as T : response.json() as Promise<T>;
   }
 
   return {
     getRegistry: () => get<Registry>('/registry'),
+    registerSource: (input) => requestJson<RegistrySource>('/sources', 'POST', input),
+    updateSource: (id, patch) => requestJson<RegistrySource>(`/sources/${encodeURIComponent(id)}`, 'PATCH', patch),
+    removeSource: (id) => requestJson<void>(`/sources/${encodeURIComponent(id)}`, 'DELETE'),
+    testSource: (input) => requestJson<{ reachable: boolean }>('/sources/test', 'POST', input),
     getSourceHealth: () => get<SourceHealth>('/sources'),
     retrySource,
     getFinanceSnapshots: () => get<FinanceSnapshot[]>('/finance/snapshots'),

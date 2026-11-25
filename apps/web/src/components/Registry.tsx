@@ -1,7 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { RegistrySource } from '@productiveme/api-client';
 import { useState } from 'react';
 import { toApiDomainId, useApi, useRegistry, useSourceHealth } from '../lib/api.js';
 import { domains, type DomainId } from '../types.js';
+import SourceDialog from './SourceDialog.js';
+import { primaryButton } from './bits.js';
 import QuerySection from './QuerySection.js';
 
 const syncedDate = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' });
@@ -19,10 +22,12 @@ export default function Registry() {
   });
   const registry = useRegistry();
   const health = useSourceHealth();
-  const [filter, setFilter] = useState<DomainId | 'all'>('all');
+  const [filter, setFilter] = useState<DomainId | 'all' | 'down'>('all');
+  const [editor, setEditor] = useState<{ source?: RegistrySource; remove?: boolean } | null>(null);
   const sources = registry.data ?? [];
-  const visible = filter === 'all' ? sources : sources.filter((source) => source.domain === toApiDomainId(filter));
   const bySource = new Map(health.data?.map((state) => [state.id, state]));
+  const down = sources.filter(({ id }) => bySource.get(id)?.status === 'down');
+  const visible = filter === 'all' ? sources : filter === 'down' ? down : sources.filter((source) => source.domain === toApiDomainId(filter));
 
   return (
     <div className="handoff-page registry-page">
@@ -31,7 +36,10 @@ export default function Registry() {
           <p className="handoff-eyebrow mono">Registry</p>
           <h1 className="hf">Connected sources</h1>
         </div>
-        {registry.isSuccess && <span className="mono">{sources.length} {sources.length === 1 ? 'source' : 'sources'}</span>}
+        <div className="task-actions">
+          {registry.isSuccess && <span className="mono">{sources.length} {sources.length === 1 ? 'source' : 'sources'}</span>}
+          <button type="button" onClick={() => setEditor({})} style={primaryButton}>+ Register source</button>
+        </div>
       </div>
       {sources.length > 0 && (
         <div className="registry-filters" role="group" aria-label="Filter by domain">
@@ -41,6 +49,7 @@ export default function Registry() {
               {label} {sources.filter((source) => source.domain === toApiDomainId(id)).length}
             </button>
           ))}
+          {health.isSuccess && <button type="button" aria-pressed={filter === 'down'} onClick={() => setFilter('down')}>Down {down.length}</button>}
         </div>
       )}
       <QuerySection title="Source list" isPending={registry.isPending} isError={registry.isError} error={registry.error} empty={false} onRetry={() => void registry.refetch()}>
@@ -60,7 +69,7 @@ export default function Registry() {
               return (
                 <li key={source.id} className="registry-row">
                   <div>
-                    <b>{source.name}</b>
+                    <button type="button" className="source-name" onClick={() => setEditor({ source })}>{source.name}</button>
                     <div className="registry-detail mono">{source.kind} · {source.connector}</div>
                   </div>
                   <span className="registry-chip mono">
@@ -78,6 +87,7 @@ export default function Registry() {
                         {retry.isPending && retry.variables === source.id ? 'Retrying…' : 'Retry'}
                       </button>
                     )}
+                    <button type="button" className="shell-button registry-retry" aria-label={`Remove ${source.name}`} onClick={() => setEditor({ source, remove: true })}>×</button>
                     {retry.variables === source.id && (retry.isError || retry.data?.status === 'down') && (
                       <span role="status" className="registry-retry-result">
                         {retry.isError ? 'Could not run source retry.' : 'Source is still unavailable.'}
@@ -88,8 +98,9 @@ export default function Registry() {
               );
             })}
           </ul>
-        ) : <p>{filter === 'all' ? 'No connected sources yet.' : 'No sources in this domain.'}</p>}
+        ) : <p>{filter === 'all' ? 'No connected sources yet.' : filter === 'down' ? 'No sources are down.' : 'No sources in this domain.'}</p>}
       </QuerySection>
+      {editor && <SourceDialog {...editor} onClose={() => setEditor(null)} sourceCount={sources.length} />}
       <p className="registry-detail mono">ProductiveME reads source data. The original data stays in each source.</p>
     </div>
   );

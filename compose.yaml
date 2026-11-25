@@ -39,9 +39,11 @@ services:
     environment:
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       NOTION_TOKEN: ${NOTION_TOKEN:-}
+      PRODUCTIVEME_STATE_PATH: /app/state/state.sqlite
     volumes:
       - ./registry.yaml:/app/registry.yaml:ro
       - snapshots:/app/snapshots:rw
+      - app-state:/app/state:ro
     read_only: true
     tmpfs:
       - /tmp

@@ -8,6 +8,562 @@
     "schemas": {}
   },
   "paths": {
+    "/sources": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "domain",
+                  "locator",
+                  "connector"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "domain": {
+                    "type": "string",
+                    "enum": [
+                      "career",
+                      "finance",
+                      "personal-data",
+                      "life"
+                    ]
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  },
+                  "connector": {
+                    "type": "string",
+                    "enum": [
+                      "github",
+                      "notion",
+                      "notion-data-source",
+                      "managed-folder"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "kind",
+                    "domain",
+                    "locator",
+                    "connector"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "repo",
+                        "notion-page",
+                        "folder",
+                        "tool",
+                        "project"
+                      ]
+                    },
+                    "domain": {
+                      "type": "string",
+                      "enum": [
+                        "career",
+                        "finance",
+                        "personal-data",
+                        "life"
+                      ]
+                    },
+                    "subdomain": {
+                      "type": "string"
+                    },
+                    "locator": {
+                      "type": "string"
+                    },
+                    "connector": {
+                      "type": "string"
+                    },
+                    "cadence": {
+                      "type": "string",
+                      "enum": [
+                        "weekly",
+                        "monthly",
+                        "quarterly"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "status",
+                      "lastAttemptAt",
+                      "lastGoodReadAt",
+                      "canRetry"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "idle",
+                          "live",
+                          "down"
+                        ]
+                      },
+                      "lastAttemptAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                      },
+                      "lastGoodReadAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                      },
+                      "canRetry": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sources/{id}": {
+      "patch": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "domain": {
+                    "type": "string",
+                    "enum": [
+                      "career",
+                      "finance",
+                      "personal-data",
+                      "life"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "kind",
+                    "domain",
+                    "locator",
+                    "connector"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "repo",
+                        "notion-page",
+                        "folder",
+                        "tool",
+                        "project"
+                      ]
+                    },
+                    "domain": {
+                      "type": "string",
+                      "enum": [
+                        "career",
+                        "finance",
+                        "personal-data",
+                        "life"
+                      ]
+                    },
+                    "subdomain": {
+                      "type": "string"
+                    },
+                    "locator": {
+                      "type": "string"
+                    },
+                    "connector": {
+                      "type": "string"
+                    },
+                    "cadence": {
+                      "type": "string",
+                      "enum": [
+                        "weekly",
+                        "monthly",
+                        "quarterly"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sources/test": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "domain",
+                  "locator",
+                  "connector"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "domain": {
+                    "type": "string",
+                    "enum": [
+                      "career",
+                      "finance",
+                      "personal-data",
+                      "life"
+                    ]
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  },
+                  "connector": {
+                    "type": "string",
+                    "enum": [
+                      "github",
+                      "notion",
+                      "notion-data-source",
+                      "managed-folder"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "reachable"
+                  ],
+                  "properties": {
+                    "reachable": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/registry": {
       "get": {
         "responses": {
@@ -69,58 +625,6 @@
                           "monthly",
                           "quarterly"
                         ]
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/sources": {
-      "get": {
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "id",
-                      "status",
-                      "lastAttemptAt",
-                      "lastGoodReadAt",
-                      "canRetry"
-                    ],
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "idle",
-                          "live",
-                          "down"
-                        ]
-                      },
-                      "lastAttemptAt": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
-                      },
-                      "lastGoodReadAt": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
-                      },
-                      "canRetry": {
-                        "type": "boolean"
                       }
                     }
                   }

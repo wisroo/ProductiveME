@@ -50,6 +50,17 @@ The `static-file` connector reads a Snapshot JSON fixture from a local path or
 using modification times as activity timestamps. `github` reads repository
 metadata and recent repository events using GitHub's REST API.
 
+### Manage registered sources
+
+`registry.yaml` supplies the initial source configuration. Changes made in
+Registry are stored in the shared SQLite state file and read by API and Sync.
+Removing a source hides it from future collection and keeps its snapshots and
+the remote source intact. Register GitHub repositories, Notion pages or data
+source IDs, and folders under an explicitly configured `SOURCE_FOLDER_ROOT`.
+For native folder collection, configure the same allowed root on API and Sync.
+When using Compose with folders, both processes need the same readable mount
+and allowed root. Other sources can remain configured in YAML.
+
 ### Retry a registered source
 
 Registry shows the latest attempt and the last successful source read. To

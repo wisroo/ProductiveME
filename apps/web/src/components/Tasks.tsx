@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { TaskApiError, type Task, type TaskInput } from '@productiveme/api-client';
+import { ApiRequestError, type Task, type TaskInput } from '@productiveme/api-client';
 import { toApiDomainId, useApi } from '../lib/api.js';
 import { adjacentWeek } from '../lib/week.js';
 import { domains } from '../types.js';
@@ -30,7 +30,7 @@ export function QuickTaskDialog({ week, date, onClose }: { week: string; date?: 
     return () => { if (trigger instanceof HTMLElement) trigger.focus(); };
   }, []);
 
-  const exceedsCap = create.error instanceof TaskApiError && create.error.code === 'CAP_EXCEEDED';
+  const exceedsCap = create.error instanceof ApiRequestError && create.error.code === 'CAP_EXCEEDED';
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -107,7 +107,7 @@ export function WeeklyTasks({ week, onAdd, carry = false }: { week: string; onAd
   const complete = data.filter((task) => task.done).length;
   const previousTasks = previous.data?.filter((task) => !task.done) ?? [];
   const carried = (task: Task) => data.some(({ domain, text }) => task.domain === domain && task.text === text);
-  const cap = carryTask.error instanceof TaskApiError && carryTask.error.code === 'CAP_EXCEEDED';
+  const cap = carryTask.error instanceof ApiRequestError && carryTask.error.code === 'CAP_EXCEEDED';
 
   return (
     <div className="weekly-tasks">

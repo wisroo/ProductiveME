@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": { "./connectors": "./src/connectors.ts", "./run": "./src/sync.ts" },
+  "exports": { "./connectors": "./src/connectors.ts", "./run": "./src/sync.ts", "./registry": "./src/registry-store.ts" },
   "scripts": {
     "sync": "node --import tsx src/main.ts",
     "test": "vitest run",
