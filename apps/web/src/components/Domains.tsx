@@ -1,12 +1,16 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { domains, type DomainId } from '../types.js';
-import { toApiDomainId, useDomainSignals, useDomainSnapshots, useDomainStatus, useRegistry } from '../lib/api.js';
+import { toApiDomainId, useApi, useDomainSignals, useDomainSnapshots, useDomainStatus, useRegistry } from '../lib/api.js';
 import QuerySection from './QuerySection.js';
 
 type DomainsProps = {
   week?: string;
   domainPanel?: ReactNode;
   taskPanel?: ReactNode;
+  onHome?: () => void;
+  onRegistry?: () => void;
+  onRecordAssets?: () => void;
   activeDomain: DomainId;
   onDomainChange: (domain: DomainId) => void;
 };
@@ -17,7 +21,15 @@ function sourceLink(value?: string): string | undefined {
   return url?.protocol === 'https:' || url?.protocol === 'http:' ? url.href : undefined;
 }
 
-export default function Domains({ activeDomain, onDomainChange, domainPanel, taskPanel, week }: DomainsProps) {
+export default function Domains({ activeDomain, onDomainChange, domainPanel, taskPanel, week, onHome, onRegistry, onRecordAssets }: DomainsProps) {
+  const api = useApi();
+  const client = useQueryClient();
+  const complete = useMutation({
+    mutationFn: (id: string) => api.updateTask(id, { done: true }),
+    onSuccess: async () => {
+      await Promise.all(['tasks', 'domain-status', 'home-status'].map((key) => client.invalidateQueries({ queryKey: [key] })));
+    },
+  });
   const registry = useRegistry();
   const weeklyStatus = useDomainStatus(activeDomain, week);
   const snapshots = useDomainSnapshots(activeDomain);
@@ -35,43 +47,64 @@ export default function Domains({ activeDomain, onDomainChange, domainPanel, tas
     studyCounts.set(field, (studyCounts.get(field) ?? 0) + snapshot.items.length);
   }
 
+  const largestStudyCount = Math.max(1, ...studyCounts.values());
   return (
-    <div className="handoff-page weekly-tasks">
-      <nav aria-label="Domains" className="registry-filters">
+    <div className="handoff-page domain-page">
+      <div className="domain-navigation">
+      <nav aria-label="Domains" className="domain-tabs">
         {domains.map((domain) => (
           <button key={domain.id} type="button" aria-pressed={domain.id === activeDomain} onClick={() => onDomainChange(domain.id)}>
             {domain.label}
           </button>
         ))}
       </nav>
-      <h1 className="hf">{label}</h1>
-      {week && <QuerySection title="This week's status" isPending={weeklyStatus.isPending} isError={weeklyStatus.isError}
+      {onHome && <button type="button" className="quiet-link mono" onClick={onHome}>← Home</button>}
+      </div>
+      <div className="domain-overview">
+      {week && <QuerySection className="domain-status-panel" title="This week's status" isPending={weeklyStatus.isPending} isError={weeklyStatus.isError}
         error={weeklyStatus.error} empty={!weeklyStatus.data} onRetry={() => void weeklyStatus.refetch()}>
         {weeklyStatus.data && <>
-          <b>{weeklyStatus.data.status.replace('-', ' ').toUpperCase()}</b>
+          <span className="status-chip mono" data-status={weeklyStatus.data.status}>{weeklyStatus.data.status.replace('-', ' ').toUpperCase()}</span>
           <p>{weeklyStatus.data.reason}</p>
-          {weeklyStatus.data.next && <p>Next action · {weeklyStatus.data.next.text}</p>}
-          <p className="mono">Source down → cap exceeded → none done → more tasks open than done.</p>
+          {weeklyStatus.data.next && <div className="domain-next">
+            <span className="handoff-eyebrow mono">Next action</span>
+            <b className="hf">{weeklyStatus.data.next.text}</b>
+            {weeklyStatus.data.next.kind === 'snapshot' && activeDomain === 'finance' && onRecordAssets
+              ? <button type="button" className="screen-primary" onClick={onRecordAssets}>Record snapshot</button>
+              : <button type="button" className="screen-primary" disabled={complete.isPending} onClick={() => {
+                const next = weeklyStatus.data?.next;
+                if (next) complete.mutate(next.id);
+              }}>Mark done</button>}
+          </div>}
+          {complete.isError && <p role="alert">Could not complete the task. Try again.</p>}
+          <small className="mono">Status considers source health, weekly cap and open tasks.</small>
         </>}
       </QuerySection>}
       {taskPanel}
-      <QuerySection title="Registry sources" isPending={registry.isPending} isError={registry.isError} error={registry.error} empty={!entries.length} onRetry={() => void registry.refetch()}>
-        <ul className="task-carry">{entries.map((entry) => (
-          <li key={entry.id}><b>{entry.name}</b><span className="registry-detail mono">{entry.kind} · {entry.connector}</span></li>
-        ))}</ul>
+      </div>
+      <QuerySection className="domain-linked" title="Registry sources" isPending={registry.isPending} isError={registry.isError} error={registry.error} empty={!entries.length && !onRegistry} onRetry={() => void registry.refetch()}>
+        <ul className="linked-chips">{entries.map((entry) => <li key={entry.id} className="mono">{entry.name}</li>)}</ul>
+        {onRegistry && <button type="button" className="quiet-link mono" onClick={onRegistry}>Manage in Registry →</button>}
       </QuerySection>
+      <h1 className="hf">{label}</h1>
+      {domainPanel}
       {activeDomain === 'career' && !registry.isError && !snapshots.isError &&
         <QuerySection title="Study · writing by field" isPending={registry.isPending || snapshots.isPending}
           isError={false} empty={false}>
           {studyCounts.size ? <ul className="task-carry">
-            {[...studyCounts].map(([field, count]) => <li key={field}><span>{field}</span><span>{count} collected {count === 1 ? 'entry' : 'entries'}</span></li>)}
+            {[...studyCounts].map(([field, count]) => (
+              <li className="study-count" key={field}>
+                <span>{field}</span><meter value={count} max={largestStudyCount} aria-label={`${field} collected entries`} />
+                <span>{count} collected {count === 1 ? 'entry' : 'entries'}</span>
+              </li>
+            ))}
           </ul> : <p>No writing data has been collected.</p>}
           <p className="registry-detail">Publishing status is available when a publishing source is connected.</p>
         </QuerySection>}
       {activeDomain === 'pdata' && !registry.isError && !snapshots.isError &&
         <QuerySection title="Folder activity" isPending={registry.isPending || snapshots.isPending}
           isError={false} empty={false}>
-          <div className="domain-folder-list">
+          <div className="domain-folder-list folder-cards">
             {entries.filter(({ kind }) => kind === 'folder').map(({ id, name }) => {
               const snapshot = byEntry.get(id);
               const available = snapshot?.status === 'ok';
@@ -104,7 +137,6 @@ export default function Domains({ activeDomain, onDomainChange, domainPanel, tas
           </li>
         ))}</ul>
       </QuerySection>
-      {domainPanel}
     </div>
   );
 }

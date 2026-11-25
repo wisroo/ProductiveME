@@ -61,8 +61,8 @@ describe('Review', () => {
   it('marks the active mode and reports a switch to monthly', async () => {
     const { user, onModeChange } = renderReview('weekly');
 
-    const weekly = screen.getByRole('button', { name: 'WEEKLY' });
-    const monthly = screen.getByRole('button', { name: 'MONTHLY' });
+    const weekly = screen.getByRole('button', { name: 'Weekly' });
+    const monthly = screen.getByRole('button', { name: 'Monthly' });
     expect(weekly).toHaveAttribute('aria-pressed', 'true');
     expect(monthly).toHaveAttribute('aria-pressed', 'false');
 
@@ -163,7 +163,7 @@ describe('Review', () => {
 
     await user.click(screen.getByRole('button', { name: 'Generate review' }));
     expect(screen.getByRole('button', { name: 'Generating review' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'MONTHLY' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Monthly' })).toBeDisabled();
     await user.click(screen.getByRole('button', { name: 'Generating review' }));
     expect(createReview).toHaveBeenCalledTimes(1);
     expect(onModeChange).not.toHaveBeenCalled();

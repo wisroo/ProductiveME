@@ -29,8 +29,8 @@ function useSchedule(week: string) {
   };
 }
 
-function SlotEditor({ week, selection, mode, data, tasks, onSaved, onClose }: {
-  week: string; selection: Selection; mode: Mode; data: LifeWeek; tasks: Task[]; onSaved: () => Promise<void>; onClose: () => void;
+function SlotEditor({ week, selection, mode, data, tasks, onSaved, onClose, inline = false }: {
+  week: string; selection: Selection; mode: Mode; data: LifeWeek; tasks: Task[]; inline?: boolean; onSaved: () => Promise<void>; onClose: () => void;
 }) {
   const api = useApi();
   const ref = useRef<HTMLDialogElement>(null);
@@ -47,13 +47,14 @@ function SlotEditor({ week, selection, mode, data, tasks, onSaved, onClose }: {
       if (mode === 'plan') await api.saveSlotPlan(week, day, block, value as SlotPlan | null);
       else await api.saveSlotActual(week, day, block, value as SlotActual | null);
     },
-    onSuccess: async () => { await onSaved(); onClose(); },
+    onSuccess: async () => { await onSaved(); if (!inline) onClose(); },
   });
 
   useEffect(() => {
     const dialog = ref.current;
     const trigger = document.activeElement;
-    if (dialog && !dialog.open) dialog.showModal();
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
     return () => { if (trigger instanceof HTMLElement) trigger.focus(); };
   }, []);
 
@@ -74,10 +75,13 @@ function SlotEditor({ week, selection, mode, data, tasks, onSaved, onClose }: {
     }
   };
 
-  return (
-    <dialog ref={ref} className="task-dialog" aria-labelledby="slot-title" onCancel={(event) => { event.preventDefault(); onClose(); }}>
+  const editor = (
       <form onSubmit={submit}>
-        <h2 className="hf" id="slot-title">{day.toUpperCase()} · {blockLabel(block)}</h2>
+        <div><p className="handoff-eyebrow mono">{mode === 'plan' ? 'Plan block' : 'Record block'}</p>
+          <h2 className="hf" id="slot-title">{day.toUpperCase()} · {blockLabel(block)}</h2></div>
+        {inline && <div className="life-slot-context mono">
+          <span>Plan · {plan?.title ?? 'Open'}</span><span>Actual · {record?.title ?? 'Not recorded'}</span>
+        </div>}
         <label>Title <input name="title" defaultValue={current?.title} maxLength={500} required /></label>
         <label>Category <select name="cat" defaultValue={current?.cat ?? 'other'}>{categories.map((cat) => <option key={cat}>{cat}</option>)}</select></label>
         <label>Note <input name="note" defaultValue={current?.note} maxLength={4000} /></label>
@@ -98,6 +102,11 @@ function SlotEditor({ week, selection, mode, data, tasks, onSaved, onClose }: {
           <button className="shell-button" type="submit" disabled={mutation.isPending}>Save {mode}</button>
         </div>
       </form>
+  );
+  if (inline) return <section className="task-dialog-inline" aria-labelledby="slot-title">{editor}</section>;
+  return (
+    <dialog ref={ref} className="task-dialog" aria-labelledby="slot-title" onCancel={(event) => { event.preventDefault(); onClose(); }}>
+      {editor}
     </dialog>
   );
 }
@@ -108,11 +117,13 @@ function Timetable({ week, day, mode = 'plan' }: { week: string; day?: LifeDay; 
   const visible = day ? [day] : days;
   const data = life.data ?? {};
   const displayed = Object.values(data).flatMap((slots) => Object.values(slots));
+  const lifeSelection = day ? selection ?? { day, block: blocks.find((block) => data[day]?.[block]?.plan || data[day]?.[block]?.act) ?? 4 } : null;
   const scheduled = new Set(displayed.flatMap(({ plan }) => plan?.taskId ? [plan.taskId] : []));
   const unassigned = tasks.data?.filter((task) => !scheduled.has(task.id)) ?? [];
   return (
-    <QuerySection title={day ? 'Life time blocks' : 'Timetable'} isPending={life.isPending}
+    <QuerySection className={day ? "life-blocks" : "plan-timetable"} title={day ? 'Life time blocks' : 'Week in timetable · linked to Life'} isPending={life.isPending}
       isError={life.isError} error={life.error} empty={false} onRetry={() => void life.refetch()}>
+      <div className={day ? "life-slot-layout" : undefined}>
       <div className="schedule-scroll">
         <table className="schedule-grid">
           <thead><tr><th scope="col">Time</th>{visible.map((day) => <th scope="col" key={day}>{day}</th>)}</tr></thead>
@@ -122,7 +133,7 @@ function Timetable({ week, day, mode = 'plan' }: { week: string; day?: LifeDay; 
               {visible.map((day) => {
                 const slot = data[day]?.[block];
                 return (
-                  <td key={day}><button className="shell-button" type="button" aria-label={`${day} ${blockLabel(block)} ${mode}`} onClick={() => setSelection({ day, block })}>
+                  <td key={day}><button data-scheduled={Boolean(slot?.plan || slot?.act)} aria-pressed={lifeSelection ? lifeSelection.block === block : undefined} className="shell-button" type="button" aria-label={`${day} ${blockLabel(block)} ${mode}`} onClick={() => setSelection({ day, block })}>
                     {slot?.plan?.title ?? 'Open'}
                     {day === visible[0] && visible.length === 1 && slot?.act && <small>Recorded: {slot.act.title} · {slot.act.status}</small>}
                   </button></td>
@@ -131,6 +142,9 @@ function Timetable({ week, day, mode = 'plan' }: { week: string; day?: LifeDay; 
             </tr>
           ))}</tbody>
         </table>
+      </div>
+      {lifeSelection && <SlotEditor key={`${lifeSelection.day}-${lifeSelection.block}`} week={week} selection={lifeSelection} data={data}
+        tasks={tasks.data ?? []} inline mode={mode} onSaved={refresh} onClose={() => setSelection(null)} />}
       </div>
       {!day && (
         <div className="schedule-notes">
@@ -141,33 +155,36 @@ function Timetable({ week, day, mode = 'plan' }: { week: string; day?: LifeDay; 
           <div><h3>Unassigned tasks</h3>{unassigned.length ? unassigned.map(({ id, text }) => <div key={id}>{text}</div>) : <p>No unassigned tasks.</p>}</div>
         </div>
       )}
-      {selection && <SlotEditor week={week} selection={selection} data={data} tasks={tasks.data ?? []}
+      {!day && selection && <SlotEditor week={week} selection={selection} data={data} tasks={tasks.data ?? []}
         mode={mode} onSaved={refresh} onClose={() => setSelection(null)} />}
     </QuerySection>
   );
 }
 
-function PlanControls({ plan, onChange, busy }: {
-  plan: WeekPlan; onChange: (patch: Parameters<ReturnType<typeof useApi>['updateWeekPlan']>[1]) => void; busy: boolean;
+function PlanControls({ plan, onChange, busy, section }: {
+  plan: WeekPlan; onChange: (patch: Parameters<ReturnType<typeof useApi>['updateWeekPlan']>[1]) => void; busy: boolean; section: 'focus' | 'protection';
 }) {
   return (
     <div className="weekly-tasks">
-      <form className="task-summary" onSubmit={(event) => {
+      {section === 'focus' && <form className="task-summary plan-focus" onSubmit={(event) => {
         event.preventDefault();
         onChange({ focus: String(new FormData(event.currentTarget).get('focus') ?? '').trim() });
       }}>
-        <label>Weekly focus <input name="focus" defaultValue={plan.focus} maxLength={500} /></label>
+        <input aria-label="Weekly focus" name="focus" defaultValue={plan.focus} maxLength={500} placeholder="One sentence: what should this week be about?" />
         <button className="shell-button" type="submit" disabled={busy}>Save focus</button>
-      </form>
+      </form>}
+      {section === 'protection' && <div className="plan-protection">
+      <p className="query-section-title mono">Protection time · Life</p>
       <div className="registry-filters" role="group" aria-label="Protected time">
         {protectionDays.map((day) => (
           <button type="button" key={day} aria-pressed={Boolean(plan.protect[day])} disabled={busy}
             onClick={() => onChange({ protect: { [day]: !plan.protect[day] } })}>{protections[day]}</button>
         ))}
-        <button type="button" aria-pressed={plan.locked} disabled={busy} onClick={() => onChange({ locked: !plan.locked })}>
+      </div>
+        <button className="screen-primary" type="button" aria-pressed={plan.locked} disabled={busy} onClick={() => onChange({ locked: !plan.locked })}>
           {plan.locked ? 'Unlock plan' : 'Lock plan'}
         </button>
-      </div>
+      </div>}
     </div>
   );
 }
@@ -186,27 +203,32 @@ export function Plan({ week, onAdd }: { week: string; onAdd: () => void }) {
     },
   });
   return (
-    <section className="handoff-page weekly-tasks">
-      <h1 className="hf">Plan</h1>
-      <p className="handoff-eyebrow mono">Week of {week}</p>
-      <QuerySection title="Weekly plan" isPending={plan.isPending} isError={plan.isError} error={plan.error} empty={false} onRetry={() => void plan.refetch()}>
-        {plan.data && <PlanControls plan={plan.data} key={plan.data.focus} busy={update.isPending} onChange={(patch) => update.mutate(patch)} />}
+    <section className="handoff-page plan-page">
+      <header className="plan-header">
+        <div><p className="handoff-eyebrow mono">Plan ahead</p><h1 className="hf">Plan the week</h1></div>
+        <div className="plan-view-controls">
+          <div className="screen-segment" role="group" aria-label="Plan view">
+            <button type="button" aria-pressed={!timetable} onClick={() => setTimetable(false)}>List</button>
+            <button type="button" aria-pressed={timetable} onClick={() => setTimetable(true)}>Timetable</button>
+          </div>
+          <time dateTime={week} className="mono screen-pill">Week of {week}</time>
+        </div>
+      </header>
+      <QuerySection className="plan-focus-panel" title="Focus for the week" isPending={plan.isPending} isError={plan.isError} error={plan.error} empty={false} onRetry={() => void plan.refetch()}>
+        {plan.data && <PlanControls plan={plan.data} key={plan.data.focus} section="focus" busy={update.isPending} onChange={(patch) => update.mutate(patch)} />}
         {update.isError && <p role="alert">{update.error.message}</p>}
       </QuerySection>
-      <QuerySection title="Domain caps" isPending={status.isPending} isError={status.isError} error={status.error}
+      {!timetable && <QuerySection className="plan-caps" title="Load per domain · planned / cap" isPending={status.isPending} isError={status.isError} error={status.error}
         empty={!status.data?.domains.length} onRetry={() => void status.refetch()}>
-        <div className="domain-folder-list">{status.data?.domains.map((item) => (
-          <div key={item.domain}>
+        <div className="domain-folder-list plan-cap-cards">{status.data?.domains.map((item) => (
+          <div key={item.domain} data-domain={item.domain}>
             <div className="task-summary"><b>{domains.find(({ id }) => toApiDomainId(id) === item.domain)?.label ?? item.domain}</b><span>{item.total}/{item.cap}</span></div>
             <ProgressBar percent={Math.min(100, item.total * 100 / item.cap)} tone={item.total > item.cap ? 'blocked' : 'done'} />
           </div>
         ))}</div>
-      </QuerySection>
-      <div className="registry-filters" role="group" aria-label="Plan view">
-        <button type="button" aria-pressed={!timetable} onClick={() => setTimetable(false)}>List</button>
-        <button type="button" aria-pressed={timetable} onClick={() => setTimetable(true)}>Timetable</button>
-      </div>
+      </QuerySection>}
       {timetable ? <Timetable week={week} /> : <WeeklyTasks week={week} onAdd={onAdd} carry />}
+      {plan.data && <PlanControls plan={plan.data} section="protection" busy={update.isPending} onChange={(patch) => update.mutate(patch)} />}
     </section>
   );
 }

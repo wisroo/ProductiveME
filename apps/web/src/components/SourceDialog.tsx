@@ -18,9 +18,13 @@ type Props = {
   source?: RegistrySource;
   remove?: boolean;
   sourceCount: number;
+  health?: { status: string; lastGoodReadAt: string | null; lastAttemptAt: string | null } | undefined;
+  onRetry?: (() => void) | undefined;
+  onRemove?: (() => void) | undefined;
+  retrying?: boolean | undefined;
 };
 
-export default function SourceDialog({ source, remove, sourceCount, onClose }: Props) {
+export default function SourceDialog({ source, remove, sourceCount, onClose, health, onRetry, onRemove, retrying }: Props) {
   const api = useApi();
   const client = useQueryClient();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -64,10 +68,25 @@ export default function SourceDialog({ source, remove, sourceCount, onClose }: P
   };
   const busy = save.isPending || test.isPending;
   return (
-    <dialog ref={dialog} className="task-dialog" aria-labelledby="source-dialog-title"
+    <dialog ref={dialog} className={`task-dialog source-dialog ${source && !remove ? 'task-drawer' : ''}`} aria-labelledby="source-dialog-title"
       onCancel={(event) => { event.preventDefault(); onClose(); }}>
       <form ref={form} onSubmit={submit} onChange={() => test.reset()}>
-        <h2 id="source-dialog-title" className="hf">{remove ? 'Remove source' : source ? 'Edit source' : 'Register source'}</h2>
+        <header className="task-summary">
+          <div><p className="handoff-eyebrow mono">{source ? 'Source' : 'Registry'}</p><h2 id="source-dialog-title" className="hf">{remove ? 'Remove source' : source ? source.name : 'Register source'}</h2></div>
+          <button type="button" className="quiet-link" aria-label="Close source dialog" onClick={onClose}>×</button>
+        </header>
+        {source && !remove && <div className="source-drawer-state">
+          <p className="registry-detail mono">{source.connector} · {source.locator}</p>
+          <p className="handoff-eyebrow mono">Recent activity</p>
+          <ul className="finance-detail-list">
+            <li>Last attempt · {health?.lastAttemptAt ? new Date(health.lastAttemptAt).toLocaleString() : 'No attempt recorded'}</li>
+            <li>Last good read · {health?.lastGoodReadAt ? new Date(health.lastGoodReadAt).toLocaleString() : 'No successful read recorded'}</li>
+          </ul>
+          <div className="task-summary">
+            {onRetry && <button type="button" className="screen-primary" disabled={retrying} onClick={onRetry}>{retrying ? 'Retrying…' : 'Retry now'}</button>}
+            {onRemove && <button type="button" className="shell-button" onClick={onRemove}>Disconnect</button>}
+          </div>
+        </div>}
         {remove ? (
           <p>Remove {source?.name} from ProductiveME? The original source and saved snapshots will stay in place.
             {sourceCount === 1 ? ' Home will show its empty state until you register a source.' : ''}
@@ -75,10 +94,9 @@ export default function SourceDialog({ source, remove, sourceCount, onClose }: P
         ) : (
           <>
             {!source && <>
-              <label>Source type <select value={kind} disabled={busy} onChange={(event) => {
-                const selected = kinds.find(({ id }) => id === event.target.value);
-                if (selected) setKind(selected.id);
-              }}>{kinds.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}</select></label>
+              <fieldset className="screen-radio"><legend>Source type</legend>{kinds.map(({ id, label }) => (
+                <label key={id}><input type="radio" name="connector" value={id} checked={kind === id} disabled={busy} onChange={() => setKind(id)} /><span>{label}</span></label>
+              ))}</fieldset>
               <label>{kind === 'managed-folder' ? 'Absolute folder path' : 'URL or source ID'} <input name="locator" required maxLength={2048} disabled={busy} /></label>
             </>}
             <label>Name <input name="name" defaultValue={source?.name} required maxLength={120} disabled={busy} /></label>

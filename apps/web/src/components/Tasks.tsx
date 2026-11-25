@@ -50,9 +50,11 @@ export function QuickTaskDialog({ week, date, domain, onClose }: { week: string;
   return (
     <dialog ref={dialog} className="task-dialog" onCancel={(event) => { event.preventDefault(); onClose(); }} aria-labelledby="quick-task-title">
       <form onSubmit={submit}>
-        <h2 className="hf" id="quick-task-title">Add task</h2>
+        <div><p className="handoff-eyebrow mono">Add task</p><h2 className="hf" id="quick-task-title">Add task</h2></div>
         <label>Task <input name="text" required maxLength={500} /></label>
-        <label>Domain <select name="domain" defaultValue={domain}>{domains.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}</select></label>
+        <fieldset className="screen-radio"><legend>Domain</legend>{domains.map(({ id, label }) => (
+          <label key={id}><input type="radio" name="domain" value={id} defaultChecked={id === (domain ?? 'career')} /><span>{label}</span></label>
+        ))}</fieldset>
         <label>Task type <select name="kind"><option value="">General</option><option value="snapshot">Finance snapshot</option><option value="publish">Publish</option></select></label>
         <label>Date <input type="date" name="date" defaultValue={date} /></label>
         {create.isError && <p role="alert">{taskError(create.error)}</p>}
@@ -171,15 +173,15 @@ export function WeeklyTasks({ week, onAdd, carry = false, domain }: { week: stri
   const cap = carryTask.error instanceof ApiRequestError && carryTask.error.code === 'CAP_EXCEEDED';
 
   return (
-    <div className="weekly-tasks">
-      <QuerySection title="This week's tasks" isPending={tasks.isPending} isError={tasks.isError} error={tasks.error} empty={false} onRetry={() => void tasks.refetch()}>
+    <div className={`weekly-tasks ${carry ? 'plan-task-grid' : domain ? 'domain-task-list' : 'review-tasks'}`}>
+      <QuerySection className="this-week-panel" title={carry ? 'Week in plan' : domain ? 'This week' : "This week's tasks"} isPending={tasks.isPending} isError={tasks.isError} error={tasks.error} empty={false} onRetry={() => void tasks.refetch()}>
         <div className="task-summary"><span>{complete} of {data.length} done</span><button type="button" className="shell-button" onClick={onAdd}>+ Add task</button></div>
-        <div className="task-board">
-          {[false, true].map((done) => (
-            <section key={String(done)} aria-label={done ? 'Done' : 'To do'}>
-              <h3 className="mono">{done ? 'Done' : 'To do'}</h3>
+        <div className={`task-board ${carry || domain ? 'task-board-flat' : ''}`}>
+          {(carry || domain ? [null] : [false, true]).map((done) => (
+            <section key={String(done)} aria-label={done === null ? 'Task list' : done ? 'Done' : 'To do'}>
+              {done !== null && <h3 className="mono">{done ? 'Done' : 'To do'}</h3>}
               <ul>
-                {data.filter((task) => task.done === done).map((task) => (
+                {data.filter((task) => done === null || task.done === done).map((task) => (
                   <li key={task.id}>
                     <input type="checkbox" checked={task.done} disabled={change.isPending}
                       aria-label={`Mark ${task.done ? 'open' : 'done'}: ${task.text}`} onChange={() => change.mutate({ kind: 'toggle', task })} />
@@ -198,7 +200,7 @@ export function WeeklyTasks({ week, onAdd, carry = false, domain }: { week: stri
         setSelectedTask(null);
       }} />}
       {carry && (
-        <QuerySection title="Carry over" isPending={previous.isPending} isError={previous.isError} error={previous.error} empty={!previousTasks.length} onRetry={() => void previous.refetch()}>
+        <QuerySection className="carry-panel" title="Carry over" isPending={previous.isPending} isError={previous.isError} error={previous.error} empty={!previousTasks.length} onRetry={() => void previous.refetch()}>
           <ul className="task-carry">
             {previousTasks.map((task) => (
               <li key={task.id}>

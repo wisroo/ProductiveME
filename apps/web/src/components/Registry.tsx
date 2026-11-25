@@ -30,6 +30,8 @@ export default function Registry() {
   const down = sources.filter(({ id }) => bySource.get(id)?.status === 'down');
   const visible = filter === 'all' ? sources : filter === 'down' ? down : filter === 'tools' ? toolbox : sources.filter((source) => source.domain === toApiDomainId(filter));
 
+  const editedSource = editor?.source;
+  const editedHealth = editedSource ? bySource.get(editedSource.id) : undefined;
   return (
     <div className="handoff-page registry-page">
       <div className="registry-header">
@@ -54,7 +56,7 @@ export default function Registry() {
           {health.isSuccess && <button type="button" aria-pressed={filter === 'down'} onClick={() => setFilter('down')}>Down {down.length}</button>}
         </div>
       )}
-      <QuerySection title="Source list" isPending={registry.isPending} isError={registry.isError} error={registry.error} empty={false} onRetry={() => void registry.refetch()}>
+      <QuerySection className="registry-source-table" title="Source list" hideTitle isPending={registry.isPending} isError={registry.isError} error={registry.error} empty={false} onRetry={() => void registry.refetch()}>
         {health.isError && sources.length > 0 && (
           <div role="alert" className="registry-status-error">
             Could not load source sync status.{' '}
@@ -106,7 +108,11 @@ export default function Registry() {
           </ul>
         ) : <p>{filter === 'all' ? 'No connected sources yet.' : filter === 'down' ? 'No sources are down.' : 'No sources in this domain.'}</p>}
       </QuerySection>
-      {editor && <SourceDialog {...editor} onClose={() => setEditor(null)} sourceCount={sources.length} />}
+      {editor && <SourceDialog {...editor} key={editor.remove ? 'remove' : editedSource?.id ?? 'register'}
+        onClose={() => setEditor(null)} sourceCount={sources.length} health={editedHealth}
+        retrying={retry.isPending}
+        onRetry={editedSource && editedHealth?.canRetry ? () => retry.mutate(editedSource.id) : undefined}
+        onRemove={editedSource ? () => setEditor({ source: editedSource, remove: true }) : undefined} />}
       <p className="registry-detail mono">ProductiveME reads source data. The original data stays in each source.</p>
     </div>
   );

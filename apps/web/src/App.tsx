@@ -65,42 +65,51 @@ function AppContent() {
             }}
           />
         ) : tab === 'review' ? (
-          <>
-            <Review mode={reviewMode} onModeChange={setReviewMode} periodStart={reviewMode === 'weekly' ? week : `${today.slice(0, 7)}-01`} />
-            <div className="handoff-page">
-              {reviewMode === 'weekly'
-                ? <WeeklyTasks week={week} onAdd={() => setAddingTask({})} />
-                : <MonthlyTasks today={today} onAdd={(date) => setAddingTask({ date })} />}
-            </div>
-          </>
+          <Review
+            mode={reviewMode}
+            onModeChange={setReviewMode}
+            periodStart={reviewMode === 'weekly' ? week : `${today.slice(0, 7)}-01`}
+            taskPanel={reviewMode === 'weekly'
+              ? <WeeklyTasks week={week} onAdd={() => setAddingTask({})} />
+              : <MonthlyTasks today={today} onAdd={(date) => setAddingTask({ date })} />}
+          />
         ) : tab === 'domain' ? (
-          <>
-            <div className="handoff-domain-back">
-              <button type="button" className="shell-button" onClick={() => setTab('home')}>← Home</button>
-            </div>
-            <Domains week={week} activeDomain={domain} onDomainChange={setDomain} taskPanel={<WeeklyTasks week={week} domain={domain} onAdd={() => setAddingTask({ domain })} />} domainPanel={domain === 'life' ? <LifeSchedule week={week} nextWeek={adjacentWeek(week, 1)} /> : domain === 'finance' ? <FinanceRecords week={week} /> : undefined} />
-          </>
+          <Domains
+            week={week}
+            activeDomain={domain}
+            onDomainChange={setDomain}
+            onHome={() => setTab('home')}
+            onRegistry={() => setTab('registry')}
+            onRecordAssets={() => setRecordingAssets(true)}
+            taskPanel={<WeeklyTasks week={week} domain={domain} onAdd={() => setAddingTask({ domain })} />}
+            domainPanel={domain === 'life' ? <LifeSchedule week={week} nextWeek={adjacentWeek(week, 1)} /> : domain === 'finance' ? <FinanceRecords week={week} /> : undefined}
+          />
         ) : tab === 'registry' ? (
           <Registry />
         ) : tab === 'settings' ? (
-          <section className="handoff-page">
-            <h1 className="hf">Settings</h1>
-            <label>
-              Theme{' '}
-              <select value={theme} onChange={(event) => setTheme(event.target.value === 'light' ? 'light' : 'dark')}>
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-              </select>
-            </label>
-            <p>
-              <label>Review opens on{' '}
-                <select value={settings.data?.reviewDefault ?? 'weekly'} disabled={!settings.isSuccess || saveSettings.isPending}
-                  onChange={(event) => saveSettings.mutate(event.target.value === 'monthly' ? 'monthly' : 'weekly')}>
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
+          <section className="handoff-page preferences-page">
+            <p className="handoff-eyebrow mono">Settings</p>
+            <h1 className="hf">Preferences</h1>
+            <div className="preferences-panel">
+              <label className="preference-row">
+                <span><b>Theme</b><small>Choose a dark or light appearance.</small></span>
+                <select value={theme} onChange={(event) => setTheme(event.target.value === 'light' ? 'light' : 'dark')}>
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
                 </select>
               </label>
-            </p>
+              <div className="preference-row">
+                <span><b>Review opens on</b><small>Choose your default review period.</small></span>
+                <div className="screen-segment" role="group" aria-label="Review opens on">
+                  {(['weekly', 'monthly'] as const).map((value) => (
+                    <button key={value} type="button" disabled={!settings.isSuccess || saveSettings.isPending}
+                      aria-pressed={settings.data?.reviewDefault === value} onClick={() => saveSettings.mutate(value)}>
+                      {value === 'weekly' ? 'Weekly' : 'Monthly'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
             {settings.isError && <p role="alert">Could not load settings. <button type="button" className="shell-button" onClick={() => void settings.refetch()}>Retry</button></p>}
             {saveSettings.isError && <p role="alert">Could not save the review preference.</p>}
           </section>

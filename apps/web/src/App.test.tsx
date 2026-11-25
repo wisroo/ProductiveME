@@ -117,7 +117,7 @@ describe('App shell', () => {
       screen.getByRole('heading', { name: 'Weekly review' }),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'MONTHLY' }));
+    await user.click(screen.getByRole('button', { name: 'Monthly' }));
     expect(
       screen.getByRole('heading', { name: 'Monthly review' }),
     ).toBeInTheDocument();
