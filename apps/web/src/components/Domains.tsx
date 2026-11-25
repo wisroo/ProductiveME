@@ -28,6 +28,7 @@ import { toApiDomainId, useDomainSnapshots, useRegistry, useDomainSignals } from
 import QuerySection from './QuerySection.js';
 
 type DomainsProps = {
+  domainPanel?: import('react').ReactNode;
   activeDomain: DomainId;
   onDomainChange: (domain: DomainId) => void;
 };
@@ -468,7 +469,7 @@ const panels: Readonly<Record<DomainId, () => JSX.Element>> = {
   life: Life,
 };
 
-export default function Domains({ activeDomain, onDomainChange }: DomainsProps) {
+export default function Domains({ activeDomain, onDomainChange, domainPanel }: DomainsProps) {
   const Panel = panels[activeDomain];
   const registry = useRegistry();
   const snapshots = useDomainSnapshots(activeDomain);
@@ -525,8 +526,10 @@ export default function Domains({ activeDomain, onDomainChange }: DomainsProps) 
           {domainSignals.map((signal, index) => <div key={`${signal.entryId ?? index}-${signal.message}`} style={{ padding: '9px 11px', border: '1px solid var(--line)', borderRadius: 'var(--r)' }}>{signal.message}<div className="mono" style={{ color: 'var(--muted)', fontSize: '9px', marginTop: '4px' }}>{signal.severity.toUpperCase()}{signal.suggestedAction ? ` · ${signal.suggestedAction}` : ''}</div></div>)}
         </div>
       </QuerySection>
-      <div className="mono" style={{ fontSize: '9px', color: 'var(--muted)', borderLeft: '2px solid var(--due)', paddingLeft: '10px' }}>Prototype metrics below are illustrative design data and are not loaded from the API.</div>
-      <Panel />
+      {domainPanel ?? <>
+        <div className="mono" style={{ fontSize: '9px', color: 'var(--muted)', borderLeft: '2px solid var(--due)', paddingLeft: '10px' }}>Prototype metrics below are illustrative design data and are not loaded from the API.</div>
+        <Panel />
+      </>}
     </div>
   );
 }

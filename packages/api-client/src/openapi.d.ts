@@ -471,6 +471,385 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/weeks/{week}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    week: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: date */
+                            week: string;
+                            focus: string;
+                            locked: boolean;
+                            protect: {
+                                sat?: boolean;
+                                sun?: boolean;
+                                wed?: boolean;
+                                fri?: boolean;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    week: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        focus?: string;
+                        locked?: boolean;
+                        protect?: {
+                            sat?: boolean;
+                            sun?: boolean;
+                            wed?: boolean;
+                            fri?: boolean;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: date */
+                            week: string;
+                            focus: string;
+                            locked: boolean;
+                            protect: {
+                                sat?: boolean;
+                                sun?: boolean;
+                                wed?: boolean;
+                                fri?: boolean;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weeks/{week}/life": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    week: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: {
+                                [key: string]: {
+                                    plan?: {
+                                        /** @enum {string} */
+                                        cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                                        title: string;
+                                        note?: string;
+                                        /** Format: uuid */
+                                        taskId?: string;
+                                        /** @enum {string} */
+                                        protect?: "sat" | "sun" | "wed" | "fri";
+                                    };
+                                    act?: {
+                                        /** @enum {string} */
+                                        cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                                        title: string;
+                                        note?: string;
+                                        /** @enum {string} */
+                                        status: "asplan" | "changed" | "skipped";
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weeks/{week}/life/{day}/{block}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    week: string;
+                    day: "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+                    block: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        value: {
+                            /** @enum {string} */
+                            cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                            title: string;
+                            note?: string;
+                            /** Format: uuid */
+                            taskId?: string;
+                        } | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            plan?: {
+                                /** @enum {string} */
+                                cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                                title: string;
+                                note?: string;
+                                /** Format: uuid */
+                                taskId?: string;
+                                /** @enum {string} */
+                                protect?: "sat" | "sun" | "wed" | "fri";
+                            };
+                            act?: {
+                                /** @enum {string} */
+                                cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                                title: string;
+                                note?: string;
+                                /** @enum {string} */
+                                status: "asplan" | "changed" | "skipped";
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weeks/{week}/life/{day}/{block}/act": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    week: string;
+                    day: "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+                    block: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        value: {
+                            /** @enum {string} */
+                            cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                            title: string;
+                            note?: string;
+                            /** @enum {string} */
+                            status: "asplan" | "changed" | "skipped";
+                        } | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            plan?: {
+                                /** @enum {string} */
+                                cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                                title: string;
+                                note?: string;
+                                /** Format: uuid */
+                                taskId?: string;
+                                /** @enum {string} */
+                                protect?: "sat" | "sun" | "wed" | "fri";
+                            };
+                            act?: {
+                                /** @enum {string} */
+                                cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                                title: string;
+                                note?: string;
+                                /** @enum {string} */
+                                status: "asplan" | "changed" | "skipped";
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tasks": {
         parameters: {
             query?: never;

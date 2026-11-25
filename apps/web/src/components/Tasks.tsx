@@ -84,7 +84,10 @@ export function WeeklyTasks({ week, onAdd, carry = false }: { week: string; onAd
     onSuccess: async (_result, action) => {
       if (action.kind === 'delete') setUndoId(action.id);
       if (action.kind === 'restore') setUndoId(null);
-      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+        queryClient.invalidateQueries({ queryKey: ['life'] }),
+      ]);
     },
   });
   const carryTask = useMutation({

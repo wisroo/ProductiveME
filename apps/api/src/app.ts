@@ -7,6 +7,7 @@ import swagger from '@fastify/swagger';
 import { computeSignals, DOMAIN_IDS, parseRegistry, type RegistryEntry, type Snapshot } from '@productiveme/core';
 import { createInference, InferenceError, parseInferenceConfig, type InferenceProvider } from './inference.js';
 import { buildReviewPrompt, calendarReviewRange, reviewRange, type ReviewPeriod } from './reviews.js';
+import { registerPlanningRoutes } from './planning-routes.js';
 import { registerReviewRecords } from './review-records.js';
 import { registerTaskRoutes } from './task-routes.js';
 import { loadLatestSnapshots, loadSourceHealth, summarizeDomains } from './snapshots.js';
@@ -213,7 +214,8 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
   const db = new DatabaseSync(statePath);
   db.exec('PRAGMA busy_timeout = 5000');
   app.addHook('onClose', async () => db.close());
-  registerTaskRoutes(app, db);
+  const assignments = registerPlanningRoutes(app, db);
+  registerTaskRoutes(app, db, assignments);
   registerReviewRecords(app, db, now);
   app.get('/openapi.json', async () => app.swagger());
   app.setNotFoundHandler((request, reply) => {

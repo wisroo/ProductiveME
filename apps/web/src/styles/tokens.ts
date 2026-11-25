@@ -219,6 +219,13 @@ a:focus-visible {
 .task-dialog input, .task-dialog select { min-width: 0; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); padding: 7px; }
 .task-actions, .task-summary { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
 .task-board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.schedule-scroll { overflow-x: auto; }
+.schedule-grid { border-collapse: collapse; width: 100%; }
+.schedule-grid th { padding: 5px; font-size: 11px; color: var(--muted); }
+.schedule-grid td { padding: 3px; min-width: 65px; }
+.schedule-grid td button { width: 100%; min-height: 32px; text-align: left; overflow-wrap: anywhere; }
+.schedule-grid small { display: block; color: var(--muted); }
+.schedule-notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .monthly-task-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; }
 .monthly-task-grid > span { font-size: 10px; color: var(--muted); }
 .monthly-task-grid button { display: grid; gap: 3px; min-height: 40px; padding: 3px; }

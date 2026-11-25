@@ -40,7 +40,10 @@ function fail(code: string, message: string) {
   return { code, message };
 }
 
-export function registerTaskRoutes(app: FastifyInstance, db: DatabaseSync) {
+export function registerTaskRoutes(app: FastifyInstance, db: DatabaseSync, assignments: {
+  detachTask(id: string, remember: boolean): void;
+  restoreTask(id: string): void;
+}) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY, week TEXT NOT NULL, domain TEXT NOT NULL,
@@ -126,14 +129,16 @@ export function registerTaskRoutes(app: FastifyInstance, db: DatabaseSync) {
       && list(updated.week, updated.domain).length >= caps[updated.domain]) {
       return reply.code(409).send(fail('CAP_EXCEEDED', 'The domain is at its weekly task cap.'));
     }
+    if (updated.week !== existing.week) assignments.detachTask(updated.id, false);
     db.prepare('UPDATE tasks SET week = ?, domain = ?, payload = ? WHERE id = ?').run(updated.week, updated.domain, JSON.stringify(updated), updated.id);
     return updated;
   }));
 
-  app.delete<WithId>('/tasks/:id', { schema: { params: idParams } }, (request, reply) => {
+  app.delete<WithId>('/tasks/:id', { schema: { params: idParams } }, (request, reply) => transaction(() => {
+    assignments.detachTask(request.params.id, true);
     db.prepare('UPDATE tasks SET deleted = 1 WHERE id = ?').run(request.params.id);
     return reply.code(204).send();
-  });
+  }));
 
   app.post<WithId>('/tasks/:id/restore', {
     schema: { params: idParams, response: { 200: taskSchema, 404: errors } },
@@ -141,6 +146,7 @@ export function registerTaskRoutes(app: FastifyInstance, db: DatabaseSync) {
     const task = find(request.params.id, 1) ?? find(request.params.id);
     if (!task) return reply.code(404).send(fail('TASK_NOT_FOUND', 'Task was not found.'));
     db.prepare('UPDATE tasks SET deleted = 0 WHERE id = ?').run(task.id);
+    assignments.restoreTask(task.id);
     return task;
   }));
 

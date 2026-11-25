@@ -5,9 +5,10 @@ import Home from './components/Home.js';
 import MonthlyTasks from './components/MonthlyTasks.js';
 import Registry from './components/Registry.js';
 import Review from './components/Review.js';
+import { LifeSchedule, Plan } from './components/Schedule.js';
 import TopBar from './components/TopBar.js';
 import { QuickTaskDialog, WeeklyTasks } from './components/Tasks.js';
-import { localDate, weekOfDate, weekStart } from './lib/week.js';
+import { adjacentWeek, localDate, weekOfDate, weekStart } from './lib/week.js';
 import type { AppTab, DomainId, ReviewMode, Theme } from './types.js';
 
 function AppContent() {
@@ -64,7 +65,7 @@ function AppContent() {
             <div className="handoff-domain-back">
               <button type="button" className="shell-button" onClick={() => setTab('home')}>← Home</button>
             </div>
-            <Domains activeDomain={domain} onDomainChange={setDomain} />
+            <Domains activeDomain={domain} onDomainChange={setDomain} domainPanel={domain === 'life' ? <LifeSchedule week={week} nextWeek={adjacentWeek(week, 1)} /> : undefined} />
           </>
         ) : tab === 'registry' ? (
           <Registry />
@@ -80,11 +81,7 @@ function AppContent() {
             </label>
           </section>
         ) : (
-          <section className="handoff-page">
-            <h1 className="hf">Plan</h1>
-            <p className="handoff-eyebrow mono">Week of {week}</p>
-            <WeeklyTasks week={week} onAdd={() => setAddingTask({})} carry />
-          </section>
+          <Plan week={week} onAdd={() => setAddingTask({})} />
         )}
       </main>
       {addingTask && <QuickTaskDialog week={addingTask.date ? weekOfDate(addingTask.date) : week} {...(addingTask.date ? { date: addingTask.date } : {})} onClose={() => setAddingTask(null)} />}

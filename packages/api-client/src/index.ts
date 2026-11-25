@@ -18,6 +18,16 @@ export class TaskApiError extends Error {
   }
 }
 
+type PlanPath = paths['/weeks/{week}/plan'];
+type SlotPlanPath = paths['/weeks/{week}/life/{day}/{block}/plan'];
+type SlotActualPath = paths['/weeks/{week}/life/{day}/{block}/act'];
+export type WeekPlan = PlanPath['get']['responses'][200]['content']['application/json'];
+type PlanPatch = PlanPath['put']['requestBody']['content']['application/json'];
+export type LifeWeek = paths['/weeks/{week}/life']['get']['responses'][200]['content']['application/json'];
+export type LifeDay = SlotPlanPath['put']['parameters']['path']['day'];
+export type SlotPlan = NonNullable<SlotPlanPath['put']['requestBody']['content']['application/json']['value']>;
+export type SlotActual = NonNullable<SlotActualPath['put']['requestBody']['content']['application/json']['value']>;
+
 type ReviewRequest = paths['/reviews']['post']['requestBody']['content']['application/json'];
 export type ReviewDraft = paths['/reviews']['post']['responses'][200]['content']['application/json'];
 
@@ -46,6 +56,11 @@ export interface ApiClient {
   getRegistry(): Promise<Registry>;
   getSourceHealth(): Promise<SourceHealth>;
   retrySource(id: string): Promise<SourceHealth[number]>;
+  getWeekPlan(week: string): Promise<WeekPlan>;
+  updateWeekPlan(week: string, patch: PlanPatch): Promise<WeekPlan>;
+  getLifeWeek(week: string): Promise<LifeWeek>;
+  saveSlotPlan(week: string, day: LifeDay, block: number, value: SlotPlan | null): Promise<void>;
+  saveSlotActual(week: string, day: LifeDay, block: number, value: SlotActual | null): Promise<void>;
   getTasks(options: TaskQuery): Promise<Task[]>;
   createTask(input: TaskInput, force?: boolean): Promise<Task>;
   updateTask(id: string, patch: TaskPatch, force?: boolean): Promise<Task>;
@@ -136,6 +151,11 @@ export function createApiClient(baseUrl: string, fetcher: typeof fetch = fetch):
     getRegistry: () => get<Registry>('/registry'),
     getSourceHealth: () => get<SourceHealth>('/sources'),
     retrySource,
+    getWeekPlan: (week) => requestJson<WeekPlan>(`/weeks/${encodeURIComponent(week)}/plan`, 'GET'),
+    updateWeekPlan: (week, patch) => requestJson<WeekPlan>(`/weeks/${encodeURIComponent(week)}/plan`, 'PUT', patch),
+    getLifeWeek: (week) => requestJson<LifeWeek>(`/weeks/${encodeURIComponent(week)}/life`, 'GET'),
+    saveSlotPlan: async (week, day, block, value) => { await requestJson(`/weeks/${encodeURIComponent(week)}/life/${day}/${block}/plan`, 'PUT', { value }); },
+    saveSlotActual: async (week, day, block, value) => { await requestJson(`/weeks/${encodeURIComponent(week)}/life/${day}/${block}/act`, 'PUT', { value }); },
     getTasks: ({ week, domain }) => requestJson<Task[]>(`/tasks?${new URLSearchParams({ week, ...(domain ? { domain } : {}) })}`, 'GET'),
     createTask: (input, force) => requestJson<Task>(`/tasks${force ? '?force=1' : ''}`, 'POST', input),
     updateTask: (id, patch, force) => requestJson<Task>(`/tasks/${encodeURIComponent(id)}${force ? '?force=1' : ''}`, 'PATCH', patch),
