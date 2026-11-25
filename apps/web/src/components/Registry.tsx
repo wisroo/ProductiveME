@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toApiDomainId, useRegistry, useSnapshots } from '../lib/api.js';
+import { toApiDomainId, useRegistry, useSourceHealth } from '../lib/api.js';
 import { domains, type DomainId } from '../types.js';
 import QuerySection from './QuerySection.js';
 
@@ -7,11 +7,11 @@ const syncedDate = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeS
 
 export default function Registry() {
   const registry = useRegistry();
-  const snapshots = useSnapshots();
+  const health = useSourceHealth();
   const [filter, setFilter] = useState<DomainId | 'all'>('all');
   const sources = registry.data ?? [];
   const visible = filter === 'all' ? sources : sources.filter((source) => source.domain === toApiDomainId(filter));
-  const bySource = new Map(snapshots.data?.map((snapshot) => [snapshot.entryId, snapshot]));
+  const bySource = new Map(health.data?.map((state) => [state.id, state]));
 
   return (
     <div className="handoff-page registry-page">
@@ -33,19 +33,19 @@ export default function Registry() {
         </div>
       )}
       <QuerySection title="Source list" isPending={registry.isPending} isError={registry.isError} error={registry.error} empty={false} onRetry={() => void registry.refetch()}>
-        {snapshots.isError && sources.length > 0 && (
+        {health.isError && sources.length > 0 && (
           <div role="alert" className="registry-status-error">
             Could not load source sync status.{' '}
-            <button type="button" className="shell-button" onClick={() => void snapshots.refetch()}>Retry status</button>
+            <button type="button" className="shell-button" onClick={() => void health.refetch()}>Retry status</button>
           </div>
         )}
         {visible.length ? (
           <ul className="registry-list">
             {visible.map((source) => {
-              const snapshot = bySource.get(source.id);
-              const synced = snapshot?.status === 'ok' && !snapshots.isError;
-              const unavailable = !snapshots.isError && snapshot?.status === 'error' && snapshot.error !== 'No snapshots found';
-              const status = snapshots.isError ? 'Unknown' : snapshots.isPending ? 'Checking status…' : synced ? 'Synced' : unavailable ? 'Unavailable' : 'No snapshot yet';
+              const state = health.isError ? undefined : bySource.get(source.id);
+              const status = health.isPending ? 'Checking status…' : state?.status === 'live'
+                ? 'Synced' : state?.status === 'down' ? 'Unavailable' : state?.status === 'idle' ? 'No snapshot yet' : 'Unknown';
+              const lastGood = state?.lastGoodReadAt;
               return (
                 <li key={source.id} className="registry-row">
                   <div>
@@ -55,9 +55,12 @@ export default function Registry() {
                   <span className="registry-chip mono">
                     {domains.find(({ id }) => toApiDomainId(id) === source.domain)?.label ?? source.domain}
                   </span>
-                  <span className="registry-sync mono" data-state={synced ? 'synced' : unavailable ? 'unavailable' : undefined}>
+                  <span className="registry-sync mono" data-state={state?.status === 'live' ? 'synced' : state?.status === 'down' ? 'unavailable' : undefined}>
                     <span aria-hidden="true">● </span>{status}
-                    {synced && <> · <time dateTime={snapshot.fetchedAt}>{syncedDate.format(new Date(snapshot.fetchedAt))}</time></>}
+                    {lastGood && <>
+                      {' · '}{state?.status === 'down' ? 'Last good read ' : ''}
+                      <time dateTime={lastGood}>{syncedDate.format(new Date(lastGood))}</time>
+                    </>}
                   </span>
                 </li>
               );

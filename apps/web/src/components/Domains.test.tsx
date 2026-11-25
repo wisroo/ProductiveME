@@ -11,6 +11,7 @@ const renderDomains = (activeDomain: DomainId, overrides: Partial<ApiClient> = {
   const onDomainChange = vi.fn();
   const api = {
     getRegistry: vi.fn().mockResolvedValue([]),
+    getSourceHealth: vi.fn().mockResolvedValue([]),
     getSnapshots: vi.fn().mockResolvedValue([]),
     getSignals: vi.fn().mockResolvedValue([]),
     getDomains: vi.fn().mockResolvedValue([]),

@@ -12,15 +12,16 @@ it('keeps sources visible through a status error, retries status alone, and filt
     { id: 'portfolio', name: 'Portfolio', kind: 'repo', connector: 'github', locator: 'unused', domain: 'career' },
     { id: 'archive', name: 'Archive', kind: 'folder', connector: 'local-folder', locator: 'unused', domain: 'personal-data' },
   ]);
-  const getSnapshots = vi.fn<ApiClient['getSnapshots']>()
+  const getSourceHealth = vi.fn<ApiClient['getSourceHealth']>()
     .mockRejectedValueOnce(new Error('Offline'))
     .mockResolvedValue([
-      { entryId: 'portfolio', status: 'ok', fetchedAt, items: [] },
-      { entryId: 'archive', status: 'error', fetchedAt, items: [], error: 'No snapshots found' },
+      { id: 'portfolio', status: 'down', lastAttemptAt: '2026-11-25T11:00:00Z', lastGoodReadAt: fetchedAt },
+      { id: 'archive', status: 'idle', lastAttemptAt: null, lastGoodReadAt: null },
     ]);
   const api: ApiClient = {
     getRegistry,
-    getSnapshots,
+    getSourceHealth,
+    getSnapshots: vi.fn(),
     getDomains: vi.fn(),
     getSignals: vi.fn(),
     createReview: vi.fn(),
@@ -37,9 +38,9 @@ it('keeps sources visible through a status error, retries status alone, and filt
   const user = userEvent.setup();
   await user.click(screen.getByRole('button', { name: 'Retry status' }));
   expect(await screen.findByText(/No snapshot yet/)).toBeInTheDocument();
-  expect(screen.getByText(/Synced ·/)).toHaveTextContent('Synced');
+  expect(screen.getByText(/Last good read/)).toHaveTextContent('Unavailable');
   expect(getRegistry).toHaveBeenCalledTimes(1);
-  expect(getSnapshots).toHaveBeenCalledTimes(2);
+  expect(getSourceHealth).toHaveBeenCalledTimes(2);
 
   await user.click(screen.getByRole('button', { name: 'Personal Data 1' }));
   const list = screen.getByRole('list');

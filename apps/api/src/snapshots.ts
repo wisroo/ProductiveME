@@ -36,9 +36,13 @@ function normalizeSnapshot(snapshot: z.infer<typeof snapshotSchema>): Snapshot {
   };
 }
 
-async function latestForEntry(snapshotDir: string, entry: RegistryEntry, fallbackFetchedAt: string): Promise<Snapshot> {
+type SnapshotRead =
+  | { latest: Snapshot; lastGoodReadAt: string | null }
+  | { latest: null; issue: string; missing: boolean };
+
+async function readSourceSnapshots(snapshotDir: string, entry: RegistryEntry): Promise<SnapshotRead> {
   if (!isSafeEntryId(entry.id)) {
-    return errorSnapshot(entry.id, fallbackFetchedAt, 'Unsafe registry entry ID; snapshot source not read');
+    return { latest: null, issue: 'Unsafe registry entry ID; snapshot source not read', missing: false };
   }
 
   let filenames: string[];
@@ -49,13 +53,13 @@ async function latestForEntry(snapshotDir: string, entry: RegistryEntry, fallbac
       .sort();
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return errorSnapshot(entry.id, fallbackFetchedAt, 'No snapshots found');
+      return { latest: null, issue: 'No snapshots found', missing: true };
     }
-    return errorSnapshot(entry.id, fallbackFetchedAt, 'Snapshot source could not be read');
+    return { latest: null, issue: 'Snapshot source could not be read', missing: false };
   }
 
   if (filenames.length === 0) {
-    return errorSnapshot(entry.id, fallbackFetchedAt, 'No snapshots found');
+    return { latest: null, issue: 'No snapshots found', missing: true };
   }
 
   const valid: Array<{ filename: string; snapshot: Snapshot }> = [];
@@ -74,7 +78,9 @@ async function latestForEntry(snapshotDir: string, entry: RegistryEntry, fallbac
     if (timeDifference !== 0) return timeDifference;
     return left.filename < right.filename ? -1 : left.filename > right.filename ? 1 : 0;
   });
-  return valid[0]?.snapshot ?? errorSnapshot(entry.id, fallbackFetchedAt, 'No valid snapshots found');
+  const latest = valid[0]?.snapshot;
+  if (!latest) return { latest: null, issue: 'No valid snapshots found', missing: false };
+  return { latest, lastGoodReadAt: valid.find(({ snapshot }) => snapshot.status === 'ok')?.snapshot.fetchedAt ?? null };
 }
 
 export async function loadLatestSnapshots(
@@ -85,7 +91,25 @@ export async function loadLatestSnapshots(
 ): Promise<Snapshot[]> {
   const selected = domain ? entries.filter((entry) => entry.domain === domain) : entries;
   const fallbackFetchedAt = new Date(now).toISOString();
-  return Promise.all(selected.map((entry) => latestForEntry(snapshotDir, entry, fallbackFetchedAt)));
+  return Promise.all(selected.map(async (entry) => {
+    const read = await readSourceSnapshots(snapshotDir, entry);
+    return read.latest ?? errorSnapshot(entry.id, fallbackFetchedAt, read.issue);
+  }));
+}
+
+export async function loadSourceHealth(snapshotDir: string, entries: RegistryEntry[]) {
+  return Promise.all(entries.map(async (entry) => {
+    const read = await readSourceSnapshots(snapshotDir, entry);
+    if (!read.latest) {
+      return { id: entry.id, status: read.missing ? 'idle' : 'down', lastAttemptAt: null, lastGoodReadAt: null };
+    }
+    return {
+      id: entry.id,
+      status: read.latest.status === 'ok' ? 'live' : 'down',
+      lastAttemptAt: read.latest.fetchedAt,
+      lastGoodReadAt: read.lastGoodReadAt,
+    };
+  }));
 }
 
 export interface DomainRollup {

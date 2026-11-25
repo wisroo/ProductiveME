@@ -1,5 +1,6 @@
 import type { paths } from './openapi.js';
 
+type SourceHealth = paths['/sources']['get']['responses'][200]['content']['application/json'];
 type Registry = paths['/registry']['get']['responses'][200]['content']['application/json'];
 type Snapshots = paths['/snapshots']['get']['responses'][200]['content']['application/json'];
 type Signals = paths['/signals']['get']['responses'][200]['content']['application/json'];
@@ -26,6 +27,7 @@ export class ReviewApiError extends Error {
 
 export interface ApiClient {
   getRegistry(): Promise<Registry>;
+  getSourceHealth(): Promise<SourceHealth>;
   getSnapshots(options?: SnapshotQuery): Promise<Snapshots>;
   getSignals(): Promise<Signals>;
   getDomains(): Promise<Domains>;
@@ -86,6 +88,7 @@ export function createApiClient(baseUrl: string, fetcher: typeof fetch = fetch):
 
   return {
     getRegistry: () => get<Registry>('/registry'),
+    getSourceHealth: () => get<SourceHealth>('/sources'),
     getSnapshots: ({ domain } = {}) => get<Snapshots>(`/snapshots${domain ? `?domain=${encodeURIComponent(domain)}` : ''}`),
     getSignals: () => get<Signals>('/signals'),
     getDomains: () => get<Domains>('/domains'),

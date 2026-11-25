@@ -46,6 +46,11 @@ export function useRegistry() {
   return useQuery({ queryKey: ['registry'], queryFn: () => api.getRegistry() });
 }
 
+export function useSourceHealth() {
+  const api = useApi();
+  return useQuery({ queryKey: ['source-health'], queryFn: () => api.getSourceHealth() });
+}
+
 export function useSnapshots() {
   const api = useApi();
   return useQuery({ queryKey: ['snapshots'], queryFn: () => api.getSnapshots() });

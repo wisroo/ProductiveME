@@ -55,6 +55,23 @@ describe('snapshot read API', () => {
     }
   });
 
+  it('reports the last successful read after a failed sync, and leaves unsynced sources idle', async () => {
+    const { app, snapshotDir } = await fixtureApp();
+    try {
+      await writeFile(join(snapshotDir, 'career-notes', 'failed.json'), JSON.stringify({
+        entryId: 'career-notes', fetchedAt: '2026-10-26T09:00:00+09:00', status: 'error', items: [],
+      }));
+      const response = await app.inject({ method: 'GET', url: '/sources' });
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual(expect.arrayContaining([
+        { id: 'career-notes', status: 'down', lastAttemptAt: '2026-10-26T00:00:00.000Z', lastGoodReadAt: '2026-10-25T09:00:00.000Z' },
+        { id: 'personal-photos', status: 'idle', lastAttemptAt: null, lastGoodReadAt: null },
+      ]));
+    } finally {
+      await app.close();
+    }
+  });
+
   it('filters by a valid domain and rejects an invalid domain query', async () => {
     const { app } = await fixtureApp();
     try {

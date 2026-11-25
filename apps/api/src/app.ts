@@ -6,7 +6,7 @@ import swagger from '@fastify/swagger';
 import { computeSignals, DOMAIN_IDS, parseRegistry } from '@productiveme/core';
 import { createInference, InferenceError, parseInferenceConfig, type InferenceProvider } from './inference.js';
 import { buildReviewPrompt, reviewRange, type ReviewPeriod } from './reviews.js';
-import { loadLatestSnapshots, summarizeDomains } from './snapshots.js';
+import { loadLatestSnapshots, loadSourceHealth, summarizeDomains } from './snapshots.js';
 
 const registryEntrySchema = {
   type: 'object',
@@ -88,6 +88,18 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
   });
 
   app.get('/registry', { schema: { response: { 200: { type: 'array', items: registryEntrySchema } } } }, async () => entries);
+  app.get('/sources', {
+    schema: { response: { 200: { type: 'array', items: {
+      type: 'object',
+      required: ['id', 'status', 'lastAttemptAt', 'lastGoodReadAt'],
+      properties: {
+        id: { type: 'string' },
+        status: { type: 'string', enum: ['idle', 'live', 'down'] },
+        lastAttemptAt: { type: ['string', 'null'], format: 'date-time' },
+        lastGoodReadAt: { type: ['string', 'null'], format: 'date-time' },
+      },
+    } } } },
+  }, async () => loadSourceHealth(snapshotDir, entries));
   app.get('/healthz', {
     schema: { response: { 200: { type: 'object', required: ['status'], properties: { status: { type: 'string', enum: ['ok'] } } } } },
   }, async () => ({ status: 'ok' }));

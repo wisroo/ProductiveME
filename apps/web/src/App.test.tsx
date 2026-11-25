@@ -15,6 +15,7 @@ function renderApp() {
     ],
     getSignals: async () => [],
     getRegistry: async () => [],
+    getSourceHealth: async () => [],
     getSnapshots: async () => [],
   } as unknown as ApiClient;
   return render(<ApiContext.Provider value={api}><App /></ApiContext.Provider>);
