@@ -1,5 +1,8 @@
 # ProductiveME
 
+Use `develop` for day-to-day integration and `main` for releases. See the
+[development workflow](CONTRIBUTING.md) for branches, reviews, and deployment.
+
 ## Run the read API and web app
 
 Install workspace dependencies from the repository root:
