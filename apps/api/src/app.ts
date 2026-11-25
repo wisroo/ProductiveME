@@ -5,7 +5,7 @@ import type { Writable } from 'node:stream';
 import Fastify from 'fastify';
 import { initializeRegistryStore, mergeRegistry } from '@productiveme/sync/registry';
 import swagger from '@fastify/swagger';
-import { computeSignals, DOMAIN_IDS, parseRegistry, type RegistryEntry, type Snapshot } from '@productiveme/core';
+import { computeSignals, DOMAIN_IDS, SOURCE_DOMAIN_IDS, parseRegistry, type RegistryEntry, type Snapshot } from '@productiveme/core';
 import { createInference, InferenceError, parseInferenceConfig, type InferenceProvider } from './inference.js';
 import { buildReviewPrompt, calendarReviewRange, reviewRange, type ReviewPeriod } from './reviews.js';
 import { registerSourceRoutes } from './source-routes.js';
@@ -23,7 +23,7 @@ const registryEntrySchema = {
   properties: {
     id: { type: 'string' }, name: { type: 'string' },
     kind: { type: 'string', enum: ['repo', 'notion-page', 'folder', 'tool', 'project'] },
-    domain: { type: 'string', enum: DOMAIN_IDS }, subdomain: { type: 'string' },
+    domain: { type: 'string', enum: SOURCE_DOMAIN_IDS }, subdomain: { type: 'string' },
     locator: { type: 'string' }, connector: { type: 'string' },
     cadence: { type: 'string', enum: ['weekly', 'monthly', 'quarterly'] },
   },
@@ -127,9 +127,12 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
   let retryInProgress = false;
   app.get('/sources', {
     schema: { response: { 200: { type: 'array', items: sourceHealthSchema } } },
-  }, async () => (await loadSourceHealth(snapshotDir, listEntries())).map((state) => ({
-    ...state, canRetry: retrySource !== undefined,
-  })));
+  }, async () => {
+    const entries = listEntries();
+    return (await loadSourceHealth(snapshotDir, entries)).map((state) => ({
+      ...state, canRetry: retrySource !== undefined && entries.find(({ id }) => id === state.id)?.connector !== 'link',
+    }));
+  });
   app.post<{ Params: { id: string } }>('/sources/:id/retry', {
     schema: {
       params: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } },
@@ -138,7 +141,7 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
   }, async (request, reply) => {
     const entry = listEntries().find(({ id }) => id === request.params.id);
     if (!entry) return reply.code(404).send({ code: 'source_not_found', message: 'Source was not found.' });
-    if (!retrySource) return reply.code(503).send({ code: 'retry_disabled', message: 'Source retry is disabled.' });
+    if (!retrySource || entry.connector === 'link') return reply.code(503).send({ code: 'retry_disabled', message: 'Source retry is disabled.' });
     if (retryInProgress) return reply.code(409).send({ code: 'retry_busy', message: 'Another source retry is running.' });
     retryInProgress = true;
     try {

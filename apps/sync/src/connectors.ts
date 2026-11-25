@@ -106,6 +106,10 @@ async function github(entry: RegistryEntry, fetchImpl: FetchImpl, token?: string
 
 export async function normalizedConnectorLocator(connector: string, locator: string): Promise<string | undefined> {
   try {
+    if (connector === 'link') {
+      const url = new URL(locator);
+      return url.protocol === 'https:' && !url.username && !url.password ? url.toString() : undefined;
+    }
     if (connector === 'github') {
       const url = new URL(locator);
       if (url.username || url.password || url.port) return undefined;

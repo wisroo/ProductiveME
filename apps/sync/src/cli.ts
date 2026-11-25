@@ -23,7 +23,7 @@ export async function runSyncCommand(
   const { root } = parseSyncArgs(args);
   const base = parseRegistry(await readFile(join(root, 'registry.yaml'), 'utf8'));
   const statePath = process.env.PRODUCTIVEME_STATE_PATH ?? join(root, '.productiveme', 'state.sqlite');
-  const entries = readConfiguredSources(base, statePath);
+  const entries = readConfiguredSources(base, statePath).filter(({ connector }) => connector !== 'link');
   const connectors = createConnectors({ githubToken: process.env.GITHUB_TOKEN, notionToken: process.env.NOTION_TOKEN });
   const snapshots = await runSync(entries, connectors, join(root, 'snapshots'), now);
   return { total: snapshots.length, errors: snapshots.filter((snapshot) => snapshot.status === 'error').length };

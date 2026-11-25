@@ -89,7 +89,7 @@ export async function loadLatestSnapshots(
   domain?: DomainId,
   now = new Date().toISOString(),
 ): Promise<Snapshot[]> {
-  const selected = domain ? entries.filter((entry) => entry.domain === domain) : entries;
+  const selected = entries.filter((entry) => entry.connector !== 'link' && (!domain || entry.domain === domain));
   const fallbackFetchedAt = new Date(now).toISOString();
   return Promise.all(selected.map(async (entry) => {
     const read = await readSourceSnapshots(snapshotDir, entry);
@@ -99,6 +99,7 @@ export async function loadLatestSnapshots(
 
 export async function loadSourceHealth(snapshotDir: string, entries: RegistryEntry[]) {
   return Promise.all(entries.map(async (entry) => {
+    if (entry.connector === 'link') return { id: entry.id, status: 'idle', lastAttemptAt: null, lastGoodReadAt: null };
     const read = await readSourceSnapshots(snapshotDir, entry);
     if (!read.latest) {
       return { id: entry.id, status: read.missing ? 'idle' : 'down', lastAttemptAt: null, lastGoodReadAt: null };
@@ -125,7 +126,7 @@ export interface DomainRollup {
 export function summarizeDomains(entries: RegistryEntry[], snapshots: Snapshot[]): DomainRollup[] {
   const byEntry = new Map(snapshots.map((snapshot) => [snapshot.entryId, snapshot]));
   return DOMAIN_IDS.map((domain) => {
-    const domainEntries = entries.filter((entry) => entry.domain === domain);
+    const domainEntries = entries.filter((entry) => entry.domain === domain && entry.connector !== 'link');
     const domainSnapshots = domainEntries.flatMap((entry) => {
       const snapshot = byEntry.get(entry.id);
       return snapshot ? [snapshot] : [];

@@ -35,7 +35,8 @@
                       "career",
                       "finance",
                       "personal-data",
-                      "life"
+                      "life",
+                      "tools"
                     ]
                   },
                   "locator": {
@@ -49,7 +50,8 @@
                       "github",
                       "notion",
                       "notion-data-source",
-                      "managed-folder"
+                      "managed-folder",
+                      "link"
                     ]
                   }
                 }
@@ -95,7 +97,8 @@
                         "career",
                         "finance",
                         "personal-data",
-                        "life"
+                        "life",
+                        "tools"
                       ]
                     },
                     "subdomain": {
@@ -238,7 +241,8 @@
                       "career",
                       "finance",
                       "personal-data",
-                      "life"
+                      "life",
+                      "tools"
                     ]
                   }
                 },
@@ -296,7 +300,8 @@
                         "career",
                         "finance",
                         "personal-data",
-                        "life"
+                        "life",
+                        "tools"
                       ]
                     },
                     "subdomain": {
@@ -454,7 +459,8 @@
                       "career",
                       "finance",
                       "personal-data",
-                      "life"
+                      "life",
+                      "tools"
                     ]
                   },
                   "locator": {
@@ -468,7 +474,8 @@
                       "github",
                       "notion",
                       "notion-data-source",
-                      "managed-folder"
+                      "managed-folder",
+                      "link"
                     ]
                   }
                 }
@@ -606,7 +613,8 @@
                           "career",
                           "finance",
                           "personal-data",
-                          "life"
+                          "life",
+                          "tools"
                         ]
                       },
                       "subdomain": {

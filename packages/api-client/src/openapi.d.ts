@@ -53,10 +53,10 @@ export interface paths {
                     "application/json": {
                         name: string;
                         /** @enum {string} */
-                        domain: "career" | "finance" | "personal-data" | "life";
+                        domain: "career" | "finance" | "personal-data" | "life" | "tools";
                         locator: string;
                         /** @enum {string} */
-                        connector: "github" | "notion" | "notion-data-source" | "managed-folder";
+                        connector: "github" | "notion" | "notion-data-source" | "managed-folder" | "link";
                     };
                 };
             };
@@ -73,7 +73,7 @@ export interface paths {
                             /** @enum {string} */
                             kind: "repo" | "notion-page" | "folder" | "tool" | "project";
                             /** @enum {string} */
-                            domain: "career" | "finance" | "personal-data" | "life";
+                            domain: "career" | "finance" | "personal-data" | "life" | "tools";
                             subdomain?: string;
                             locator: string;
                             connector: string;
@@ -165,7 +165,7 @@ export interface paths {
                     "application/json": {
                         name?: string;
                         /** @enum {string} */
-                        domain?: "career" | "finance" | "personal-data" | "life";
+                        domain?: "career" | "finance" | "personal-data" | "life" | "tools";
                     };
                 };
             };
@@ -182,7 +182,7 @@ export interface paths {
                             /** @enum {string} */
                             kind: "repo" | "notion-page" | "folder" | "tool" | "project";
                             /** @enum {string} */
-                            domain: "career" | "finance" | "personal-data" | "life";
+                            domain: "career" | "finance" | "personal-data" | "life" | "tools";
                             subdomain?: string;
                             locator: string;
                             connector: string;
@@ -252,10 +252,10 @@ export interface paths {
                     "application/json": {
                         name: string;
                         /** @enum {string} */
-                        domain: "career" | "finance" | "personal-data" | "life";
+                        domain: "career" | "finance" | "personal-data" | "life" | "tools";
                         locator: string;
                         /** @enum {string} */
-                        connector: "github" | "notion" | "notion-data-source" | "managed-folder";
+                        connector: "github" | "notion" | "notion-data-source" | "managed-folder" | "link";
                     };
                 };
             };
@@ -343,7 +343,7 @@ export interface paths {
                             /** @enum {string} */
                             kind: "repo" | "notion-page" | "folder" | "tool" | "project";
                             /** @enum {string} */
-                            domain: "career" | "finance" | "personal-data" | "life";
+                            domain: "career" | "finance" | "personal-data" | "life" | "tools";
                             subdomain?: string;
                             locator: string;
                             connector: string;

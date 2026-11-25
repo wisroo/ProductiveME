@@ -24,6 +24,13 @@ it('shares source registration with Sync, refreshes without restart, and keeps s
     expect(removed.statusCode).toBe(204);
     expect((await app.inject('/registry')).json()).toEqual([]);
     expect(readConfiguredSources([], statePath)).toEqual([]);
+    const link = await app.inject({ method: 'POST', url: '/sources', payload: {
+      name: 'Workspace', connector: 'link', domain: 'tools', locator: 'https://example.test/workspace',
+    } });
+    expect(link.statusCode).toBe(201);
+    const alerts = await app.inject('/signals');
+    expect(alerts.json()).toEqual([]);
+    expect((await app.inject('/domains')).json()).toHaveLength(4);
   } finally {
     await app.close();
     await rm(dir, { recursive: true, force: true });

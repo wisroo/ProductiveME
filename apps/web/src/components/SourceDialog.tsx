@@ -10,6 +10,7 @@ const kinds = [
   { id: 'notion', label: 'Notion page' },
   { id: 'notion-data-source', label: 'Notion data source' },
   { id: 'managed-folder', label: 'Folder' },
+  { id: 'link', label: 'Link' },
 ] as const;
 
 type Props = {
@@ -44,14 +45,15 @@ export default function SourceDialog({ source, remove, sourceCount, onClose }: P
     return () => { if (trigger instanceof HTMLElement) trigger.focus(); };
   }, []);
 
-  function input() {
+  function input(): SourceInput | undefined {
     if (!form.current?.reportValidity()) return undefined;
     const data = new FormData(form.current);
-    const domain = domains.find(({ id }) => toApiDomainId(id) === data.get('domain'));
+    const field = data.get('domain');
+    const domain = field === 'tools' ? 'tools' : domains.map(({ id }) => toApiDomainId(id)).find((id) => id === field);
     if (!domain) return undefined;
     return {
       name: String(data.get('name') ?? '').trim(), connector: kind,
-      domain: toApiDomainId(domain.id), locator: String(data.get('locator') ?? ''),
+      domain, locator: String(data.get('locator') ?? ''),
     };
   }
 
@@ -82,6 +84,7 @@ export default function SourceDialog({ source, remove, sourceCount, onClose }: P
             <label>Name <input name="name" defaultValue={source?.name} required maxLength={120} disabled={busy} /></label>
             <label>Domain <select name="domain" defaultValue={source?.domain ?? 'career'} disabled={busy}>
               {domains.map(({ id, label }) => <option key={id} value={toApiDomainId(id)}>{label}</option>)}
+              <option value="tools">Toolbox</option>
             </select></label>
             {!source && <p>ProductiveME reads from this source using the connector configured on the server.</p>}
           </>
@@ -90,7 +93,7 @@ export default function SourceDialog({ source, remove, sourceCount, onClose }: P
         {test.isError && <p role="alert">{test.error.message}</p>}
         {save.isError && <p role="alert">{save.error.message}</p>}
         <div className="task-actions">
-          {!source && <button type="button" className="shell-button" disabled={busy} onClick={() => {
+          {!source && kind !== 'link' && <button type="button" className="shell-button" disabled={busy} onClick={() => {
             const candidate = input();
             if (candidate) test.mutate(candidate);
           }}>{test.isPending ? 'Testing…' : 'Test connection'}</button>}

@@ -22,12 +22,13 @@ export default function Registry() {
   });
   const registry = useRegistry();
   const health = useSourceHealth();
-  const [filter, setFilter] = useState<DomainId | 'all' | 'down'>('all');
+  const [filter, setFilter] = useState<DomainId | 'all' | 'down' | 'tools'>('all');
   const [editor, setEditor] = useState<{ source?: RegistrySource; remove?: boolean } | null>(null);
   const sources = registry.data ?? [];
   const bySource = new Map(health.data?.map((state) => [state.id, state]));
+  const toolbox = sources.filter(({ domain }) => domain === 'tools');
   const down = sources.filter(({ id }) => bySource.get(id)?.status === 'down');
-  const visible = filter === 'all' ? sources : filter === 'down' ? down : sources.filter((source) => source.domain === toApiDomainId(filter));
+  const visible = filter === 'all' ? sources : filter === 'down' ? down : filter === 'tools' ? toolbox : sources.filter((source) => source.domain === toApiDomainId(filter));
 
   return (
     <div className="handoff-page registry-page">
@@ -49,6 +50,7 @@ export default function Registry() {
               {label} {sources.filter((source) => source.domain === toApiDomainId(id)).length}
             </button>
           ))}
+          <button type="button" aria-pressed={filter === 'tools'} onClick={() => setFilter('tools')}>Toolbox {toolbox.length}</button>
           {health.isSuccess && <button type="button" aria-pressed={filter === 'down'} onClick={() => setFilter('down')}>Down {down.length}</button>}
         </div>
       )}
@@ -63,17 +65,21 @@ export default function Registry() {
           <ul className="registry-list">
             {visible.map((source) => {
               const state = health.isError ? undefined : bySource.get(source.id);
-              const status = health.isPending ? 'Checking status…' : state?.status === 'live'
+              const status = source.connector === 'link' ? 'Link only' : health.isPending ? 'Checking status…' : state?.status === 'live'
                 ? 'Synced' : state?.status === 'down' ? 'Unavailable' : state?.status === 'idle' ? 'No snapshot yet' : 'Unknown';
               const lastGood = state?.lastGoodReadAt;
               return (
                 <li key={source.id} className="registry-row">
                   <div>
                     <button type="button" className="source-name" onClick={() => setEditor({ source })}>{source.name}</button>
-                    <div className="registry-detail mono">{source.kind} · {source.connector}</div>
+                    <div className="registry-detail mono">{source.kind} · {source.connector}
+                      {source.connector === 'link' && URL.parse(source.locator)?.protocol === 'https:' && (
+                        <> · <a href={source.locator} rel="noreferrer" target="_blank">Open ↗</a></>
+                      )}
+                    </div>
                   </div>
                   <span className="registry-chip mono">
-                    {domains.find(({ id }) => toApiDomainId(id) === source.domain)?.label ?? source.domain}
+                    {domains.find(({ id }) => toApiDomainId(id) === source.domain)?.label ?? (source.domain === 'tools' ? 'Toolbox' : source.domain)}
                   </span>
                   <span className="registry-sync mono" data-state={state?.status === 'live' ? 'synced' : state?.status === 'down' ? 'unavailable' : undefined}>
                     <span aria-hidden="true">● </span>{status}

@@ -10,7 +10,7 @@ export function domainNeglected(
   const latest = latestSnapshots(snapshots);
   const signals: Signal[] = [];
   for (const domain of DOMAIN_IDS) {
-    const domainEntries = entries.filter((entry) => entry.domain === domain);
+    const domainEntries = entries.filter((entry) => entry.domain === domain && entry.connector !== 'link');
     if (domainEntries.length === 0) continue;
     let newest: string | undefined;
     for (const entry of domainEntries) {

@@ -1,13 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
-import { DOMAIN_IDS, type DomainId, type RegistryEntry } from '@productiveme/core';
+import { SOURCE_DOMAIN_IDS, type SourceDomain, type RegistryEntry } from '@productiveme/core';
 import { normalizedConnectorLocator } from '@productiveme/sync/connectors';
 import type { FastifyInstance } from 'fastify';
 
-const connectors = ['github', 'notion', 'notion-data-source', 'managed-folder'] as const;
-type SourceInput = { name: string; domain: DomainId; locator: string; connector: typeof connectors[number] };
+const connectors = ['github', 'notion', 'notion-data-source', 'managed-folder', 'link'] as const;
+type SourceInput = { name: string; domain: SourceDomain; locator: string; connector: typeof connectors[number] };
 const name = { type: 'string', minLength: 1, maxLength: 120 } as const;
-const domain = { type: 'string', enum: DOMAIN_IDS } as const;
+const domain = { type: 'string', enum: SOURCE_DOMAIN_IDS } as const;
 const sourceBody = {
   type: 'object', required: ['name', 'domain', 'locator', 'connector'], additionalProperties: false,
   properties: { name, domain, locator: { type: 'string', minLength: 1, maxLength: 2048 }, connector: { type: 'string', enum: connectors } },
@@ -20,7 +20,7 @@ export function registerSourceRoutes(app: FastifyInstance, db: DatabaseSync, sou
   const makeEntry = async (input: SourceInput): Promise<RegistryEntry | undefined> => {
     const locator = await normalizedConnectorLocator(input.connector, input.locator.trim());
     if (!locator || !input.name.trim()) return undefined;
-    const kind = input.connector === 'github' ? 'repo' : input.connector === 'managed-folder' ? 'folder' : 'notion-page';
+    const kind = input.connector === 'github' ? 'repo' : input.connector === 'managed-folder' ? 'folder' : input.connector === 'link' ? 'tool' : 'notion-page';
     return { id: randomUUID(), name: input.name.trim(), domain: input.domain, connector: input.connector, locator, kind };
   };
   const save = (id: string, entry: RegistryEntry | null) => {
@@ -80,7 +80,7 @@ export function registerSourceRoutes(app: FastifyInstance, db: DatabaseSync, sou
   }, async ({ body }, reply) => {
     const entry = await makeEntry(body);
     if (!entry) return reply.code(400).send({ code: 'INVALID_SOURCE', message: 'Enter a supported source and a valid locator.' });
-    if (!testSource) return reply.code(503).send({ code: 'SOURCE_TEST_DISABLED', message: 'Connection testing is disabled.' });
+    if (!testSource || entry.connector === 'link') return reply.code(503).send({ code: 'SOURCE_TEST_DISABLED', message: 'Connection testing is disabled.' });
     if (testing) return reply.code(409).send({ code: 'SOURCE_TEST_BUSY', message: 'Another connection test is running.' });
     testing = true;
     try {
