@@ -1,6 +1,6 @@
 import { parse } from 'yaml';
 import { z } from 'zod';
-import { CADENCES, DOMAIN_IDS, ENTRY_KINDS, type RegistryEntry } from './types.js';
+import { CADENCES, SOURCE_DOMAIN_IDS, ENTRY_KINDS, type RegistryEntry } from './types.js';
 
 export class RegistryValidationError extends Error {
   constructor(message: string) {
@@ -13,7 +13,7 @@ const entrySchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   kind: z.enum(ENTRY_KINDS),
-  domain: z.enum(DOMAIN_IDS),
+  domain: z.enum(SOURCE_DOMAIN_IDS),
   subdomain: z.string().min(1).optional(),
   locator: z.string().min(1),
   connector: z.string().min(1),

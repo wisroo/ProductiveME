@@ -16,6 +16,42 @@ export function reviewRange(period: ReviewPeriod, now: string): { start: string;
   return { start: startDate.toISOString(), end: endDate.toISOString() };
 }
 
+export function calendarReviewRange(
+  period: ReviewPeriod, periodStart: string, now: string, timeZone = 'UTC',
+): { start: string; end: string } | undefined {
+  const start = new Date(`${periodStart}T00:00:00Z`);
+  const nowTime = Date.parse(now);
+  if (!Number.isFinite(start.valueOf())) return undefined;
+  if (period === 'weekly' ? start.getUTCDay() !== 1 : start.getUTCDate() !== 1) return undefined;
+  const next = new Date(start);
+  if (period === 'weekly') next.setUTCDate(next.getUTCDate() + 7);
+  else next.setUTCMonth(next.getUTCMonth() + 1);
+
+  let format: Intl.DateTimeFormat;
+  try {
+    format = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' });
+  } catch {
+    return undefined;
+  }
+  const boundary = (day: Date) => {
+    const target = day.toISOString().slice(0, 10);
+    let low = day.valueOf() - 86_400_000;
+    let high = day.valueOf() + 86_400_000;
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+      const parts = format.formatToParts(middle);
+      const local = ['year', 'month', 'day'].map((type) => parts.find((part) => part.type === type)?.value).join('-');
+      if (local < target) low = middle + 1;
+      else high = middle;
+    }
+    return low;
+  };
+  const from = boundary(start);
+  if (!Number.isFinite(nowTime) || from > nowTime) return undefined;
+  const end = Math.min(boundary(next) - 1, nowTime);
+  return { start: new Date(from).toISOString(), end: new Date(end).toISOString() };
+}
+
 function short(value: string | undefined, maxLength: number): string {
   return (value ?? '').replace(/[\r\n\t]+/g, ' ').slice(0, maxLength);
 }

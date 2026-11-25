@@ -1,5 +1,7 @@
 export const DOMAIN_IDS = ['career', 'finance', 'personal-data', 'life'] as const;
 export type DomainId = (typeof DOMAIN_IDS)[number];
+export const SOURCE_DOMAIN_IDS = [...DOMAIN_IDS, 'tools'] as const;
+export type SourceDomain = (typeof SOURCE_DOMAIN_IDS)[number];
 
 export const SUBDOMAINS: Record<DomainId, readonly string[]> = {
   career: ['work', 'study', 'dream'],
@@ -18,7 +20,7 @@ export interface RegistryEntry {
   id: string;
   name: string;
   kind: EntryKind;
-  domain: DomainId;
+  domain: SourceDomain;
   subdomain?: string;
   /** URL or filesystem path identifying the thing in its source system. */
   locator: string;

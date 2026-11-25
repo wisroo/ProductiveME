@@ -1,8 +1,8 @@
-import { lstat, readdir, readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { lstat, readdir, readFile, realpath } from 'node:fs/promises';
+import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { RegistryEntry, Snapshot, SnapshotItem } from '@productiveme/core';
-import { loadNotion } from './notion.js';
+import { loadNotion, notionId } from './notion.js';
 import type { Connector } from './sync.js';
 
 type FetchImpl = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
@@ -104,11 +104,44 @@ async function github(entry: RegistryEntry, fetchImpl: FetchImpl, token?: string
   }
 }
 
+export async function normalizedConnectorLocator(connector: string, locator: string): Promise<string | undefined> {
+  try {
+    if (connector === 'link') {
+      const url = new URL(locator);
+      return url.protocol === 'https:' && !url.username && !url.password ? url.toString() : undefined;
+    }
+    if (connector === 'github') {
+      const url = new URL(locator);
+      if (url.username || url.password || url.port) return undefined;
+      if (!/^\/[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+\/?$/.test(url.pathname)) return undefined;
+      const repository = githubRepo(locator);
+      return `https://github.com/${repository.toLowerCase()}`;
+    }
+    if (connector === 'notion' || connector === 'notion-data-source') return notionId(locator, connector === 'notion-data-source');
+    if (connector === 'managed-folder') {
+      const configured = process.env.SOURCE_FOLDER_ROOT;
+      if (!configured || !isAbsolute(configured) || !isAbsolute(locator)) return undefined;
+      const candidate = await realpath(locator);
+      const root = await realpath(configured);
+      const within = relative(root, candidate);
+      if (within === '..' || within.startsWith(`..${sep}`) || isAbsolute(within)) return undefined;
+      return (await lstat(candidate)).isDirectory() ? candidate : undefined;
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
+
 export function createConnectors(options: ConnectorOptions = {}): Map<string, Connector> {
   const fetchImpl = options.fetchImpl ?? globalThis.fetch;
-  return new Map([
+  return new Map<string, Connector>([
     ['static-file', { load: staticFile }],
     ['local-folder', { load: localFolder }],
+    ['managed-folder', { load: async (entry) => {
+      const locator = await normalizedConnectorLocator('managed-folder', entry.locator);
+      return locator ? localFolder({ ...entry, locator }) : errorSnapshot(entry, 'local folder could not be read');
+    } }],
     ['notion-data-source', { load: (entry: RegistryEntry) => loadNotion(entry, fetchImpl, options.notionToken) }],
     ['notion', { load: (entry: RegistryEntry) => loadNotion(entry, fetchImpl, options.notionToken) }],
     ['github', { load: (entry: RegistryEntry) => github(entry, fetchImpl, options.githubToken) }],

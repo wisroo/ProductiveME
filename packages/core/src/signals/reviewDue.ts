@@ -1,4 +1,4 @@
-import type { Cadence, RegistryEntry, Signal, Snapshot } from '../types.js';
+import { isDomainId, type Cadence, type RegistryEntry, type Signal, type Snapshot } from '../types.js';
 import { daysBetween, lastActivity, latestSnapshots } from './helpers.js';
 
 export const CADENCE_DAYS: Record<Cadence, number> = {
@@ -11,7 +11,7 @@ export function reviewDue(entries: RegistryEntry[], snapshots: Snapshot[], now: 
   const latest = latestSnapshots(snapshots);
   const signals: Signal[] = [];
   for (const entry of entries) {
-    if (!entry.cadence) continue;
+    if (!entry.cadence || entry.connector === 'link' || !isDomainId(entry.domain)) continue;
     const activity = lastActivity(latest.get(entry.id), now);
     const overdue = !activity || daysBetween(activity, now) > CADENCE_DAYS[entry.cadence];
     if (overdue) {

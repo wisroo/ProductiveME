@@ -41,14 +41,53 @@ which are labeled separately from live API data.
 Run the sync worker manually with `pnpm sync run` from the repository root.
 It reads `registry.yaml` and writes validated snapshot history under
 `snapshots/<registry-entry-id>/`. Pass `--root <path>` to use a different
-checkout or a temporary registry. Configure a GitHub personal access token in
-`GITHUB_TOKEN` only when private repository access is needed; it is not saved.
+checkout or a temporary registry. Set `GITHUB_TOKEN` in the process environment
+for private repositories or when the unauthenticated API quota is exhausted.
 For scheduled runs, add an OS cron entry such as `0 * * * * cd /path/to/ProductiveME && pnpm sync run`.
 
 The `static-file` connector reads a Snapshot JSON fixture from a local path or
 `file://` URL. `local-folder` records immediate file and directory children,
 using modification times as activity timestamps. `github` reads repository
 metadata and recent repository events using GitHub's REST API.
+
+### Manage registered sources
+
+`registry.yaml` supplies the initial source configuration. Changes made in
+Registry are stored in the shared SQLite state file and read by API and Sync.
+Removing a source hides it from future collection and keeps its snapshots and
+the remote source intact. Register GitHub repositories, Notion pages or data
+source IDs, and folders under an explicitly configured `SOURCE_FOLDER_ROOT`.
+For native folder collection, configure the same allowed root on API and Sync.
+When using Compose with folders, both processes need the same readable mount
+and allowed root. Other sources can remain configured in YAML.
+
+### Retry a registered source
+
+Registry shows the latest attempt and the last successful source read. To
+enable single-source Retry in a local native API, start the API with
+`SOURCE_RETRY_ENABLED=1` and give it the same connector credentials and
+writable snapshot directory used by the Sync worker. Retry uses the source's
+existing registry entry and writes a new snapshot. The standard Compose API
+has a read-only snapshot mount and runs with Retry disabled.
+
+### Run a persistent local workspace
+
+To keep personal state separate from the sample registry, use a directory
+under the ignored `.productiveme/` path with its own `registry.yaml` containing
+`entries: []` on first setup. For example, run the API and web in separate
+terminals:
+
+```sh
+PRODUCTIVEME_REGISTRY_PATH="$PWD/.productiveme/local/registry.yaml" API_PORT=3018 SOURCE_RETRY_ENABLED=1 pnpm --filter @productiveme/api dev
+PRODUCTIVEME_DEV_API_URL=http://127.0.0.1:3018 pnpm --filter @productiveme/web dev --host 127.0.0.1 --port 5188 --strictPort
+```
+
+The API stores SQLite state and JSON snapshots next to that registry. Register
+sources in the web app. To run a full pass over that workspace, use
+`pnpm sync run --root "$PWD/.productiveme/local"`. Supply `GITHUB_TOKEN` to
+both the API and Sync process if GitHub authentication is needed. Synced data
+and edits stay on this Mac, and the app is available while the local processes
+are running.
 
 ## Local inference and review drafts
 
@@ -216,8 +255,11 @@ The API is available at `http://127.0.0.1:3000`; set `API_PUBLISHED_PORT` to
 choose a different host port. The API process listens on all interfaces inside
 its container, while Compose publishes it only on host loopback. The API sees
 the repository registry and shared snapshots read-only. Sync can write the
-same named snapshot volume. To stop the API and remove the local volume, run
-`docker compose down --volumes`.
+same named snapshot volume. Stop local containers with `docker compose down`. The `snapshots` and
+`app-state` volumes persist across restarts. The latter contains SQLite
+records for tasks, plans, reviews, finance, settings, and source changes.
+`docker compose down --volumes` deletes both volumes and is only for
+an intentional reset after backup.
 
 `API_HOST` and `API_PORT` configure the process listener (defaults:
 `127.0.0.1` and `3000`; Compose sets the container host to `0.0.0.0`). API

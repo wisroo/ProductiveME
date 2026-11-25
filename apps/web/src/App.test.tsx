@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { ApiClient } from '@productiveme/api-client';
@@ -15,6 +15,14 @@ function renderApp() {
     ],
     getSignals: async () => [],
     getRegistry: async () => [],
+    getHomeStatus: async () => ({ domains: [], sourceAlerts: [] }),
+    getDomainStatus: async () => null,
+    getTasks: async () => [],
+    getFinanceSnapshots: async () => [],
+    getSettings: async () => ({ reviewDefault: 'weekly' }),
+    getLifeWeek: async () => ({}),
+    getReviewDraft: async () => null,
+    getSourceHealth: async () => [],
     getSnapshots: async () => [],
   } as unknown as ApiClient;
   return render(<ApiContext.Provider value={api}><App /></ApiContext.Provider>);
@@ -29,13 +37,15 @@ describe('App shell', () => {
       screen.getByRole('heading', { name: 'Where should your attention go?' }),
     ).toBeInTheDocument();
 
+    expect(screen.getByRole('button', { name: 'Plan' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Review' }));
     expect(
       screen.getByRole('heading', { name: 'Weekly review' }),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'MCP' }));
-    expect(screen.getByRole('heading', { name: 'MCP' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Registry' }));
+    expect(screen.getByRole('heading', { name: 'Connected sources' })).toBeInTheDocument();
+    expect(await screen.findByText('No connected sources yet.')).toBeInTheDocument();
   });
 
   it('marks only the active primary tab', async () => {
@@ -75,7 +85,7 @@ describe('App shell', () => {
     await user.click(await screen.findByRole('button', { name: 'Career' }));
 
     expect(screen.getByRole('heading', { name: 'Career' })).toBeInTheDocument();
-    expect(screen.getByText('STUDY · WRITING BY FIELD')).toBeInTheDocument();
+    expect(screen.getByText('Study · writing by field')).toBeInTheDocument();
   });
 
   it('opens Finance from its Home card', async () => {
@@ -107,15 +117,19 @@ describe('App shell', () => {
       screen.getByRole('heading', { name: 'Weekly review' }),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'MONTHLY' }));
+    expect(await screen.findByText('No tasks are planned for this week.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Monthly' }));
     expect(
       screen.getByRole('heading', { name: 'Monthly review' }),
     ).toBeInTheDocument();
+    const calendar = within(await screen.findByRole('region', { name: 'Monthly tasks' }));
+    expect(await calendar.findByText('No tasks for this day.')).toBeInTheDocument();
+    expect(calendar.queryByText('0%')).not.toBeInTheDocument();
   });
 
   it('keeps the current week visible in the top bar', () => {
     renderApp();
 
-    expect(screen.getByText('WK 29 · JUL 13–19')).toBeInTheDocument();
+    expect(screen.getByLabelText('Current week')).toHaveTextContent(/WK \d{2}/);
   });
 });

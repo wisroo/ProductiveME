@@ -1,4 +1,4 @@
-import type { RegistryEntry, Signal, Snapshot } from '../types.js';
+import { isDomainId, type RegistryEntry, type Signal, type Snapshot } from '../types.js';
 import { latestSnapshots } from './helpers.js';
 
 export function connectorBlocked(entries: RegistryEntry[], snapshots: Snapshot[]): Signal[] {
@@ -7,7 +7,7 @@ export function connectorBlocked(entries: RegistryEntry[], snapshots: Snapshot[]
   const signals: Signal[] = [];
   for (const [entryId, snapshot] of latest) {
     const entry = byId.get(entryId);
-    if (!entry || snapshot.status !== 'error') continue;
+    if (!entry || !isDomainId(entry.domain) || snapshot.status !== 'error') continue;
     signals.push({
       severity: 'blocked',
       domain: entry.domain,

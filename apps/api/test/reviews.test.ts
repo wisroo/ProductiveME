@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildReviewPrompt, reviewRange } from '../src/reviews.js';
+import { buildReviewPrompt, calendarReviewRange, reviewRange } from '../src/reviews.js';
 
 describe('review prompt context', () => {
   it('builds a bounded prompt from successful snapshot facts without locators', () => {
@@ -45,5 +45,12 @@ describe('review prompt context', () => {
     expect(prompt.length).toBeLessThanOrEqual(900);
     expect(prompt).toContain('BLOCKED_SIGNAL_FACT');
     expect(prompt).toContain('DUE_SIGNAL_FACT');
+  });
+});
+
+it('aligns a calendar week with the local Monday before UTC reaches that date', () => {
+  expect(calendarReviewRange('weekly', '2026-11-23', '2026-11-22T16:00:00Z', 'Asia/Seoul')).toEqual({
+    start: '2026-11-22T15:00:00.000Z',
+    end: '2026-11-22T16:00:00.000Z',
   });
 });

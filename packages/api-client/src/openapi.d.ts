@@ -4,6 +4,317 @@
  */
 
 export interface paths {
+    "/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** @enum {string} */
+                            status: "idle" | "live" | "down";
+                            /** Format: date-time */
+                            lastAttemptAt: string | null;
+                            /** Format: date-time */
+                            lastGoodReadAt: string | null;
+                            canRetry: boolean;
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** @enum {string} */
+                        domain: "career" | "finance" | "personal-data" | "life" | "tools";
+                        locator: string;
+                        /** @enum {string} */
+                        connector: "github" | "notion" | "notion-data-source" | "managed-folder" | "link";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            kind: "repo" | "notion-page" | "folder" | "tool" | "project";
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life" | "tools";
+                            subdomain?: string;
+                            locator: string;
+                            connector: string;
+                            /** @enum {string} */
+                            cadence?: "weekly" | "monthly" | "quarterly";
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sources/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        /** @enum {string} */
+                        domain?: "career" | "finance" | "personal-data" | "life" | "tools";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            kind: "repo" | "notion-page" | "folder" | "tool" | "project";
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life" | "tools";
+                            subdomain?: string;
+                            locator: string;
+                            connector: string;
+                            /** @enum {string} */
+                            cadence?: "weekly" | "monthly" | "quarterly";
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/sources/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** @enum {string} */
+                        domain: "career" | "finance" | "personal-data" | "life" | "tools";
+                        locator: string;
+                        /** @enum {string} */
+                        connector: "github" | "notion" | "notion-data-source" | "managed-folder" | "link";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            reachable: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/registry": {
         parameters: {
             query?: never;
@@ -32,7 +343,7 @@ export interface paths {
                             /** @enum {string} */
                             kind: "repo" | "notion-page" | "folder" | "tool" | "project";
                             /** @enum {string} */
-                            domain: "career" | "finance" | "personal-data" | "life";
+                            domain: "career" | "finance" | "personal-data" | "life" | "tools";
                             subdomain?: string;
                             locator: string;
                             connector: string;
@@ -45,6 +356,88 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sources/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** @enum {string} */
+                            status: "idle" | "live" | "down";
+                            /** Format: date-time */
+                            lastAttemptAt: string | null;
+                            /** Format: date-time */
+                            lastGoodReadAt: string | null;
+                            canRetry: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -264,6 +657,9 @@ export interface paths {
                     "application/json": {
                         /** @enum {string} */
                         period: "weekly" | "monthly";
+                        /** Format: date */
+                        periodStart?: string;
+                        timeZone?: string;
                     };
                 };
             };
@@ -336,6 +732,1396 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weeks/{week}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    week: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: date */
+                            week: string;
+                            focus: string;
+                            locked: boolean;
+                            protect: {
+                                sat?: boolean;
+                                sun?: boolean;
+                                wed?: boolean;
+                                fri?: boolean;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    week: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        focus?: string;
+                        locked?: boolean;
+                        protect?: {
+                            sat?: boolean;
+                            sun?: boolean;
+                            wed?: boolean;
+                            fri?: boolean;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: date */
+                            week: string;
+                            focus: string;
+                            locked: boolean;
+                            protect: {
+                                sat?: boolean;
+                                sun?: boolean;
+                                wed?: boolean;
+                                fri?: boolean;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weeks/{week}/life": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    week: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: {
+                                [key: string]: {
+                                    plan?: {
+                                        /** @enum {string} */
+                                        cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                                        title: string;
+                                        note?: string;
+                                        /** Format: uuid */
+                                        taskId?: string;
+                                        /** @enum {string} */
+                                        protect?: "sat" | "sun" | "wed" | "fri";
+                                    };
+                                    act?: {
+                                        /** @enum {string} */
+                                        cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                                        title: string;
+                                        note?: string;
+                                        /** @enum {string} */
+                                        status: "asplan" | "changed" | "skipped";
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weeks/{week}/life/{day}/{block}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    week: string;
+                    day: "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+                    block: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        value: {
+                            /** @enum {string} */
+                            cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                            title: string;
+                            note?: string;
+                            /** Format: uuid */
+                            taskId?: string;
+                        } | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            plan?: {
+                                /** @enum {string} */
+                                cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                                title: string;
+                                note?: string;
+                                /** Format: uuid */
+                                taskId?: string;
+                                /** @enum {string} */
+                                protect?: "sat" | "sun" | "wed" | "fri";
+                            };
+                            act?: {
+                                /** @enum {string} */
+                                cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                                title: string;
+                                note?: string;
+                                /** @enum {string} */
+                                status: "asplan" | "changed" | "skipped";
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weeks/{week}/life/{day}/{block}/act": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    week: string;
+                    day: "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+                    block: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        value: {
+                            /** @enum {string} */
+                            cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                            title: string;
+                            note?: string;
+                            /** @enum {string} */
+                            status: "asplan" | "changed" | "skipped";
+                        } | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            plan?: {
+                                /** @enum {string} */
+                                cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                                title: string;
+                                note?: string;
+                                /** Format: uuid */
+                                taskId?: string;
+                                /** @enum {string} */
+                                protect?: "sat" | "sun" | "wed" | "fri";
+                            };
+                            act?: {
+                                /** @enum {string} */
+                                cat: "sleep" | "career" | "rest" | "church" | "exercise" | "games" | "meal" | "other";
+                                title: string;
+                                note?: string;
+                                /** @enum {string} */
+                                status: "asplan" | "changed" | "skipped";
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    week: string;
+                    domain?: "career" | "finance" | "personal-data" | "life";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            week: string;
+                            /** Format: date */
+                            date?: string;
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            text: string;
+                            /** @enum {string} */
+                            kind?: "snapshot" | "publish";
+                            done: boolean;
+                            note?: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    force?: "1";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        week: string;
+                        /** Format: date */
+                        date?: string;
+                        /** @enum {string} */
+                        domain: "career" | "finance" | "personal-data" | "life";
+                        text: string;
+                        /** @enum {string} */
+                        kind?: "snapshot" | "publish";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            week: string;
+                            /** Format: date */
+                            date?: string;
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            text: string;
+                            /** @enum {string} */
+                            kind?: "snapshot" | "publish";
+                            done: boolean;
+                            note?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: {
+                    force?: "1";
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        week?: string;
+                        /** Format: date */
+                        date?: string | null;
+                        /** @enum {string} */
+                        domain?: "career" | "finance" | "personal-data" | "life";
+                        text?: string;
+                        /** @enum {string} */
+                        kind?: "snapshot" | "publish";
+                        done?: boolean;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            week: string;
+                            /** Format: date */
+                            date?: string;
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            text: string;
+                            /** @enum {string} */
+                            kind?: "snapshot" | "publish";
+                            done: boolean;
+                            note?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/tasks/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            week: string;
+                            /** Format: date */
+                            date?: string;
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            text: string;
+                            /** @enum {string} */
+                            kind?: "snapshot" | "publish";
+                            done: boolean;
+                            note?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tasks/{id}/carry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    force?: "1";
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        toWeek: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            week: string;
+                            /** Format: date */
+                            date?: string;
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            text: string;
+                            /** @enum {string} */
+                            kind?: "snapshot" | "publish";
+                            done: boolean;
+                            note?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            week: string;
+                            /** Format: date */
+                            date?: string;
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            text: string;
+                            /** @enum {string} */
+                            kind?: "snapshot" | "publish";
+                            done: boolean;
+                            note?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    week: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            domains: {
+                                /** @enum {string} */
+                                domain: "career" | "finance" | "personal-data" | "life";
+                                /** @enum {string} */
+                                status: "blocked" | "overloaded" | "neglected" | "attention" | "on-track";
+                                reason: string;
+                                total: number;
+                                cap: number;
+                                done: number;
+                                open: number;
+                                next: {
+                                    id: string;
+                                    text: string;
+                                    /** @enum {string} */
+                                    kind?: "snapshot" | "publish";
+                                } | null;
+                                sourceIds: string[];
+                            }[];
+                            sourceAlerts: {
+                                id: string;
+                                name: string;
+                                /** Format: date-time */
+                                lastGoodReadAt: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/domains/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    week: string;
+                };
+                header?: never;
+                path: {
+                    id: "career" | "finance" | "personal-data" | "life";
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            domain: "career" | "finance" | "personal-data" | "life";
+                            /** @enum {string} */
+                            status: "blocked" | "overloaded" | "neglected" | "attention" | "on-track";
+                            reason: string;
+                            total: number;
+                            cap: number;
+                            done: number;
+                            open: number;
+                            next: {
+                                id: string;
+                                text: string;
+                                /** @enum {string} */
+                                kind?: "snapshot" | "publish";
+                            } | null;
+                            sourceIds: string[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/review-drafts/{period}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    period: "weekly" | "monthly";
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            draft: {
+                                /** @enum {string} */
+                                period: "weekly" | "monthly";
+                                /** Format: date-time */
+                                rangeStart: string;
+                                /** Format: date-time */
+                                rangeEnd: string;
+                                draft: string;
+                                decisions?: string;
+                            } | null;
+                        };
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: {
+                    ifAbsent?: "1";
+                };
+                header?: never;
+                path: {
+                    period: "weekly" | "monthly";
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        period: "weekly" | "monthly";
+                        /** Format: date-time */
+                        rangeStart: string;
+                        /** Format: date-time */
+                        rangeEnd: string;
+                        draft: string;
+                        decisions?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            period: "weekly" | "monthly";
+                            /** Format: date-time */
+                            rangeStart: string;
+                            /** Format: date-time */
+                            rangeEnd: string;
+                            draft: string;
+                            decisions?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/review-entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    period: "weekly" | "monthly";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            period: "weekly" | "monthly";
+                            /** Format: date-time */
+                            rangeStart: string;
+                            /** Format: date-time */
+                            rangeEnd: string;
+                            draft: string;
+                            decisions?: string;
+                            /** Format: date-time */
+                            finalizedAt: string;
+                            /** Format: uuid */
+                            id: string;
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        period: "weekly" | "monthly";
+                        /** Format: date-time */
+                        rangeStart: string;
+                        /** Format: date-time */
+                        rangeEnd: string;
+                        draft: string;
+                        decisions?: string;
+                        /** Format: date-time */
+                        finalizedAt?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            period: "weekly" | "monthly";
+                            /** Format: date-time */
+                            rangeStart: string;
+                            /** Format: date-time */
+                            rangeEnd: string;
+                            draft: string;
+                            decisions?: string;
+                            /** Format: date-time */
+                            finalizedAt: string;
+                            /** Format: uuid */
+                            id: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            period: "weekly" | "monthly";
+                            /** Format: date-time */
+                            rangeStart: string;
+                            /** Format: date-time */
+                            rangeEnd: string;
+                            draft: string;
+                            decisions?: string;
+                            /** Format: date-time */
+                            finalizedAt: string;
+                            /** Format: uuid */
+                            id: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/finance/snapshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            date: string;
+                            cash: number;
+                            investments: number;
+                            savings: number;
+                            other: number;
+                            total: number;
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        date: string;
+                        /** Format: date */
+                        week: string;
+                        cash: number;
+                        investments: number;
+                        savings: number;
+                        other: number;
+                        /** Format: uuid */
+                        taskId?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            date: string;
+                            cash: number;
+                            investments: number;
+                            savings: number;
+                            other: number;
+                            total: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** Format: date */
+                            date: string;
+                            cash: number;
+                            investments: number;
+                            savings: number;
+                            other: number;
+                            total: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            reviewDefault: "weekly" | "monthly";
+                        };
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        reviewDefault: "weekly" | "monthly";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            reviewDefault: "weekly" | "monthly";
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;

@@ -27,6 +27,16 @@ export function useDomainRollups() {
   return useQuery({ queryKey: ['domains'], queryFn: () => api.getDomains() });
 }
 
+export function useHomeStatus(week?: string) {
+  const api = useApi();
+  return useQuery({ queryKey: ['home-status', week], queryFn: () => api.getHomeStatus(week ?? ''), enabled: Boolean(week) });
+}
+
+export function useDomainStatus(domain: DomainId, week?: string) {
+  const api = useApi();
+  return useQuery({ queryKey: ['domain-status', domain, week], queryFn: () => api.getDomainStatus(domainApiIds[domain], week ?? ''), enabled: Boolean(week) });
+}
+
 export function useSignals() {
   const api = useApi();
   return useQuery({ queryKey: ['signals'], queryFn: () => api.getSignals() });
@@ -44,6 +54,16 @@ export function useDomainSignals(domain: DomainId) {
 export function useRegistry() {
   const api = useApi();
   return useQuery({ queryKey: ['registry'], queryFn: () => api.getRegistry() });
+}
+
+export function useSourceHealth() {
+  const api = useApi();
+  return useQuery({ queryKey: ['source-health'], queryFn: () => api.getSourceHealth() });
+}
+
+export function useSnapshots() {
+  const api = useApi();
+  return useQuery({ queryKey: ['snapshots'], queryFn: () => api.getSnapshots() });
 }
 
 export function useDomainSnapshots(domain: DomainId) {

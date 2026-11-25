@@ -1,5 +1,5 @@
-export type PrimaryTab = 'home' | 'review' | 'mcp';
-export type AppTab = PrimaryTab | 'domain';
+export type PrimaryTab = 'home' | 'plan' | 'review' | 'registry';
+export type AppTab = PrimaryTab | 'domain' | 'settings';
 export type DomainId = 'career' | 'finance' | 'pdata' | 'life';
 export type Theme = 'dark' | 'light';
 export type ReviewMode = 'weekly' | 'monthly';

@@ -1,12 +1,21 @@
+import { DatabaseSync } from 'node:sqlite';
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import type { Writable } from 'node:stream';
 import Fastify from 'fastify';
+import { initializeRegistryStore, mergeRegistry } from '@productiveme/sync/registry';
 import swagger from '@fastify/swagger';
-import { computeSignals, DOMAIN_IDS, parseRegistry } from '@productiveme/core';
+import { computeSignals, DOMAIN_IDS, SOURCE_DOMAIN_IDS, parseRegistry, type RegistryEntry, type Snapshot } from '@productiveme/core';
 import { createInference, InferenceError, parseInferenceConfig, type InferenceProvider } from './inference.js';
-import { buildReviewPrompt, reviewRange, type ReviewPeriod } from './reviews.js';
-import { loadLatestSnapshots, summarizeDomains } from './snapshots.js';
+import { buildReviewPrompt, calendarReviewRange, reviewRange, type ReviewPeriod } from './reviews.js';
+import { registerSourceRoutes } from './source-routes.js';
+import { registerFinanceRoutes } from './finance-routes.js';
+import { registerSettingsRoutes } from './settings-routes.js';
+import { registerPlanningRoutes } from './planning-routes.js';
+import { registerReviewRecords } from './review-records.js';
+import { registerWeeklyStatusRoutes } from './weekly-status.js';
+import { registerTaskRoutes } from './task-routes.js';
+import { loadLatestSnapshots, loadSourceHealth, summarizeDomains } from './snapshots.js';
 
 const registryEntrySchema = {
   type: 'object',
@@ -14,7 +23,7 @@ const registryEntrySchema = {
   properties: {
     id: { type: 'string' }, name: { type: 'string' },
     kind: { type: 'string', enum: ['repo', 'notion-page', 'folder', 'tool', 'project'] },
-    domain: { type: 'string', enum: DOMAIN_IDS }, subdomain: { type: 'string' },
+    domain: { type: 'string', enum: SOURCE_DOMAIN_IDS }, subdomain: { type: 'string' },
     locator: { type: 'string' }, connector: { type: 'string' },
     cadence: { type: 'string', enum: ['weekly', 'monthly', 'quarterly'] },
   },
@@ -61,17 +70,38 @@ const domainRollupSchema = {
   },
 } as const;
 
+const sourceHealthSchema = {
+  type: 'object',
+  required: ['id', 'status', 'lastAttemptAt', 'lastGoodReadAt', 'canRetry'],
+  properties: {
+    id: { type: 'string' },
+    status: { type: 'string', enum: ['idle', 'live', 'down'] },
+    lastAttemptAt: { type: ['string', 'null'], format: 'date-time' },
+    lastGoodReadAt: { type: ['string', 'null'], format: 'date-time' },
+    canRetry: { type: 'boolean' },
+  },
+} as const;
+
+const sourceRetryError = {
+  type: 'object',
+  required: ['code', 'message'],
+  properties: { code: { type: 'string' }, message: { type: 'string' } },
+} as const;
+
 export interface BuildAppOptions {
   registryPath: string;
   snapshotDir?: string;
+  statePath?: string;
   now?: () => string;
   loggerStream?: Writable;
+  retrySource?: (entry: RegistryEntry) => Promise<Snapshot>;
+  testSource?: (entry: RegistryEntry) => Promise<boolean>;
   inference?: InferenceProvider;
   inferenceConfig?: ReturnType<typeof parseInferenceConfig>;
 }
 
-export async function buildApp({ registryPath, snapshotDir = join(dirname(registryPath), 'snapshots'), now = () => new Date().toISOString(), loggerStream, inference, inferenceConfig = parseInferenceConfig() }: BuildAppOptions) {
-  const entries = parseRegistry(await readFile(registryPath, 'utf8'));
+export async function buildApp({ registryPath, snapshotDir = join(dirname(registryPath), 'snapshots'), now = () => new Date().toISOString(), loggerStream, retrySource, testSource, statePath = ':memory:', inference, inferenceConfig = parseInferenceConfig() }: BuildAppOptions) {
+  const base = parseRegistry(await readFile(registryPath, 'utf8'));
   const reviewInference = inference ?? createInference(inferenceConfig);
   const app = Fastify({
     logger: {
@@ -87,7 +117,46 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
     openapi: { info: { title: 'ProductiveME API', version: '0.1.0' }, openapi: '3.0.3' },
   });
 
-  app.get('/registry', { schema: { response: { 200: { type: 'array', items: registryEntrySchema } } } }, async () => entries);
+  const db = new DatabaseSync(statePath);
+  db.exec('PRAGMA busy_timeout = 5000');
+  app.addHook('onClose', async () => db.close());
+  initializeRegistryStore(db);
+  const listEntries = () => mergeRegistry(base, db);
+  registerSourceRoutes(app, db, listEntries, registryEntrySchema, testSource);
+  app.get('/registry', { schema: { response: { 200: { type: 'array', items: registryEntrySchema } } } }, async () => listEntries());
+  let retryInProgress = false;
+  app.get('/sources', {
+    schema: { response: { 200: { type: 'array', items: sourceHealthSchema } } },
+  }, async () => {
+    const entries = listEntries();
+    return (await loadSourceHealth(snapshotDir, entries)).map((state) => ({
+      ...state, canRetry: retrySource !== undefined && entries.find(({ id }) => id === state.id)?.connector !== 'link',
+    }));
+  });
+  app.post<{ Params: { id: string } }>('/sources/:id/retry', {
+    schema: {
+      params: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } },
+      response: { 200: sourceHealthSchema, 404: sourceRetryError, 409: sourceRetryError, 503: sourceRetryError },
+    },
+  }, async (request, reply) => {
+    const entry = listEntries().find(({ id }) => id === request.params.id);
+    if (!entry) return reply.code(404).send({ code: 'source_not_found', message: 'Source was not found.' });
+    if (!retrySource || entry.connector === 'link') return reply.code(503).send({ code: 'retry_disabled', message: 'Source retry is disabled.' });
+    if (retryInProgress) return reply.code(409).send({ code: 'retry_busy', message: 'Another source retry is running.' });
+    retryInProgress = true;
+    try {
+      const run = await retrySource(entry);
+      const [state] = await loadSourceHealth(snapshotDir, [entry]);
+      if (state?.lastAttemptAt && Date.parse(state.lastAttemptAt) >= Date.parse(run.fetchedAt)) {
+        return { ...state, canRetry: true };
+      }
+    } catch {
+      // A failed write or unexpected connector failure must not appear as a completed retry.
+    } finally {
+      retryInProgress = false;
+    }
+    return reply.code(503).send({ code: 'retry_unavailable', message: 'The sync attempt could not be recorded.' });
+  });
   app.get('/healthz', {
     schema: { response: { 200: { type: 'object', required: ['status'], properties: { status: { type: 'string', enum: ['ok'] } } } } },
   }, async () => ({ status: 'ok' }));
@@ -100,15 +169,18 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
       },
     },
   }, async (request) => {
+    const entries = listEntries();
     const domain = (request.query as { domain?: (typeof DOMAIN_IDS)[number] }).domain;
     return loadLatestSnapshots(snapshotDir, entries, domain, now());
   });
   app.get('/signals', { schema: { response: { 200: { type: 'array', items: signalSchema } } } }, async () => {
+    const entries = listEntries();
     const currentTime = now();
     const snapshots = await loadLatestSnapshots(snapshotDir, entries, undefined, currentTime);
     return computeSignals(entries, snapshots, currentTime);
   });
   app.get('/domains', { schema: { response: { 200: { type: 'array', items: domainRollupSchema } } } }, async () => {
+    const entries = listEntries();
     const snapshots = await loadLatestSnapshots(snapshotDir, entries, undefined, now());
     return summarizeDomains(entries, snapshots);
   });
@@ -116,7 +188,7 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
     schema: {
       body: {
         type: 'object', required: ['period'], additionalProperties: false,
-        properties: { period: { type: 'string', enum: ['weekly', 'monthly'] } },
+        properties: { period: { type: 'string', enum: ['weekly', 'monthly'] }, periodStart: { type: 'string', format: 'date' }, timeZone: { type: 'string', maxLength: 100 } },
       },
       response: {
         200: { type: 'object', required: ['period', 'rangeStart', 'rangeEnd', 'draft'], properties: {
@@ -130,8 +202,11 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
       },
     },
   }, async (request, reply) => {
-    const period = (request.body as { period: ReviewPeriod }).period;
-    const range = reviewRange(period, now());
+    const { period, periodStart, timeZone } = request.body as { period: ReviewPeriod; periodStart?: string; timeZone?: string };
+    const currentTime = now();
+    const range = periodStart ? calendarReviewRange(period, periodStart, currentTime, timeZone) : reviewRange(period, currentTime);
+    if (!range) return reply.code(400).send({ statusCode: 400, error: 'Bad Request', message: 'Review period must start on a valid calendar boundary.' });
+    const entries = listEntries();
     const snapshots = await loadLatestSnapshots(snapshotDir, entries, undefined, range.end);
     const signals = computeSignals(entries, snapshots, range.end);
     const availableContextTokens = inferenceConfig.contextTokens - inferenceConfig.maxOutputTokens;
@@ -155,6 +230,15 @@ export async function buildApp({ registryPath, snapshotDir = join(dirname(regist
       return reply.code(failure.status).send({ code: failure.code, message: failure.message });
     }
   });
+  const assignments = registerPlanningRoutes(app, db);
+  const taskStore = registerTaskRoutes(app, db, assignments);
+  registerWeeklyStatusRoutes(app, async (week) => {
+    const entries = listEntries();
+    return { entries, health: await loadSourceHealth(snapshotDir, entries), tasks: taskStore.list(week) };
+  });
+  registerReviewRecords(app, db, now);
+  registerFinanceRoutes(app, db);
+  registerSettingsRoutes(app, db);
   app.get('/openapi.json', async () => app.swagger());
   app.setNotFoundHandler((request, reply) => {
     request.log.warn('Route not found');

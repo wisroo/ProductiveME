@@ -8,6 +8,569 @@
     "schemas": {}
   },
   "paths": {
+    "/sources": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "domain",
+                  "locator",
+                  "connector"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "domain": {
+                    "type": "string",
+                    "enum": [
+                      "career",
+                      "finance",
+                      "personal-data",
+                      "life",
+                      "tools"
+                    ]
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  },
+                  "connector": {
+                    "type": "string",
+                    "enum": [
+                      "github",
+                      "notion",
+                      "notion-data-source",
+                      "managed-folder",
+                      "link"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "kind",
+                    "domain",
+                    "locator",
+                    "connector"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "repo",
+                        "notion-page",
+                        "folder",
+                        "tool",
+                        "project"
+                      ]
+                    },
+                    "domain": {
+                      "type": "string",
+                      "enum": [
+                        "career",
+                        "finance",
+                        "personal-data",
+                        "life",
+                        "tools"
+                      ]
+                    },
+                    "subdomain": {
+                      "type": "string"
+                    },
+                    "locator": {
+                      "type": "string"
+                    },
+                    "connector": {
+                      "type": "string"
+                    },
+                    "cadence": {
+                      "type": "string",
+                      "enum": [
+                        "weekly",
+                        "monthly",
+                        "quarterly"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "status",
+                      "lastAttemptAt",
+                      "lastGoodReadAt",
+                      "canRetry"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "idle",
+                          "live",
+                          "down"
+                        ]
+                      },
+                      "lastAttemptAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                      },
+                      "lastGoodReadAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                      },
+                      "canRetry": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sources/{id}": {
+      "patch": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "domain": {
+                    "type": "string",
+                    "enum": [
+                      "career",
+                      "finance",
+                      "personal-data",
+                      "life",
+                      "tools"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "kind",
+                    "domain",
+                    "locator",
+                    "connector"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "repo",
+                        "notion-page",
+                        "folder",
+                        "tool",
+                        "project"
+                      ]
+                    },
+                    "domain": {
+                      "type": "string",
+                      "enum": [
+                        "career",
+                        "finance",
+                        "personal-data",
+                        "life",
+                        "tools"
+                      ]
+                    },
+                    "subdomain": {
+                      "type": "string"
+                    },
+                    "locator": {
+                      "type": "string"
+                    },
+                    "connector": {
+                      "type": "string"
+                    },
+                    "cadence": {
+                      "type": "string",
+                      "enum": [
+                        "weekly",
+                        "monthly",
+                        "quarterly"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sources/test": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "domain",
+                  "locator",
+                  "connector"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "domain": {
+                    "type": "string",
+                    "enum": [
+                      "career",
+                      "finance",
+                      "personal-data",
+                      "life",
+                      "tools"
+                    ]
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  },
+                  "connector": {
+                    "type": "string",
+                    "enum": [
+                      "github",
+                      "notion",
+                      "notion-data-source",
+                      "managed-folder",
+                      "link"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "reachable"
+                  ],
+                  "properties": {
+                    "reachable": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/registry": {
       "get": {
         "responses": {
@@ -50,7 +613,8 @@
                           "career",
                           "finance",
                           "personal-data",
-                          "life"
+                          "life",
+                          "tools"
                         ]
                       },
                       "subdomain": {
@@ -70,6 +634,131 @@
                           "quarterly"
                         ]
                       }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sources/{id}/retry": {
+      "post": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "status",
+                    "lastAttemptAt",
+                    "lastGoodReadAt",
+                    "canRetry"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "idle",
+                        "live",
+                        "down"
+                      ]
+                    },
+                    "lastAttemptAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "lastGoodReadAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "canRetry": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
                     }
                   }
                 }
@@ -352,6 +1041,14 @@
                       "weekly",
                       "monthly"
                     ]
+                  },
+                  "periodStart": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "timeZone": {
+                    "type": "string",
+                    "maxLength": 100
                   }
                 }
               }
@@ -476,6 +1173,2764 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weeks/{week}/plan": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "in": "path",
+            "name": "week",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "week",
+                    "focus",
+                    "locked",
+                    "protect"
+                  ],
+                  "properties": {
+                    "week": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "focus": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "locked": {
+                      "type": "boolean"
+                    },
+                    "protect": {
+                      "type": "object",
+                      "properties": {
+                        "sat": {
+                          "type": "boolean"
+                        },
+                        "sun": {
+                          "type": "boolean"
+                        },
+                        "wed": {
+                          "type": "boolean"
+                        },
+                        "fri": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "focus": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "locked": {
+                    "type": "boolean"
+                  },
+                  "protect": {
+                    "type": "object",
+                    "properties": {
+                      "sat": {
+                        "type": "boolean"
+                      },
+                      "sun": {
+                        "type": "boolean"
+                      },
+                      "wed": {
+                        "type": "boolean"
+                      },
+                      "fri": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "in": "path",
+            "name": "week",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "week",
+                    "focus",
+                    "locked",
+                    "protect"
+                  ],
+                  "properties": {
+                    "week": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "focus": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "locked": {
+                      "type": "boolean"
+                    },
+                    "protect": {
+                      "type": "object",
+                      "properties": {
+                        "sat": {
+                          "type": "boolean"
+                        },
+                        "sun": {
+                          "type": "boolean"
+                        },
+                        "wed": {
+                          "type": "boolean"
+                        },
+                        "fri": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weeks/{week}/life": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "in": "path",
+            "name": "week",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "plan": {
+                          "type": "object",
+                          "required": [
+                            "cat",
+                            "title"
+                          ],
+                          "additionalProperties": false,
+                          "properties": {
+                            "cat": {
+                              "type": "string",
+                              "enum": [
+                                "sleep",
+                                "career",
+                                "rest",
+                                "church",
+                                "exercise",
+                                "games",
+                                "meal",
+                                "other"
+                              ]
+                            },
+                            "title": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 500
+                            },
+                            "note": {
+                              "type": "string",
+                              "maxLength": 4000
+                            },
+                            "taskId": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "protect": {
+                              "type": "string",
+                              "enum": [
+                                "sat",
+                                "sun",
+                                "wed",
+                                "fri"
+                              ]
+                            }
+                          }
+                        },
+                        "act": {
+                          "type": "object",
+                          "required": [
+                            "cat",
+                            "title",
+                            "status"
+                          ],
+                          "additionalProperties": false,
+                          "properties": {
+                            "cat": {
+                              "type": "string",
+                              "enum": [
+                                "sleep",
+                                "career",
+                                "rest",
+                                "church",
+                                "exercise",
+                                "games",
+                                "meal",
+                                "other"
+                              ]
+                            },
+                            "title": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 500
+                            },
+                            "note": {
+                              "type": "string",
+                              "maxLength": 4000
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "asplan",
+                                "changed",
+                                "skipped"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weeks/{week}/life/{day}/{block}/plan": {
+      "put": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "value"
+                ],
+                "properties": {
+                  "value": {
+                    "type": "object",
+                    "required": [
+                      "cat",
+                      "title"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "cat": {
+                        "type": "string",
+                        "enum": [
+                          "sleep",
+                          "career",
+                          "rest",
+                          "church",
+                          "exercise",
+                          "games",
+                          "meal",
+                          "other"
+                        ]
+                      },
+                      "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "note": {
+                        "type": "string",
+                        "maxLength": 4000
+                      },
+                      "taskId": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "in": "path",
+            "name": "week",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ]
+            },
+            "in": "path",
+            "name": "day",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 11
+            },
+            "in": "path",
+            "name": "block",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "plan": {
+                      "type": "object",
+                      "required": [
+                        "cat",
+                        "title"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "cat": {
+                          "type": "string",
+                          "enum": [
+                            "sleep",
+                            "career",
+                            "rest",
+                            "church",
+                            "exercise",
+                            "games",
+                            "meal",
+                            "other"
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "note": {
+                          "type": "string",
+                          "maxLength": 4000
+                        },
+                        "taskId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "protect": {
+                          "type": "string",
+                          "enum": [
+                            "sat",
+                            "sun",
+                            "wed",
+                            "fri"
+                          ]
+                        }
+                      }
+                    },
+                    "act": {
+                      "type": "object",
+                      "required": [
+                        "cat",
+                        "title",
+                        "status"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "cat": {
+                          "type": "string",
+                          "enum": [
+                            "sleep",
+                            "career",
+                            "rest",
+                            "church",
+                            "exercise",
+                            "games",
+                            "meal",
+                            "other"
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "note": {
+                          "type": "string",
+                          "maxLength": 4000
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "asplan",
+                            "changed",
+                            "skipped"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weeks/{week}/life/{day}/{block}/act": {
+      "put": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "value"
+                ],
+                "properties": {
+                  "value": {
+                    "type": "object",
+                    "required": [
+                      "cat",
+                      "title",
+                      "status"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "cat": {
+                        "type": "string",
+                        "enum": [
+                          "sleep",
+                          "career",
+                          "rest",
+                          "church",
+                          "exercise",
+                          "games",
+                          "meal",
+                          "other"
+                        ]
+                      },
+                      "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "note": {
+                        "type": "string",
+                        "maxLength": 4000
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "asplan",
+                          "changed",
+                          "skipped"
+                        ]
+                      }
+                    },
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "in": "path",
+            "name": "week",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ]
+            },
+            "in": "path",
+            "name": "day",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 11
+            },
+            "in": "path",
+            "name": "block",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "plan": {
+                      "type": "object",
+                      "required": [
+                        "cat",
+                        "title"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "cat": {
+                          "type": "string",
+                          "enum": [
+                            "sleep",
+                            "career",
+                            "rest",
+                            "church",
+                            "exercise",
+                            "games",
+                            "meal",
+                            "other"
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "note": {
+                          "type": "string",
+                          "maxLength": 4000
+                        },
+                        "taskId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "protect": {
+                          "type": "string",
+                          "enum": [
+                            "sat",
+                            "sun",
+                            "wed",
+                            "fri"
+                          ]
+                        }
+                      }
+                    },
+                    "act": {
+                      "type": "object",
+                      "required": [
+                        "cat",
+                        "title",
+                        "status"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "cat": {
+                          "type": "string",
+                          "enum": [
+                            "sleep",
+                            "career",
+                            "rest",
+                            "church",
+                            "exercise",
+                            "games",
+                            "meal",
+                            "other"
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "note": {
+                          "type": "string",
+                          "maxLength": 4000
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "asplan",
+                            "changed",
+                            "skipped"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "in": "query",
+            "name": "week",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "career",
+                "finance",
+                "personal-data",
+                "life"
+              ]
+            },
+            "in": "query",
+            "name": "domain",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "week",
+                      "domain",
+                      "text",
+                      "done"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "week": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "date": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "domain": {
+                        "type": "string",
+                        "enum": [
+                          "career",
+                          "finance",
+                          "personal-data",
+                          "life"
+                        ]
+                      },
+                      "text": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "snapshot",
+                          "publish"
+                        ]
+                      },
+                      "done": {
+                        "type": "boolean"
+                      },
+                      "note": {
+                        "type": "string",
+                        "maxLength": 4000
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "week",
+                  "domain",
+                  "text"
+                ],
+                "properties": {
+                  "week": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "domain": {
+                    "type": "string",
+                    "enum": [
+                      "career",
+                      "finance",
+                      "personal-data",
+                      "life"
+                    ]
+                  },
+                  "text": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "snapshot",
+                      "publish"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "in": "query",
+            "name": "force",
+            "required": false
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "week",
+                    "domain",
+                    "text",
+                    "done"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "week": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "date": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "domain": {
+                      "type": "string",
+                      "enum": [
+                        "career",
+                        "finance",
+                        "personal-data",
+                        "life"
+                      ]
+                    },
+                    "text": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "snapshot",
+                        "publish"
+                      ]
+                    },
+                    "done": {
+                      "type": "boolean"
+                    },
+                    "note": {
+                      "type": "string",
+                      "maxLength": 4000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/{id}": {
+      "patch": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": false,
+                "properties": {
+                  "week": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "date": {
+                    "type": "string",
+                    "format": "date",
+                    "nullable": true
+                  },
+                  "domain": {
+                    "type": "string",
+                    "enum": [
+                      "career",
+                      "finance",
+                      "personal-data",
+                      "life"
+                    ]
+                  },
+                  "text": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "snapshot",
+                      "publish"
+                    ]
+                  },
+                  "done": {
+                    "type": "boolean"
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "in": "query",
+            "name": "force",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "week",
+                    "domain",
+                    "text",
+                    "done"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "week": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "date": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "domain": {
+                      "type": "string",
+                      "enum": [
+                        "career",
+                        "finance",
+                        "personal-data",
+                        "life"
+                      ]
+                    },
+                    "text": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "snapshot",
+                        "publish"
+                      ]
+                    },
+                    "done": {
+                      "type": "boolean"
+                    },
+                    "note": {
+                      "type": "string",
+                      "maxLength": 4000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/tasks/{id}/restore": {
+      "post": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "week",
+                    "domain",
+                    "text",
+                    "done"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "week": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "date": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "domain": {
+                      "type": "string",
+                      "enum": [
+                        "career",
+                        "finance",
+                        "personal-data",
+                        "life"
+                      ]
+                    },
+                    "text": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "snapshot",
+                        "publish"
+                      ]
+                    },
+                    "done": {
+                      "type": "boolean"
+                    },
+                    "note": {
+                      "type": "string",
+                      "maxLength": 4000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/{id}/carry": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "toWeek"
+                ],
+                "properties": {
+                  "toWeek": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "in": "query",
+            "name": "force",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "week",
+                    "domain",
+                    "text",
+                    "done"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "week": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "date": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "domain": {
+                      "type": "string",
+                      "enum": [
+                        "career",
+                        "finance",
+                        "personal-data",
+                        "life"
+                      ]
+                    },
+                    "text": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "snapshot",
+                        "publish"
+                      ]
+                    },
+                    "done": {
+                      "type": "boolean"
+                    },
+                    "note": {
+                      "type": "string",
+                      "maxLength": 4000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "week",
+                    "domain",
+                    "text",
+                    "done"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "week": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "date": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "domain": {
+                      "type": "string",
+                      "enum": [
+                        "career",
+                        "finance",
+                        "personal-data",
+                        "life"
+                      ]
+                    },
+                    "text": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "snapshot",
+                        "publish"
+                      ]
+                    },
+                    "done": {
+                      "type": "boolean"
+                    },
+                    "note": {
+                      "type": "string",
+                      "maxLength": 4000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/home": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "in": "query",
+            "name": "week",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "domains",
+                    "sourceAlerts"
+                  ],
+                  "properties": {
+                    "domains": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "domain",
+                          "status",
+                          "reason",
+                          "total",
+                          "cap",
+                          "done",
+                          "open",
+                          "next",
+                          "sourceIds"
+                        ],
+                        "properties": {
+                          "domain": {
+                            "type": "string",
+                            "enum": [
+                              "career",
+                              "finance",
+                              "personal-data",
+                              "life"
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "blocked",
+                              "overloaded",
+                              "neglected",
+                              "attention",
+                              "on-track"
+                            ]
+                          },
+                          "reason": {
+                            "type": "string"
+                          },
+                          "total": {
+                            "type": "integer"
+                          },
+                          "cap": {
+                            "type": "integer"
+                          },
+                          "done": {
+                            "type": "integer"
+                          },
+                          "open": {
+                            "type": "integer"
+                          },
+                          "next": {
+                            "type": "object",
+                            "required": [
+                              "id",
+                              "text"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "text": {
+                                "type": "string"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "snapshot",
+                                  "publish"
+                                ]
+                              }
+                            },
+                            "nullable": true
+                          },
+                          "sourceIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "sourceAlerts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name",
+                          "lastGoodReadAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "lastGoodReadAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/domains/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "in": "query",
+            "name": "week",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "career",
+                "finance",
+                "personal-data",
+                "life"
+              ]
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "domain",
+                    "status",
+                    "reason",
+                    "total",
+                    "cap",
+                    "done",
+                    "open",
+                    "next",
+                    "sourceIds"
+                  ],
+                  "properties": {
+                    "domain": {
+                      "type": "string",
+                      "enum": [
+                        "career",
+                        "finance",
+                        "personal-data",
+                        "life"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "blocked",
+                        "overloaded",
+                        "neglected",
+                        "attention",
+                        "on-track"
+                      ]
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "cap": {
+                      "type": "integer"
+                    },
+                    "done": {
+                      "type": "integer"
+                    },
+                    "open": {
+                      "type": "integer"
+                    },
+                    "next": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "text"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "text": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "snapshot",
+                            "publish"
+                          ]
+                        }
+                      },
+                      "nullable": true
+                    },
+                    "sourceIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/review-drafts/{period}": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "weekly",
+                "monthly"
+              ]
+            },
+            "in": "path",
+            "name": "period",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "draft"
+                  ],
+                  "properties": {
+                    "draft": {
+                      "type": "object",
+                      "required": [
+                        "period",
+                        "rangeStart",
+                        "rangeEnd",
+                        "draft"
+                      ],
+                      "properties": {
+                        "period": {
+                          "type": "string",
+                          "enum": [
+                            "weekly",
+                            "monthly"
+                          ]
+                        },
+                        "rangeStart": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "rangeEnd": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "draft": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 20000
+                        },
+                        "decisions": {
+                          "type": "string",
+                          "maxLength": 6000
+                        }
+                      },
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "period",
+                  "rangeStart",
+                  "rangeEnd",
+                  "draft"
+                ],
+                "properties": {
+                  "period": {
+                    "type": "string",
+                    "enum": [
+                      "weekly",
+                      "monthly"
+                    ]
+                  },
+                  "rangeStart": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "rangeEnd": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "draft": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20000
+                  },
+                  "decisions": {
+                    "type": "string",
+                    "maxLength": 6000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "in": "query",
+            "name": "ifAbsent",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "weekly",
+                "monthly"
+              ]
+            },
+            "in": "path",
+            "name": "period",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "period",
+                    "rangeStart",
+                    "rangeEnd",
+                    "draft"
+                  ],
+                  "properties": {
+                    "period": {
+                      "type": "string",
+                      "enum": [
+                        "weekly",
+                        "monthly"
+                      ]
+                    },
+                    "rangeStart": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "rangeEnd": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "draft": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 20000
+                    },
+                    "decisions": {
+                      "type": "string",
+                      "maxLength": 6000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/review-entries": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "weekly",
+                "monthly"
+              ]
+            },
+            "in": "query",
+            "name": "period",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "period",
+                      "rangeStart",
+                      "rangeEnd",
+                      "draft",
+                      "id",
+                      "finalizedAt"
+                    ],
+                    "properties": {
+                      "period": {
+                        "type": "string",
+                        "enum": [
+                          "weekly",
+                          "monthly"
+                        ]
+                      },
+                      "rangeStart": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "rangeEnd": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "draft": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 20000
+                      },
+                      "decisions": {
+                        "type": "string",
+                        "maxLength": 6000
+                      },
+                      "finalizedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "period",
+                  "rangeStart",
+                  "rangeEnd",
+                  "draft"
+                ],
+                "properties": {
+                  "period": {
+                    "type": "string",
+                    "enum": [
+                      "weekly",
+                      "monthly"
+                    ]
+                  },
+                  "rangeStart": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "rangeEnd": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "draft": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20000
+                  },
+                  "decisions": {
+                    "type": "string",
+                    "maxLength": 6000
+                  },
+                  "finalizedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "period",
+                    "rangeStart",
+                    "rangeEnd",
+                    "draft",
+                    "id",
+                    "finalizedAt"
+                  ],
+                  "properties": {
+                    "period": {
+                      "type": "string",
+                      "enum": [
+                        "weekly",
+                        "monthly"
+                      ]
+                    },
+                    "rangeStart": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "rangeEnd": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "draft": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 20000
+                    },
+                    "decisions": {
+                      "type": "string",
+                      "maxLength": 6000
+                    },
+                    "finalizedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "period",
+                    "rangeStart",
+                    "rangeEnd",
+                    "draft",
+                    "id",
+                    "finalizedAt"
+                  ],
+                  "properties": {
+                    "period": {
+                      "type": "string",
+                      "enum": [
+                        "weekly",
+                        "monthly"
+                      ]
+                    },
+                    "rangeStart": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "rangeEnd": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "draft": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 20000
+                    },
+                    "decisions": {
+                      "type": "string",
+                      "maxLength": 6000
+                    },
+                    "finalizedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/finance/snapshots": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "total",
+                      "date",
+                      "cash",
+                      "investments",
+                      "savings",
+                      "other"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "date": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "cash": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "investments": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "savings": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "other": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "total": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "week",
+                  "date",
+                  "cash",
+                  "investments",
+                  "savings",
+                  "other"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "week": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "cash": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000000000
+                  },
+                  "investments": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000000000
+                  },
+                  "savings": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000000000
+                  },
+                  "other": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000000000
+                  },
+                  "taskId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "total",
+                    "date",
+                    "cash",
+                    "investments",
+                    "savings",
+                    "other"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "cash": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "investments": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "savings": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "other": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "total",
+                    "date",
+                    "cash",
+                    "investments",
+                    "savings",
+                    "other"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "cash": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "investments": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "savings": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "other": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/settings": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "reviewDefault"
+                  ],
+                  "properties": {
+                    "reviewDefault": {
+                      "type": "string",
+                      "enum": [
+                        "weekly",
+                        "monthly"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reviewDefault"
+                ],
+                "properties": {
+                  "reviewDefault": {
+                    "type": "string",
+                    "enum": [
+                      "weekly",
+                      "monthly"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "reviewDefault"
+                  ],
+                  "properties": {
+                    "reviewDefault": {
+                      "type": "string",
+                      "enum": [
+                        "weekly",
+                        "monthly"
+                      ]
                     }
                   }
                 }

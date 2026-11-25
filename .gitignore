@@ -6,3 +6,5 @@ coverage/
 snapshots/
 
 .env
+
+.productiveme/
